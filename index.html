@@ -132,9 +132,10 @@
   @media (orientation:landscape) and (max-height:520px) { #rotate { display:flex; } }
 
   /* ---------- Menu ve oyun secimi ---------- */
-  .screen { position:fixed; inset:0; z-index:10; display:flex; flex-direction:column; align-items:center; justify-content:center;
-    gap:14px; padding:24px; text-align:center; overflow:hidden;
+  .screen { position:fixed; inset:0; z-index:10; display:flex; flex-direction:column; align-items:center; justify-content:flex-start;
+    gap:14px; padding:20px 20px 24px; text-align:center; overflow-y:auto; overflow-x:hidden; touch-action:pan-y;
     background:radial-gradient(120% 80% at 50% 0%, #1a2350 0%, var(--bg) 70%); }
+  .inner { margin:auto 0; width:100%; max-width:430px; display:flex; flex-direction:column; align-items:center; gap:12px; }
   .screen.hidden { display:none; }
   .screen::before, .screen::after { content:''; position:absolute; width:60vmin; height:60vmin; border-radius:50%; filter:blur(40px);
     opacity:.35; pointer-events:none; animation:drift 12s ease-in-out infinite alternate; }
@@ -160,17 +161,64 @@
     padding:16px 40px; box-shadow:0 5px 0 #1f9566; }
   button.alt { background:linear-gradient(180deg,#ffd76a,#ffb703); border-color:#fff; color:#2a1800; font-size:22px;
     padding:14px 34px; box-shadow:0 5px 0 #b97f00; }
-  #sound { font-size:15px; padding:9px 16px; }
+  button.sm { font-size:15px; padding:9px 16px; }
+  button:disabled { opacity:.4; cursor:default; }
+  .tag { opacity:.8; font-size:14px; margin-top:-6px; }
+  .mdesc { opacity:.8; font-size:13px; line-height:1.35; max-width:34ch; min-height:2.6em; }
+  .row.wrap { flex-wrap:wrap; justify-content:center; }
+  #mode-row button { font-size:15px; padding:9px 13px; }
+  #round-row button { font-size:18px; padding:10px 18px; }
+  @media (max-height:700px) { .screen h1 { font-size:46px; } .go { padding:12px 34px !important; } .alt { padding:10px 30px !important; } }
 
-  #picker { justify-content:flex-start; overflow-y:auto; touch-action:pan-y; padding-top:max(18px, env(safe-area-inset-top)); }
-  #picker .ptop { width:100%; display:flex; align-items:center; gap:14px; }
-  #picker .ptop button { font-size:16px; padding:8px 14px; }
+  #picker { padding-bottom:0; }
+  .ptop { width:100%; display:flex; align-items:center; gap:14px; }
+  .ptop button { font-size:16px; padding:8px 14px; }
   #pinfo { opacity:.8; font-size:14px; align-self:flex-start; }
+  #picker .inner { max-width:560px; }
   #cards { width:100%; display:grid; grid-template-columns:repeat(2, 1fr); gap:12px; padding-bottom:24px; }
   .gcard { text-align:left; display:flex; flex-direction:column; gap:4px; padding:12px; font-size:15px; border-radius:16px;
     background:linear-gradient(160deg, hsl(var(--h) 55% 30%), hsl(var(--h) 45% 16%)); border:2px solid hsl(var(--h) 70% 58%);
     box-shadow:0 4px 0 hsl(var(--h) 50% 10%), 0 0 18px hsl(var(--h) 70% 40% / .35); }
+  .gcard { position:relative; }
   .gcard:active { box-shadow:0 1px 0 hsl(var(--h) 50% 10%); }
+  .gcard.on { outline:3px solid #fff; outline-offset:-3px; filter:brightness(1.25); }
+  .gcard.on::after { content:'✓'; position:absolute; top:8px; right:8px; width:24px; height:24px; border-radius:50%;
+    background:#3ddc97; color:#08101f; font-weight:900; display:flex; align-items:center; justify-content:center; }
+  #pbar { position:sticky; bottom:0; margin-top:auto; width:calc(100% + 40px); margin-left:-20px; padding:10px 20px calc(10px + env(safe-area-inset-bottom));
+    display:flex; align-items:center; justify-content:space-between; gap:12px; z-index:3;
+    background:linear-gradient(180deg, rgba(11,16,32,0), #0b1020 35%); }
+  #pbar .go { font-size:18px; padding:10px 24px; }
+
+  .setlist { width:100%; display:flex; flex-direction:column; gap:10px; text-align:left; }
+  .setrow { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 14px; border-radius:14px;
+    background:linear-gradient(160deg, rgba(255,255,255,.1), rgba(255,255,255,.04)); border:1px solid rgba(255,255,255,.14); font-weight:700; }
+  .setrow button { font-size:15px; padding:7px 14px; min-width:76px; }
+  #vol-row button { min-width:0; padding:7px 10px; }
+  #names { display:flex; flex-direction:column; gap:8px; }
+  .nrow { display:flex; align-items:center; gap:10px; }
+  .nrow i { width:14px; height:34px; border-radius:7px; background:var(--c); flex:none; }
+  input, textarea { font:inherit; color:var(--ink); background:rgba(0,0,0,.35); border:2px solid #4452a0; border-radius:12px;
+    padding:9px 12px; font-size:16px; width:100%; user-select:text; -webkit-user-select:text; touch-action:auto; }
+  input:focus, textarea:focus { outline:none; border-color:#7cc4ff; }
+
+  /* ---------- Duraklatma ---------- */
+  #ptabs.hidden { display:none; }
+  .ptab { position:fixed; top:50%; transform:translateY(-50%); z-index:7; width:30px; height:60px; padding:0; font-size:16px;
+    background:rgba(8,10,20,.55); border:1px solid rgba(255,255,255,.3); box-shadow:none; opacity:.8; }
+  .ptab:active { transform:translateY(-50%); box-shadow:none; }
+  #ptab-l { left:0; border-radius:0 14px 14px 0; border-left:0; }
+  #ptab-r { right:0; border-radius:14px 0 0 14px; border-right:0; }
+  #pause { position:fixed; inset:0; z-index:20; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:34px;
+    background:rgba(5,7,15,.84); backdrop-filter:blur(5px); }
+  #pause.hidden { display:none; }
+  .pblock { display:flex; flex-direction:column; align-items:center; gap:12px; }
+  .pblock.flip { transform:rotate(180deg); }
+  .pblock .ttl { font-size:26px; font-weight:900; }
+  .pblock .row button { font-size:18px; padding:10px 18px; }
+  body.paused *, body.paused *::before, body.paused *::after { animation-play-state:paused !important; }
+  .deadmask { position:absolute; inset:0; z-index:6; background:rgba(10,12,20,.74); display:flex; align-items:center; justify-content:center;
+    font-size:clamp(26px, 8vmin, 44px); font-weight:900; color:#fca5a5; text-shadow:none; }
+
   .gcard .ic { font-size:34px; line-height:1; }
   .gcard .nm2 { font-size:16px; font-weight:900; }
   .gcard .ht { font-size:12px; font-weight:500; opacity:.8; line-height:1.3; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
@@ -238,31 +286,68 @@
 <div id="hud" class="hidden"></div>
 <div id="rotate">📱 Telefonu dikey tut</div>
 
-<div id="menu" class="screen">
+<div id="menu" class="screen"><div class="inner">
   <h1>DOKUN!</h1>
-  <p>Aynı telefonu paylaşan arkadaşlar için hızlı mini oyunlar. Herkes kendi bölgesine dokunur.</p>
+  <div class="tag">Aynı telefonu paylaşan arkadaşlar için hızlı mini oyunlar</div>
   <div class="lbl">Oyuncu sayısı</div>
   <div class="row" id="count-row">
     <button data-n="2" class="sel">2</button>
     <button data-n="3">3</button>
     <button data-n="4">4</button>
   </div>
-  <div class="lbl">Tur sayısı</div>
-  <div class="row" id="round-row">
-    <button data-r="3">3</button>
-    <button data-r="5">5</button>
-    <button data-r="8" class="sel">8</button>
-    <button data-r="12">12</button>
+  <div class="lbl">Mod</div>
+  <div class="row wrap" id="mode-row">
+    <button data-m="klasik" class="sel">Klasik</button>
+    <button data-m="yaris">Yarış</button>
+    <button data-m="can">Hayatta Kal</button>
+    <button data-m="takim">Takım</button>
   </div>
+  <div class="mdesc" id="mode-desc"></div>
+  <div class="lbl" id="val-label">Tur sayısı</div>
+  <div class="row" id="round-row"></div>
   <button class="go" id="start">🎲 Karışık Maç</button>
   <button class="alt" id="pick-btn">🎮 Oyun Seç</button>
-  <button id="sound">🔊 Ses ve titreşim: Açık</button>
-</div>
+  <div class="row">
+    <button id="set-btn" class="sm">⚙ Ayarlar</button>
+  </div>
+</div></div>
 
-<div id="picker" class="screen hidden">
+<div id="picker" class="screen hidden"><div class="inner">
   <div class="ptop"><button id="back">‹ Geri</button><h2>Oyun Seç</h2></div>
   <div id="pinfo"></div>
+  <div class="row"><button id="sel-all" class="sm">Tümünü seç</button><button id="sel-none" class="sm">Temizle</button></div>
   <div id="cards"></div>
+</div>
+<div id="pbar"><span id="pcount">0 oyun seçili</span><button class="go" id="play-sel" disabled>▶ Oyna</button></div>
+</div>
+
+<div id="settings" class="screen hidden"><div class="inner">
+  <div class="ptop"><button id="set-back">‹ Geri</button><h2>Ayarlar</h2></div>
+  <div class="setlist">
+    <div class="setrow"><span>🔊 Ses efektleri</span><button class="tog" data-k="sfx"></button></div>
+    <div class="setrow"><span>📳 Titreşim</span><button class="tog" data-k="vib"></button></div>
+    <div class="setrow"><span>🎵 Müzik</span><button class="tog" data-k="music"></button></div>
+    <div class="setrow"><span>🎚 Müzik sesi</span>
+      <div class="row" id="vol-row"><button data-v="1">Düşük</button><button data-v="2">Orta</button><button data-v="3">Yüksek</button></div></div>
+    <div class="setrow"><span>💡 Ekran açık kalsın</span><button class="tog" data-k="wake"></button></div>
+    <div class="lbl" style="margin-top:6px">Oyuncu adları</div>
+    <div id="names">
+      <label class="nrow" style="--c:#ff5a5f"><i></i><input maxlength="10" data-i="0" placeholder="Oyuncu 1"></label>
+      <label class="nrow" style="--c:#3ddc97"><i></i><input maxlength="10" data-i="1" placeholder="Oyuncu 2"></label>
+      <label class="nrow" style="--c:#4dabf7"><i></i><input maxlength="10" data-i="2" placeholder="Oyuncu 3"></label>
+      <label class="nrow" style="--c:#ffd43b"><i></i><input maxlength="10" data-i="3" placeholder="Oyuncu 4"></label>
+    </div>
+  </div>
+</div></div>
+
+<div id="ptabs" class="hidden">
+  <button class="ptab" id="ptab-l" aria-label="Duraklat">⏸</button>
+  <button class="ptab" id="ptab-r" aria-label="Duraklat">⏸</button>
+</div>
+
+<div id="pause" class="hidden">
+  <div class="pblock flip"><div class="ttl">⏸ Duraklatıldı</div><div class="row"><button data-a="resume">▶ Devam</button><button data-a="quit">☰ Menü</button></div></div>
+  <div class="pblock"><div class="ttl">⏸ Duraklatıldı</div><div class="row"><button data-a="resume">▶ Devam</button><button data-a="quit">☰ Menü</button></div></div>
 </div>
 
 <div id="endbar" class="hidden">
@@ -274,23 +359,51 @@
 (() => {
   const COLORS = ['#ff5a5f', '#3ddc97', '#4dabf7', '#ffd43b'];
   const $ = s => document.querySelector(s);
-  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  // ---------- Sanal saat: duraklatinca tum zamanlayicilar (geri sayim, balonlar, sureler) gercekten donar ----------
+  const vt = (() => {
+    const nst = window.setTimeout.bind(window), nct = window.clearTimeout.bind(window);
+    let paused = false, offset = 0, pausedAt = 0, seq = 0;
+    const timers = new Map();
+    const vnow = () => (paused ? pausedAt : performance.now()) - offset;
+    const arm = (t, delay) => { t.due = vnow() + delay; t.h = nst(() => fire(t), delay); };
+    const fire = t => { if (t.rep) arm(t, t.ms); else timers.delete(t.id); t.fn(); };
+    const add = (fn, ms, rep) => { const t = { id: ++seq, fn, ms, rep }; timers.set(t.id, t); if (paused) t.left = ms; else arm(t, ms); return t.id; };
+    return {
+      now: vnow,
+      timeout: (fn, ms) => add(fn, ms, false),
+      interval: (fn, ms) => add(fn, ms, true),
+      clear: id => { const t = timers.get(id); if (t) { nct(t.h); timers.delete(id); } },
+      clearAll: () => { timers.forEach(t => nct(t.h)); timers.clear(); },
+      get paused() { return paused; },
+      pause() { if (paused) return; pausedAt = performance.now(); paused = true; timers.forEach(t => { nct(t.h); t.left = Math.max(0, t.due - (pausedAt - offset)); }); },
+      resume() { if (!paused) return; offset += performance.now() - pausedAt; paused = false; timers.forEach(t => arm(t, t.left)); },
+    };
+  })();
+  const sleep = ms => new Promise(r => vt.timeout(r, ms));
 
   const board = $('#board'), hud = $('#hud'), menu = $('#menu');
-  let mode = { type: 'mix', game: null };
-  let N = 2, ROUNDS = 8, scores = [], zones = [], handler = null, upHandler = null;
+  let N = 2, scores = [], zones = [], handler = null, upHandler = null;
+  let modeKey = 'klasik', lives = [], dead = [], elim = [];
+  const modeVal = { klasik: 8, yaris: 5, can: 3, takim: 8 };
+  const esc = t => String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
-  // ---------- Ses (Web Audio, dosya yok) ve titresim ----------
+  // ---------- Ayarlar ----------
+  const prefs = { sfx: true, vib: true, music: true, vol: 2, wake: true, names: ['', '', '', ''] };
+  try { Object.assign(prefs, JSON.parse(localStorage.getItem('dokun-ayar') || '{}')); } catch (_) {}
+  prefs.names = [0, 1, 2, 3].map(i => String((prefs.names || [])[i] || '').slice(0, 10));
+  const savePrefs = () => { try { localStorage.setItem('dokun-ayar', JSON.stringify(prefs)); } catch (_) {} };
+  const nameOf = i => prefs.names[i] || ('Oyuncu ' + (i + 1));
+
+  // ---------- Ses efektleri (Web Audio, dosya yok) ve titresim ----------
   const fx = (() => {
-    let ctx = null, on = true;
-    try { on = localStorage.getItem('dokun-ses') !== 'kapali'; } catch (_) {}
+    let ctx = null;
     const ensure = () => {
-      if (!on) return null;
       if (!ctx) { const C = window.AudioContext || window.webkitAudioContext; if (!C) return null; ctx = new C(); }
       if (ctx.state === 'suspended') ctx.resume();
       return ctx;
     };
     const tone = (freq, dur, o = {}) => {
+      if (!prefs.sfx) return;
       const c = ensure(); if (!c) return;
       const { type = 'sine', vol = 0.2, at = 0, slide = 0 } = o;
       const t = c.currentTime + at, osc = c.createOscillator(), g = c.createGain();
@@ -303,16 +416,12 @@
       osc.connect(g); g.connect(c.destination);
       osc.start(t); osc.stop(t + dur + 0.02);
     };
-    const vib = pattern => { if (on && navigator.vibrate) { try { navigator.vibrate(pattern); } catch (_) {} } };
+    const vib = pattern => { if (prefs.vib && navigator.vibrate) { try { navigator.vibrate(pattern); } catch (_) {} } };
     return {
-      get on() { return on; },
+      get on() { return prefs.sfx; },
+      get ctx() { return ctx; },
       unlock: ensure,
-      toggle() {
-        on = !on;
-        try { localStorage.setItem('dokun-ses', on ? 'acik' : 'kapali'); } catch (_) {}
-        if (on) { tone(660, 0.08); vib(30); }
-        return on;
-      },
+      preview() { tone(660, 0.08); vib(30); },
       tick()  { tone(900, 0.04, { type: 'square', vol: 0.04 }); vib(8); },
       count() { tone(520, 0.12, { type: 'triangle', vol: 0.2 }); vib(12); },
       hit()   { tone(660, 0.07, { vol: 0.15 }); tone(990, 0.09, { at: 0.06, vol: 0.15 }); vib(20); },
@@ -325,6 +434,66 @@
     };
   })();
   document.addEventListener('pointerdown', () => fx.unlock(), { passive: true });
+
+  // ---------- Arka plan muzigi: sakin, yormayan, kodla uretilir (yavas arpej + yumusak pad) ----------
+  const music = (() => {
+    const CH = [[48, 52, 55, 59], [45, 48, 52, 55], [41, 45, 48, 52], [43, 47, 50, 52]];   // Cmaj7 - Am7 - Fmaj7 - G6
+    const hz = n => 440 * Math.pow(2, (n - 69) / 12);
+    const VOL = [0, 0.05, 0.09, 0.15];
+    let master = null, timer = null, nextT = 0, step = 0, active = false, ducked = false;
+    const level = () => (prefs.music && active ? VOL[prefs.vol] * (ducked ? 0.2 : 1) : 0.0001);
+    const graph = () => {
+      const c = fx.unlock(); if (!c) return null;
+      if (!master) {
+        master = c.createGain(); master.gain.value = 0.0001;
+        const f = c.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 1100;
+        master.connect(f); f.connect(c.destination);
+      }
+      return c;
+    };
+    const apply = () => { if (master) { master.gain.cancelScheduledValues(fx.ctx.currentTime); master.gain.setTargetAtTime(level(), fx.ctx.currentTime, 0.45); } };
+    const note = (c, f, t, dur, type, vol, atk) => {
+      const o = c.createOscillator(), g = c.createGain();
+      o.type = type; o.frequency.value = f;
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.linearRampToValueAtTime(vol, t + atk);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g); g.connect(master); o.start(t); o.stop(t + dur + 0.05);
+    };
+    const schedule = () => {
+      const c = fx.ctx; if (!c || !active || !prefs.music || ducked) return;
+      if (nextT < c.currentTime) nextT = c.currentTime + 0.05;
+      while (nextT < c.currentTime + 1.2) {
+        const ch = CH[Math.floor(step / 8) % CH.length], k = step % 8;
+        if (k === 0) { note(c, hz(ch[0] - 12), nextT, 6.4, 'sine', 0.5, 1.4); note(c, hz(ch[2] - 12), nextT, 6.4, 'sine', 0.32, 1.8); }
+        if (Math.random() > 0.2) note(c, hz(ch[[0, 1, 2, 3, 2, 1, 3, 2][k]] + 12), nextT, 2.4, 'triangle', 0.3, 0.05);
+        if (k === 4 && Math.random() > 0.5) note(c, hz(ch[3] + 24), nextT, 3, 'sine', 0.1, 0.08);
+        nextT += 0.8; step++;
+      }
+    };
+    return {
+      get active() { return active; },
+      start() {
+        if (!prefs.music) return;
+        const c = graph(); if (!c) return;
+        active = true; ducked = false; step = 0; nextT = c.currentTime + 0.1;
+        if (!timer) timer = setInterval(schedule, 250);
+        apply(); schedule();
+      },
+      stop() { active = false; apply(); if (timer) { clearInterval(timer); timer = null; } },
+      duck(v) { ducked = v; apply(); if (!v) schedule(); },
+      volume() { apply(); },
+    };
+  })();
+
+  // ---------- Ekran uyanik kalsin ----------
+  const wake = (() => {
+    let lock = null;
+    return {
+      async on() { if (!prefs.wake || !navigator.wakeLock) return; try { lock = await navigator.wakeLock.request('screen'); } catch (_) {} },
+      off() { try { if (lock) lock.release(); } catch (_) {} lock = null; },
+    };
+  })();
 
   // ---------- Gorsel efektler ----------
   const ripple = (z, e, flipped) => {
@@ -359,11 +528,12 @@
       const z = document.createElement('div');
       z.className = 'zone';
       z.style.setProperty('--c', COLORS[i]);
-      const flipped = N === 2 ? i === 0 : i < 2;       // ust siradaki oyuncular karsidan oynar
+      const flipped = N === 1 ? false : N === 2 ? i === 0 : i < 2;       // ust siradaki oyuncular karsidan oynar
       if (flipped) z.classList.add('flip');
-      z.innerHTML = '<div class="head"><span class="nm">Oyuncu ' + (i + 1) + '</span><span class="gname"></span><span class="score">0</span></div><div class="body"></div>';
+      z.innerHTML = '<div class="head"><span class="nm">' + esc(nameOf(i)) + '</span><span class="gname"></span><span class="score">0</span></div><div class="body"></div>';
       z.addEventListener('pointerdown', e => {
         e.preventDefault();
+        if (vt.paused || dead[i]) return;
         try { z.setPointerCapture(e.pointerId); } catch (_) {}
         ripple(z, e, flipped);
         if (handler) { fx.tick(); handler(i, e); }
@@ -377,11 +547,17 @@
   }
   const body = (i, html) => { zones[i].querySelector('.body').innerHTML = html; };
   const setS = (i, s) => { zones[i].dataset.s = s || ''; };
+  const teamOf = i => (i < 2 ? 0 : 1);
+  const teamScore = i => scores.reduce((a, s, k) => a + (teamOf(k) === teamOf(i) ? s : 0), 0);
+  const chip = i => modeKey === 'can' ? (dead[i] ? '☠' : '❤' + lives[i]) : modeKey === 'takim' ? teamScore(i) : scores[i];
   const showScores = () => zones.forEach((z, i) => {
-    const el = z.querySelector('.score');
-    if (el.textContent != scores[i]) { el.textContent = scores[i]; el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); }
+    const el = z.querySelector('.score'), v = String(chip(i));
+    if (el.textContent !== v) { el.textContent = v; el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); }
   });
-  const resetZones = () => zones.forEach((z, i) => { setS(i, ''); body(i, ''); z.classList.remove('sky'); z.querySelector('.body').classList.remove('fill'); });
+  const resetZones = () => zones.forEach((z, i) => {
+    setS(i, ''); body(i, ''); z.classList.remove('sky'); z.querySelector('.body').classList.remove('fill');
+    z.querySelectorAll('.deadmask').forEach(m => m.remove());
+  });
   const arena = (i, html) => { const b = zones[i].querySelector('.body'); b.classList.add('fill'); b.innerHTML = html; };
   const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
   const topScorers = arr => { const m = Math.max(...arr); return m > 0 ? arr.map((v, i) => v === m ? i : -1).filter(i => i >= 0) : []; };
@@ -408,12 +584,12 @@
         }
         winner = i; finish();
       };
-      setTimeout(() => {
+      vt.timeout(() => {
         if (done) return;
         go = true;
         zones.forEach((_, i) => { if (!out.has(i)) { setS(i, 'sig'); body(i, 'DOKUN!'); } });
         fx.go();
-        setTimeout(() => { if (!done) finish(); }, 3000);
+        vt.timeout(() => { if (!done) finish(); }, 3000);
       }, 1500 + Math.random() * 2500);
     });
     handler = null;
@@ -427,9 +603,9 @@
     zones.forEach((_, i) => { setS(i, 'go'); body(i, '0'); });
     fx.go();
     handler = i => { c[i]++; body(i, c[i]); };
-    const end = performance.now() + 5000;
-    while (performance.now() < end) {
-      say('Çılgınca dokun!', Math.ceil((end - performance.now()) / 1000) + ' sn');
+    const end = vt.now() + 5000;
+    while (vt.now() < end) {
+      say('Çılgınca dokun!', Math.ceil((end - vt.now()) / 1000) + ' sn');
       await sleep(100);
     }
     handler = null;
@@ -446,7 +622,7 @@
     const phase = zones.map(() => Math.random() * 2);
     const pos = Array(N).fill(null);
     const posAt = (i, t) => { const x = (t / 1000 * speed[i] + phase[i]) % 2; return x < 1 ? x : 2 - x; };
-    const t0 = performance.now();
+    const t0 = vt.now();
     const mk = i => zones[i].querySelector('.mk');
     const mkLeft = p => 'calc(18px + (100% - 36px) * ' + p + ')';
     await new Promise(res => {
@@ -454,12 +630,13 @@
       const finish = () => { cancelAnimationFrame(raf); res(); };
       handler = i => {
         if (pos[i] !== null) return;
-        pos[i] = posAt(i, performance.now() - t0);
+        pos[i] = posAt(i, vt.now() - t0);
         mk(i).style.left = mkLeft(pos[i]);
-        if (pos.every(p => p !== null)) setTimeout(finish, 300);
+        if (pos.every(p => p !== null)) vt.timeout(finish, 300);
       };
       const tick = () => {
-        const t = performance.now() - t0;
+        if (!zones[0] || !zones[0].isConnected) { cancelAnimationFrame(raf); return; }
+        const t = vt.now() - t0;
         zones.forEach((_, i) => { if (pos[i] === null) mk(i).style.left = mkLeft(posAt(i, t)); });
         if (t > 6000) { finish(); return; }
         raf = requestAnimationFrame(tick);
@@ -495,7 +672,7 @@
         zones[i].querySelector('.cnt').textContent = cnt[i] + '/' + GOAL;
         if (cnt[i] >= GOAL) { winner = i; res(); } else place(i);
       };
-      setTimeout(res, 15000);
+      vt.timeout(res, 15000);
     });
     handler = null;
     return winner >= 0 ? [winner] : topScorers(cnt);
@@ -518,7 +695,7 @@
         e.target.classList.add('done'); fx.hit();
         if (++next[i] > 6) { winner = i; res(); }
       };
-      setTimeout(res, 15000);
+      vt.timeout(res, 15000);
     });
     handler = null;
     return winner >= 0 ? [winner] : topScorers(next.map(v => v - 1));
@@ -541,9 +718,9 @@
         if (winner >= 0 || lock[i] || e.target.dataset.odd === undefined) return;
         if (e.target.dataset.odd === '1') { winner = i; res(); return; }
         lock[i] = true; setS(i, 'out'); fx.bad();                  // yanlis dokunus: 1,2 sn ceza
-        setTimeout(() => { lock[i] = false; if (winner < 0) setS(i, 'go'); }, 1200);
+        vt.timeout(() => { lock[i] = false; if (winner < 0) setS(i, 'go'); }, 1200);
       };
-      setTimeout(res, 12000);
+      vt.timeout(res, 12000);
     });
     handler = null;
     return winner >= 0 ? [winner] : [];
@@ -554,20 +731,20 @@
     zones.forEach((_, i) => body(i, 'Basılı tut<div class="sub">3 sn dolunca bırak</div>'));
     await new Promise(res => {
       let timer;
-      const done = () => { clearInterval(timer); res(); };
-      handler = i => { if (st[i] === null) { st[i] = performance.now(); setS(i, 'go'); } };
+      const done = () => { vt.clear(timer); res(); };
+      handler = i => { if (st[i] === null) { st[i] = vt.now(); setS(i, 'go'); } };
       upHandler = i => {
         if (st[i] === null || en[i] !== null) return;
-        en[i] = performance.now(); setS(i, ''); body(i, 'Bıraktın');
-        if (en.every(x => x !== null)) setTimeout(done, 300);
+        en[i] = vt.now(); setS(i, ''); body(i, 'Bıraktın');
+        if (en.every(x => x !== null)) vt.timeout(done, 300);
       };
-      timer = setInterval(() => {
-        const now = performance.now();
+      timer = vt.interval(() => {
+        const now = vt.now();
         zones.forEach((_, i) => {
           if (st[i] !== null && en[i] === null) { const t = now - st[i]; body(i, t < 1000 ? (t / 1000).toFixed(1) + ' sn' : '?'); }
         });
       }, 50);
-      setTimeout(done, 10000);
+      vt.timeout(done, 10000);
     });
     handler = null; upHandler = null;
     const err = en.map((e, i) => e === null ? Infinity : Math.abs((e - st[i]) - TARGET));
@@ -602,10 +779,10 @@
           draw(i);
         } else {
           lock[i] = true; setS(i, 'out'); fx.bad();
-          setTimeout(() => { lock[i] = false; if (winner < 0) setS(i, 'go'); }, 1000);
+          vt.timeout(() => { lock[i] = false; if (winner < 0) setS(i, 'go'); }, 1000);
         }
       };
-      setTimeout(res, timeout);
+      vt.timeout(res, timeout);
     });
     handler = null;
     return winner >= 0 ? [winner] : topScorers(cnt);
@@ -685,15 +862,15 @@
       handler = (i, e) => {
         if (winner >= 0 || lock[i]) return;
         const pad = e.target.closest('.pad'); if (!pad) return;
-        pad.classList.add('lit'); setTimeout(() => pad.classList.remove('lit'), 120);
+        pad.classList.add('lit'); vt.timeout(() => pad.classList.remove('lit'), 120);
         if (+pad.dataset.k === seq[prog[i]]) {
           if (++prog[i] >= LEN) { winner = i; res(); }
         } else {
           prog[i] = 0; lock[i] = true; setS(i, 'out'); fx.bad();
-          setTimeout(() => { lock[i] = false; if (winner < 0) setS(i, 'go'); }, 1500);
+          vt.timeout(() => { lock[i] = false; if (winner < 0) setS(i, 'go'); }, 1500);
         }
       };
-      setTimeout(res, 25000);
+      vt.timeout(res, 25000);
     });
     handler = null;
     return winner >= 0 ? [winner] : topScorers(prog);
@@ -717,7 +894,7 @@
         if (d < bd) { bd = d; best = b; }
       });
       if (!best || bd > 70) return;
-      best.dataset.dead = 1; best.classList.add('pop'); setTimeout(() => best.remove(), 160);
+      best.dataset.dead = 1; best.classList.add('pop'); vt.timeout(() => best.remove(), 160);
       if (best.dataset.bomb) { sc[i] = Math.max(0, sc[i] - 1); fx.bad(); } else { sc[i]++; fx.hit(); }
       zones[i].querySelector('.cnt').textContent = sc[i];
     };
@@ -733,10 +910,10 @@
       b.addEventListener('animationend', () => b.remove());
       a.appendChild(b);
     });
-    const timer = setInterval(spawn, 650);
+    const timer = vt.interval(spawn, 650);
     spawn();
     await sleep(10000);
-    clearInterval(timer); handler = null;
+    vt.clear(timer); handler = null;
     zones.forEach(z => z.querySelectorAll('.balloon').forEach(b => b.remove()));
     return topScorers(sc);
   }
@@ -752,23 +929,23 @@
       const c = e.target.closest('.hole');
       if (!c || !c.dataset.up) return;
       c.dataset.up = ''; c.textContent = ''; c.classList.remove('up'); c.classList.add('hit');
-      setTimeout(() => c.classList.remove('hit'), 200);
+      vt.timeout(() => c.classList.remove('hit'), 200);
       sc[i]++; fx.hit();
       zones[i].querySelector('.cnt').textContent = sc[i];
     };
-    const t0 = performance.now();
+    const t0 = vt.now();
     let alive = true;
     const tick = () => {
       if (!alive) return;
-      const life = 1200 - (performance.now() - t0) / DUR * 450;      // zamanla hizlanir
+      const life = 1200 - (vt.now() - t0) / DUR * 450;      // zamanla hizlanir
       zones.forEach(z => {
         const free = [...z.querySelectorAll('.hole')].filter(h => !h.dataset.up);
         if (!free.length) return;
         const h = free[Math.floor(Math.random() * free.length)];
         h.dataset.up = 1; h.textContent = '🐹'; h.classList.add('up');
-        setTimeout(() => { if (h.dataset.up) { h.dataset.up = ''; h.textContent = ''; h.classList.remove('up'); } }, life);
+        vt.timeout(() => { if (h.dataset.up) { h.dataset.up = ''; h.textContent = ''; h.classList.remove('up'); } }, life);
       });
-      setTimeout(tick, 520 + Math.random() * 220);
+      vt.timeout(tick, 520 + Math.random() * 220);
     };
     tick();
     await sleep(DUR);
@@ -823,13 +1000,13 @@
           if (matched[i] >= PAIRS) { winner = i; res(); }
         } else {
           lock[i] = true;
-          setTimeout(() => {
+          vt.timeout(() => {
             [f, c].forEach(x => { x.classList.remove('open'); x.textContent = '❓'; });
             lock[i] = false;
           }, 650);
         }
       };
-      setTimeout(res, 30000);
+      vt.timeout(res, 30000);
     });
     handler = null;
     return winner >= 0 ? [winner] : topScorers(matched);
@@ -855,13 +1032,11 @@
   ];
 
   // ---------- Ekranlar ----------
-  const picker = $('#picker'), endbar = $('#endbar');
-  const showScreen = name => {
-    menu.classList.toggle('hidden', name !== 'home');
-    picker.classList.toggle('hidden', name !== 'picker');
-  };
+  const picker = $('#picker'), settings = $('#settings'), endbar = $('#endbar'), pauseEl = $('#pause'), ptabs = $('#ptabs');
+  const SCREENS = { home: menu, picker, settings };
+  const showScreen = name => Object.entries(SCREENS).forEach(([k, el]) => el.classList.toggle('hidden', k !== name));
   const FLOAT = ['🎈', '🎯', '⚡', '🧠', '🐹', '🃏', '🎨', '🔢'];
-  [menu, picker].forEach(el => FLOAT.forEach((e, k) => {
+  Object.values(SCREENS).forEach(el => FLOAT.forEach((e, k) => {
     const f = document.createElement('span');
     f.className = 'float'; f.textContent = e;
     f.style.left = (6 + k * 12) + '%'; f.style.fontSize = (22 + (k % 3) * 12) + 'px';
@@ -869,7 +1044,29 @@
     el.appendChild(f);
   }));
 
+  // ---------- Modlar ----------
+  const MODES = {
+    klasik: { desc: 'Belirli sayıda tur oynanır, en çok puan alan kazanır.', label: 'Tur sayısı', opts: [3, 5, 8, 12] },
+    yaris:  { desc: 'Hedef puana ilk ulaşan kazanır.', label: 'Hedef puan', opts: [3, 5, 7] },
+    can:    { desc: 'Turu kazanmayan can kaybeder, canı biten elenir. Son kalan kazanır.', label: 'Can sayısı', opts: [1, 2, 3] },
+    takim:  { desc: '4 oyuncu: üstteki ikili alttakilere karşı. Takım puanları toplanır.', label: 'Tur sayısı', opts: [3, 5, 8, 12] },
+  };
+  function renderModeUI() {
+    if (modeKey === 'takim' && N !== 4) modeKey = 'klasik';
+    const m = MODES[modeKey];
+    [...$('#mode-row').children].forEach(b => {
+      b.classList.toggle('sel', b.dataset.m === modeKey);
+      b.disabled = b.dataset.m === 'takim' && N !== 4;
+    });
+    $('#mode-desc').textContent = m.desc + (N !== 4 ? ' (Takım modu için 4 oyuncu seç.)' : '');
+    $('#val-label').textContent = m.label;
+    $('#round-row').innerHTML = m.opts.map(v => '<button data-r="' + v + '"' + (v === modeVal[modeKey] ? ' class="sel"' : '') + '>' + v + '</button>').join('');
+  }
+
   // ---------- Oyun akisi ----------
+  let playing = false, lastPool = null;
+  const setPlaying = v => { playing = v; ptabs.classList.toggle('hidden', !v); };
+
   async function countdown() {
     for (const n of [3, 2, 1]) {
       zones.forEach((_, i) => body(i, '<div class="count">' + n + '</div>'));
@@ -877,36 +1074,64 @@
       await sleep(550);
     }
   }
+  const makeBag = pool => {
+    let bag = [], last = null;
+    return () => {
+      if (!bag.length) { bag = shuffle(pool); if (bag.length > 1 && bag[0] === last) bag.push(bag.shift()); }
+      last = bag.shift(); return last;
+    };
+  };
 
-  async function play() {
-    scores = Array(N).fill(0);
-    build();
-    showScreen(null);
-    endbar.classList.add('hidden');
-    const deck = mode.type === 'single' ? Array(ROUNDS).fill(mode.game) : shuffle(GAMES).slice(0, ROUNDS);
-    for (let r = 1; r <= deck.length; r++) {
-      const g = deck[r - 1];
+  async function play(pool) {
+    pool = pool || lastPool || GAMES; lastPool = pool;
+    if (modeKey === 'takim' && N !== 4) modeKey = 'klasik';
+    const val = modeVal[modeKey];
+    scores = Array(N).fill(0); lives = Array(N).fill(val); dead = Array(N).fill(false); elim = Array(N).fill(Infinity);
+    build(); showScreen(null); endbar.classList.add('hidden');
+    setPlaying(true); music.start(); wake.on();
+    const nextGame = makeBag(pool), single = pool.length === 1;
+    const total = (modeKey === 'yaris' || modeKey === 'can') ? 60 : (pool.length === GAMES.length ? val : Math.max(val, pool.length));
+    const open = modeKey === 'yaris' || modeKey === 'can';
+    for (let r = 1; r <= total; r++) {
+      const g = nextGame();
       resetZones(); showScores(); fx.round();
+      const lbl = open ? 'Tur ' + r : r + '/' + total;
       // dar bolgelerde (3-4 oyuncu) oyun adi sigmaz: yalnizca tur numarasi
-      zones.forEach(z => { z.querySelector('.gname').textContent = z.clientWidth >= 260 ? g.name + ' · ' + r + '/' + deck.length : r + '/' + deck.length; });
-      if (mode.type === 'mix' || r === 1) {
-        say(g.icon + ' ' + g.name + ' <small>Tur ' + r + '/' + deck.length + ' · ' + g.hint + '</small>', null, true);
+      zones.forEach(z => { z.querySelector('.gname').textContent = z.clientWidth >= 260 ? g.name + ' · ' + lbl : lbl; });
+      if (!single || r === 1) {
+        say(g.icon + ' ' + g.name + ' <small>' + (open ? 'Tur ' + r : 'Tur ' + r + '/' + total) + ' · ' + g.hint + '</small>', null, true);
         await sleep(2400);
         hud.classList.add('hidden');
       } else {
         await sleep(700);
       }
+      dead.forEach((d, i) => { if (d) { const m = document.createElement('div'); m.className = 'deadmask'; m.textContent = '☠ Elendi'; zones[i].appendChild(m); } });
       await countdown();
-      const winners = await g.run();
+      const winners = (await g.run()).filter(i => !dead[i]);
       winners.forEach(i => {
-        scores[i]++; setS(i, 'win'); burst(zones[i]);
-        const pl = document.createElement('div'); pl.className = 'plus'; pl.textContent = '+1';
+        setS(i, 'win'); burst(zones[i]);
+        const pl = document.createElement('div'); pl.className = 'plus'; pl.textContent = modeKey === 'can' ? '❤' : '+1';
         pl.addEventListener('animationend', () => pl.remove()); zones[i].appendChild(pl);
       });
+      let msg;
+      if (modeKey === 'can') {
+        const lost = [];
+        if (winners.length) dead.forEach((d, i) => { if (!d && !winners.includes(i)) { lives[i]--; if (lives[i] <= 0) { dead[i] = true; elim[i] = r; } lost.push(i); } });
+        msg = winners.length
+          ? winners.map(nameOf).join(' & ') + ' güvende' + (lost.length ? ' · ' + lost.map(i => nameOf(i) + (dead[i] ? ' ☠' : ' −❤')).join(', ') : '')
+          : 'Kimse kazanamadı, can kaybı yok';
+      } else {
+        winners.forEach(i => { scores[i]++; });
+        msg = winners.length
+          ? (modeKey === 'takim' ? [...new Set(winners.map(teamOf))].map(t => 'Takım ' + 'AB'[t]).join(' & ') + ' +' + winners.length : winners.map(nameOf).join(' & ') + ' +1')
+          : 'Kimse puan alamadı';
+      }
       showScores();
       if (winners.length) fx.win(); else fx.none();
-      say(winners.length ? winners.map(i => 'Oyuncu ' + (i + 1)).join(' & ') + ' +1' : 'Kimse puan alamadı', null, true);
+      say(msg, null, true);
       await sleep(1800);
+      if (modeKey === 'yaris' && scores.some(x => x >= val)) break;
+      if (modeKey === 'can' && dead.filter(d => !d).length <= 1) break;
     }
     await finale();
   }
@@ -914,19 +1139,23 @@
   // Bitis: kazanan bolge(ler) altin renkte yanip soner ve "KAZANAN" yazar; digerleri soner ve siralamasini gosterir.
   // Her bolgenin yazisi kendi oyuncusuna dogru donuk oldugu icin sonuc iki yonden de okunur.
   async function finale() {
+    setPlaying(false); music.stop(); wake.off();
     hud.classList.add('hidden');
     fx.fanfare();
-    const max = Math.max(...scores);
-    const win = scores.map((s, i) => s === max ? i : -1).filter(i => i >= 0);
-    const tie = win.length > 1;
-    const rank = scores.map(s => 1 + scores.filter(x => x > s).length);
+    const vals = scores.map((sc, i) => modeKey === 'can' ? (dead[i] ? elim[i] : 1e6 + lives[i]) : modeKey === 'takim' ? teamScore(i) : sc);
+    const max = Math.max(...vals);
+    const win = vals.map((v, i) => v === max ? i : -1).filter(i => i >= 0);
+    const tie = win.length > 1 && modeKey !== 'takim';
+    const rank = vals.map(v => 1 + vals.filter(x => x > v).length);
+    const subOf = i => modeKey === 'can' ? (dead[i] ? 'Elendi' : lives[i] + ' can') : modeKey === 'takim' ? 'Takım ' + 'AB'[teamOf(i)] + ' · ' + teamScore(i) + ' puan' : scores[i] + ' puan';
     zones.forEach((z, i) => {
       z.querySelector('.body').classList.remove('fill'); z.classList.remove('sky');
+      z.querySelectorAll('.deadmask').forEach(m => m.remove());
       const champ = win.includes(i);
       setS(i, champ ? 'champ' : 'lose');
       body(i, champ
-        ? '<div class="final"><div class="crown">' + (tie ? '🤝' : '👑') + '</div><div class="rank">' + (tie ? 'BERABERE' : 'KAZANAN') + '</div><div class="sub">' + scores[i] + ' puan</div></div>'
-        : '<div class="final"><div class="rank">' + rank[i] + '.</div><div class="sub">' + scores[i] + ' puan</div></div>');
+        ? '<div class="final"><div class="crown">' + (tie ? '🤝' : '👑') + '</div><div class="rank">' + (tie ? 'BERABERE' : 'KAZANAN') + '</div><div class="sub">' + subOf(i) + '</div></div>'
+        : '<div class="final"><div class="rank">' + rank[i] + '.</div><div class="sub">' + subOf(i) + '</div></div>');
     });
     win.forEach(i => burst(zones[i], 26));
     let k = 0;
@@ -935,45 +1164,112 @@
     endbar.classList.remove('hidden');
   }
 
-  // ---------- Menu ----------
-  const pickRow = (id, key) => $(id).addEventListener('click', e => {
+  // ---------- Duraklatma ----------
+  function pauseGame() {
+    if (!playing || vt.paused) return;
+    vt.pause(); document.body.classList.add('paused'); music.duck(true);
+    pauseEl.classList.remove('hidden');
+  }
+  function resumeGame() {
+    if (!vt.paused) return;
+    vt.resume(); document.body.classList.remove('paused'); music.duck(false);
+    pauseEl.classList.add('hidden');
+    pauseEl.querySelectorAll('[data-a="quit"]').forEach(b => { b.textContent = '☰ Menü'; delete b.dataset.armed; });
+  }
+  function quitMatch() {
+    vt.clearAll(); vt.resume();                        // yarim kalan turun tum zamanlayicilari silinir
+    handler = null; upHandler = null;
+    document.body.classList.remove('paused');
+    pauseEl.classList.add('hidden'); endbar.classList.add('hidden'); hud.classList.add('hidden');
+    pauseEl.querySelectorAll('[data-a="quit"]').forEach(b => { b.textContent = '☰ Menü'; delete b.dataset.armed; });
+    setPlaying(false); music.stop(); wake.off();
+    zones = []; board.innerHTML = '';
+    showScreen('home');
+  }
+  ptabs.addEventListener('click', pauseGame);
+  pauseEl.addEventListener('click', e => {
     const b = e.target.closest('button'); if (!b) return;
-    key(b);
-    [...$(id).children].forEach(x => x.classList.toggle('sel', x === b));
+    if (b.dataset.a === 'resume') return resumeGame();
+    if (b.dataset.a === 'quit') {
+      if (!b.dataset.armed) {                          // yanlislikla cikilmasin: iki dokunus
+        pauseEl.querySelectorAll('[data-a="quit"]').forEach(x => { x.textContent = 'Çıkılsın mı? ✔'; x.dataset.armed = 1; });
+        setTimeout(() => pauseEl.querySelectorAll('[data-a="quit"]').forEach(x => { if (x.dataset.armed) { x.textContent = '☰ Menü'; delete x.dataset.armed; } }), 3000);
+        return;
+      }
+      quitMatch();
+    }
   });
-  pickRow('#count-row', b => { N = +b.dataset.n; });
-  pickRow('#round-row', b => { ROUNDS = +b.dataset.r; });
-  const soundBtn = $('#sound');
-  const paintSound = () => { soundBtn.textContent = fx.on ? '🔊 Ses ve titreşim: Açık' : '🔇 Ses ve titreşim: Kapalı'; };
-  soundBtn.addEventListener('click', () => { fx.toggle(); paintSound(); });
-  paintSound();
+  document.addEventListener('visibilitychange', () => { if (document.hidden) pauseGame(); });   // arama gelince vb. otomatik duraklat
 
+  // ---------- Ana menu ----------
+  $('#count-row').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    N = +b.dataset.n;
+    [...$('#count-row').children].forEach(x => x.classList.toggle('sel', x === b));
+    renderModeUI();
+  });
+  $('#mode-row').addEventListener('click', e => { const b = e.target.closest('button'); if (!b || b.disabled) return; modeKey = b.dataset.m; renderModeUI(); });
+  $('#round-row').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    modeVal[modeKey] = +b.dataset.r;
+    [...$('#round-row').children].forEach(x => x.classList.toggle('sel', x === b));
+  });
+  $('#start').addEventListener('click', () => play(GAMES));
+
+  // ---------- Oyun sec (coklu secim) ----------
+  const sel = new Set();
   $('#cards').innerHTML = GAMES.map((g, k) =>
     '<button class="gcard" data-k="' + k + '" style="--h:' + (k * 360 / GAMES.length) + '"><span class="ic">' + g.icon + '</span>' +
     '<span class="nm2">' + g.name + '</span><span class="ht">' + g.hint + '</span></button>').join('');
+  const paintSel = () => {
+    [...$('#cards').children].forEach(c => c.classList.toggle('on', sel.has(+c.dataset.k)));
+    $('#pcount').textContent = sel.size + ' oyun seçili';
+    $('#play-sel').disabled = sel.size === 0;
+  };
   $('#cards').addEventListener('click', e => {
     const c = e.target.closest('.gcard'); if (!c) return;
-    mode = { type: 'single', game: GAMES[+c.dataset.k] };
-    play();
+    const k = +c.dataset.k; sel.has(k) ? sel.delete(k) : sel.add(k); paintSel();
   });
+  $('#sel-all').addEventListener('click', () => { GAMES.forEach((_, k) => sel.add(k)); paintSel(); });
+  $('#sel-none').addEventListener('click', () => { sel.clear(); paintSel(); });
   $('#pick-btn').addEventListener('click', () => {
-    $('#pinfo').textContent = N + ' oyuncu · ' + ROUNDS + ' tur (ayarları ana menüden değiştir)';
-    picker.scrollTop = 0;
-    showScreen('picker');
+    $('#pinfo').textContent = 'Bir ya da birden fazla oyun seç, sonra oyna.';
+    picker.scrollTop = 0; paintSel(); showScreen('picker');
   });
   $('#back').addEventListener('click', () => showScreen('home'));
-  $('#start').addEventListener('click', () => { mode = { type: 'mix', game: null }; play(); });
+  $('#play-sel').addEventListener('click', () => { if (sel.size) play([...sel].sort((a, b) => a - b).map(k => GAMES[k])); });
+
+  // ---------- Ayarlar ----------
+  const TOG = { sfx: 'Ses efektleri', vib: 'Titreşim', music: 'Müzik', wake: 'Ekran açık kalsın' };
+  const paintSettings = () => {
+    settings.querySelectorAll('.tog').forEach(b => { const on = !!prefs[b.dataset.k]; b.classList.toggle('sel', on); b.textContent = on ? 'Açık' : 'Kapalı'; });
+    [...$('#vol-row').children].forEach(b => b.classList.toggle('sel', +b.dataset.v === prefs.vol));
+    $('#names').querySelectorAll('input').forEach(inp => { inp.value = prefs.names[+inp.dataset.i]; });
+  };
+  settings.querySelectorAll('.tog').forEach(b => b.addEventListener('click', () => {
+    prefs[b.dataset.k] = !prefs[b.dataset.k]; savePrefs(); paintSettings();
+    if (b.dataset.k === 'sfx' || b.dataset.k === 'vib') fx.preview();
+  }));
+  $('#vol-row').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; prefs.vol = +b.dataset.v; savePrefs(); paintSettings(); });
+  $('#names').addEventListener('input', e => { const i = +e.target.dataset.i; prefs.names[i] = e.target.value.trim().slice(0, 10); savePrefs(); });
+  $('#set-btn').addEventListener('click', () => { paintSettings(); showScreen('settings'); });
+  $('#set-back').addEventListener('click', () => showScreen('home'));
+
+  // ---------- Bitis cubugu ----------
   endbar.addEventListener('click', e => {
     const b = e.target.closest('button'); if (!b) return;
     endbar.classList.add('hidden');
-    if (b.dataset.a === 'again') play(); else { zones = []; board.innerHTML = ''; showScreen('home'); }
+    if (b.dataset.a === 'again') play(lastPool); else { zones = []; board.innerHTML = ''; showScreen('home'); }
   });
+
+  renderModeUI();
   showScreen('home');
 
   // test icin disariya ac
-  document.addEventListener('contextmenu', e => e.preventDefault());
-  window.__dokun = { get scores() { return scores; }, get zones() { return zones; }, GAMES, resetZones, fx, say, finish: finale, burst, setS,
-    setup(n) { N = n; scores = Array(N).fill(0); build(); showScreen(null); } };
+  document.addEventListener('contextmenu', e => { if (!/INPUT|TEXTAREA/.test(e.target.tagName)) e.preventDefault(); });
+  window.__dokun = { get scores() { return scores; }, get zones() { return zones; }, get N() { return N; }, GAMES, resetZones, fx, say, finish: finale, burst, setS,
+    vt, music, prefs, pauseGame, resumeGame, quitMatch, play, nameOf,
+    setup(n) { N = n; scores = Array(N).fill(0); lives = Array(N).fill(3); dead = Array(N).fill(false); elim = Array(N).fill(Infinity); build(); showScreen(null); } };
 })();
 </script>
 </body>
