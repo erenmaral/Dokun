@@ -207,6 +207,8 @@
     background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.16); }
   .box ul { margin:0; padding-left:18px; line-height:1.6; }
   .small { font-size:13px; opacity:.85; line-height:1.4; }
+  .bigcode { font-size:52px; font-weight:900; letter-spacing:.1em; text-align:center; color:#3ddc97; text-shadow:0 0 18px rgba(61,220,151,.45); }
+  #g-short { font-size:28px; text-align:center; letter-spacing:.2em; font-weight:800; }
   textarea { resize:none; font-size:12px; font-family:ui-monospace, Menlo, Consolas, monospace; word-break:break-all; }
   #toast { position:fixed; left:50%; bottom:calc(28px + env(safe-area-inset-bottom)); transform:translateX(-50%); z-index:60;
     background:rgba(8,10,20,.96); border:1px solid rgba(255,255,255,.3); padding:10px 16px; border-radius:12px; font-weight:700;
@@ -360,12 +362,19 @@
 
 <div id="net" class="screen hidden"><div class="inner">
   <div class="ptop"><button id="net-back">‹ Geri</button><h2>Çevrimiçi</h2></div>
-  <p class="small">Her telefonda herkes kendi ekranında oynar. Bluetooth web uygulamalarında kullanılamadığı için telefonlar kod değiş tokuşuyla doğrudan birbirine bağlanır (aynı Wi-Fi'da ya da internet üzerinden). Sunucu gerekmez.</p>
+  <p class="small" id="net-note"></p>
   <div id="net-choose" class="stack">
     <button class="go" id="net-host-btn">📡 Oda kur</button>
     <button class="alt" id="net-join-btn">🔗 Odaya katıl</button>
+    <button class="sm hidden" id="net-adv"></button>
   </div>
   <div id="net-host" class="stack hidden">
+    <div id="h-lan" class="box hidden">
+      <b>Oda kodu</b>
+      <div id="lan-code" class="bigcode">…</div>
+      <div class="small" id="lan-ip"></div>
+      <div class="small">Arkadaşların aynı Wi-Fi'ya (ya da senin telefon hotspot'una) bağlıyken <b>Odaya katıl</b> deyip bu kodu girsin.</div>
+    </div>
     <div class="box"><b>Oyuncular</b><ul id="h-list"></ul></div>
     <div id="h-pair" class="box hidden">
       <b>1) Bu kodu arkadaşına gönder</b>
@@ -381,7 +390,12 @@
     <button class="go" id="h-start" disabled>▶ Maçı başlat</button>
   </div>
   <div id="net-guest" class="stack hidden">
-    <div class="box">
+    <div id="g-lan" class="box hidden">
+      <b>Oda kodunu gir</b>
+      <input id="g-short" inputmode="numeric" pattern="[0-9]*" maxlength="5" placeholder="örn. 279" autocomplete="off">
+      <button class="sm" id="g-lan-join">Bağlan</button>
+    </div>
+    <div class="box" id="g-rtc">
       <b>1) Host'un gönderdiği kodu yapıştır</b>
       <textarea id="g-code" rows="3" placeholder="Kodu buraya yapıştır"></textarea>
       <button class="sm" id="g-join">Bağlan</button>
@@ -442,7 +456,7 @@
   const board = $('#board'), hud = $('#hud'), menu = $('#menu');
   let N = 2, scores = [], zones = [], handler = null, upHandler = null;
   let modeKey = 'klasik', lives = [], dead = [], elim = [];
-  const net = { on: false, role: null, names: null, myIdx: 0, peers: [], gdc: null, pending: null, prev: null };
+  const net = { on: false, role: null, mode: 'rtc', names: null, myIdx: 0, peers: [], gdc: null, gws: null, pending: null, prev: null, lan: null, matchStarted: false };
   const modeVal = { klasik: 8, yaris: 5, can: 3, takim: 8 };
   const esc = t => String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
@@ -1428,6 +1442,72 @@
   };
   const shareText = async el => { if (navigator.share) { try { await navigator.share({ text: el.value }); return; } catch (_) {} } copyText(el); };
 
+  // ---- yerel ag (Android uygulamasi): kisa kodla dogrudan baglanti, internet ve WebRTC gerekmez ----
+  // Host telefon Wi-Fi'da kucuk bir WebSocket sunucusu acar; kod = IP'nin son iki bolumu (ornegin 192.168.1.23 -> 279).
+  // Misafir kendi IP'sinin ilk iki bolumunu kullanarak host adresini bulur ve dogrudan baglanir.
+  const LAN_PORT = 47813;
+  const lanPlugin = () => window.__dokunLan || ((window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform())
+    ? (lanPlugin.p = lanPlugin.p || window.Capacitor.registerPlugin('LanServer')) : null);
+  const lanPort = () => window.__dokunLanPort || LAN_PORT;
+  const codeFromIp = ip => { const p = ip.split('.').map(Number); return String(p[2] * 256 + p[3]); };
+  const ipFromCode = (own, code) => {
+    if (!/^\d{1,5}$/.test(code)) return null;
+    const v = parseInt(code, 10); if (v > 65535) return null;
+    const p = String(own).split('.'); return p[0] + '.' + p[1] + '.' + (v >> 8) + '.' + (v & 255);
+  };
+  let lanBound = false;
+  const lanChans = {};
+  async function hostLanStart() {
+    const L = lanPlugin(); if (!L) return false;
+    if (!lanBound) {                                    // olay dinleyicileri bir kez baglanir
+      lanBound = true;
+      L.addListener('clientOpen', e => lanOpen(e.id));
+      L.addListener('clientMessage', e => { const c = lanChans[e.id]; if (c && c.onmessage) c.onmessage({ data: e.data }); });
+      L.addListener('clientClose', e => { const c = lanChans[e.id]; if (c) { c.readyState = 'closed'; delete lanChans[e.id]; if (c.onclose) c.onclose(); } });
+    }
+    try {
+      const r = await L.start({ port: lanPort() });
+      net.lan = r;
+      $('#lan-code').textContent = codeFromIp(r.ip);
+      $('#lan-ip').textContent = 'IP: ' + r.ip;
+      return true;
+    } catch (e) { toast((e && e.message) || 'Oda kurulamadı. Wi-Fi bağlı mı?'); return false; }
+  }
+  function lanOpen(id) {
+    const L = lanPlugin();
+    const chan = { id, readyState: 'open', onmessage: null, onclose: null, send: d => L.send({ id, data: d }), close: () => L.close({ id }) };
+    const full = net.peers.filter(p => !p.gone).length >= 3;
+    if (net.role !== 'host' || net.matchStarted || full) {
+      chan.send(JSON.stringify({ t: 'bad', msg: net.matchStarted ? 'Maç zaten başladı' : 'Oda dolu' }));
+      setTimeout(() => chan.close(), 300);
+      return;
+    }
+    lanChans[id] = chan;
+    const peer = { pc: null, dc: chan, open: false, gone: false, idx: 0, name: '', waiting: null };
+    net.peers.push(peer);
+    chan.onmessage = e => { let m; try { m = JSON.parse(e.data); } catch (_) { return; } onHostMsg(peer, m); };
+    chan.onclose = () => peerGone(peer);
+  }
+  const failLan = msg => { net.on = false; net.role = null; $('#g-status').textContent = ''; toast(msg || 'Bağlanılamadı. Aynı Wi-Fi\'da mısınız, kod doğru mu?'); };
+  async function guestLan() {
+    const L = lanPlugin(); if (!L) return;
+    const code = $('#g-short').value.trim();
+    let own = null; try { own = (await L.getLocalIp()).ip; } catch (_) {}
+    if (!own) return toast('Wi-Fi\'ye bağlı değilsin');
+    const ip = ipFromCode(own, code);
+    if (!ip) return toast('Oda kodu geçersiz');
+    $('#g-status').textContent = ip + ' adresine bağlanılıyor…';
+    net.role = 'guest'; net.on = true;
+    let ws;
+    try { ws = new WebSocket('ws://' + ip + ':' + lanPort()); } catch (_) { return failLan(); }
+    const chan = { readyState: 'connecting', onmessage: null, onclose: null, send: d => ws.send(d), close: () => { try { ws.close(); } catch (_) {} } };
+    const timer = setTimeout(() => { if (chan.readyState !== 'open') { try { ws.close(); } catch (_) {} failLan(); } }, 6000);
+    ws.onopen = () => { clearTimeout(timer); chan.readyState = 'open'; net.gws = ws; wireGuest(chan, true); };
+    ws.onmessage = e => { if (chan.onmessage) chan.onmessage({ data: e.data }); };
+    ws.onerror = () => { if (chan.readyState !== 'open') { clearTimeout(timer); failLan(); } };
+    ws.onclose = () => { const was = chan.readyState === 'open'; chan.readyState = 'closed'; if (was && chan.onclose) chan.onclose(); };
+  }
+
   const livePeers = () => net.peers.filter(p => p.open && !p.gone);
   const adopt = st => { scores = st.scores.slice(); lives = st.lives.slice(); dead = st.dead.slice(); elim = st.elim.map(e => e == null ? Infinity : e); };
   const stateOut = () => ({ scores, lives, dead, elim: elim.map(e => e === Infinity ? null : e) });
@@ -1438,8 +1518,8 @@
     const peers = livePeers();
     $('#h-list').innerHTML = '<li>👤 ' + esc(nameOf(0)) + ' (sen)</li>' + peers.map(p => '<li>📱 ' + esc(p.name) + '</li>').join('');
     $('#h-start').disabled = peers.length === 0;
-    $('#h-pair').classList.toggle('hidden', !net.pending);
-    $('#h-add').classList.toggle('hidden', !!net.pending || peers.length === 0 || peers.length >= 3);
+    $('#h-pair').classList.toggle('hidden', net.mode === 'lan' || !net.pending);
+    $('#h-add').classList.toggle('hidden', net.mode === 'lan' || !!net.pending || peers.length === 0 || peers.length >= 3);
     const mn = { klasik: 'Klasik', yaris: 'Yarış', can: 'Hayatta Kal', takim: 'Klasik' }[modeKey];
     $('#h-sum').textContent = 'Mod: ' + mn + ' · ' + modeVal[modeKey === 'takim' ? 'klasik' : modeKey] + ' · ' + (sel.size ? sel.size + ' seçili oyun' : 'tüm oyunlar') + ' (ana menüden değiştirilir)';
   }
@@ -1491,6 +1571,7 @@
     const peers = livePeers();
     if (!peers.length) return toast('Önce bir arkadaşını bağla');
     if (modeKey === 'takim') modeKey = 'klasik';
+    net.matchStarted = true;
     peers.forEach((p, k) => { p.idx = k + 1; });
     const names = [nameOf(0), ...peers.map(p => p.name)], val = modeVal[modeKey], P = peers.length + 1;
     const pool = sel.size ? [...sel].sort((a, b) => a - b) : GAMES.map((_, k) => k);
@@ -1562,11 +1643,12 @@
     $('#g-ansbox').classList.remove('hidden');
     $('#g-status').textContent = 'Bu cevap kodunu host\'a gönder. Host kodu girince otomatik bağlanırsın.';
   }
-  function wireGuest(dc) {
+  function wireGuest(dc, open) {
     net.gdc = dc;
-    dc.onopen = () => jsend(dc, { t: 'hello', v: VERSION, name: prefs.names[0] });
     dc.onmessage = e => { let m; try { m = JSON.parse(e.data); } catch (_) { return; } onGuestMsg(m); };
     dc.onclose = () => { if (net.on) leaveNet('Host ile bağlantı koptu'); };
+    const hello = () => jsend(dc, { t: 'hello', v: VERSION, name: prefs.names[0] });
+    if (open) hello(); else dc.onopen = hello;
   }
   function onGuestMsg(m) {
     if (m.t === 'welcome') { $('#g-status').textContent = 'Bağlandı ✔ Host maçı başlatınca oyun başlar.'; }
@@ -1588,27 +1670,48 @@
   }
 
   function leaveNet(msg) {
-    net.peers.forEach(p => { try { p.dc && p.dc.close(); p.pc.close(); } catch (_) {} });
-    try { if (net.gdc) net.gdc.close(); if (net.gpc) net.gpc.close(); } catch (_) {}
+    net.peers.forEach(p => { try { if (p.dc) p.dc.close(); if (p.pc) p.pc.close(); } catch (_) {} });
+    try { if (net.gdc) net.gdc.close(); if (net.gws) net.gws.close(); if (net.gpc) net.gpc.close(); } catch (_) {}
+    try { if (net.lan && lanPlugin()) lanPlugin().stop(); } catch (_) {}
     const prev = net.prev;
-    Object.assign(net, { on: false, role: null, names: null, myIdx: 0, peers: [], gdc: null, gpc: null, pending: null, prev: null });
+    Object.assign(net, { on: false, role: null, names: null, myIdx: 0, peers: [], gdc: null, gws: null, gpc: null, pending: null, prev: null, lan: null, matchStarted: false });
     document.body.classList.remove('net', 'guest');
     quitMatch();                                       // zamanlayicilar, muzik ve ekranlar sifirlanir, ana menuye donulur
     if (prev) { N = prev.N; modeKey = prev.modeKey; renderModeUI(); }
     $('#net-choose').classList.remove('hidden'); $('#net-host').classList.add('hidden'); $('#net-guest').classList.add('hidden');
+    $('#h-lan').classList.add('hidden'); $('#g-lan').classList.add('hidden'); $('#g-rtc').classList.remove('hidden');
     $('#g-ansbox').classList.add('hidden'); $('#g-roster').classList.add('hidden'); $('#g-code').value = ''; $('#h-status').textContent = ''; $('#g-status').textContent = '';
     if (msg) toast(msg);
   }
 
   // ---- ag ekrani ----
-  $('#net-btn').addEventListener('click', () => { showScreen('net'); });
+  const paintNetNote = () => {
+    const native = !!lanPlugin();
+    $('#net-adv').classList.toggle('hidden', !native);
+    $('#net-adv').textContent = net.mode === 'lan' ? 'Kısa kod çalışmıyor mu? Gelişmiş bağlantı (kod yapıştır)' : 'Kısa kod ile bağlanmaya dön';
+    $('#net-note').textContent = native
+      ? (net.mode === 'lan'
+        ? 'Her telefonda herkes kendi ekranında oynar. Aynı Wi-Fi\'ya (ya da birinin telefon hotspot\'una) bağlı telefonlar kısa bir kodla bağlanır. İnternet gerekmez.'
+        : 'Gelişmiş bağlantı: telefonlar uzun bir kodu değiş tokuş ederek doğrudan (WebRTC) bağlanır. Kısa kod bağlanmazsa deneyebilirsin.')
+      : 'Her telefonda herkes kendi ekranında oynar. Kısa kodla bağlanma yalnızca Android uygulamasında çalışır (tarayıcılar telefonda bağlantı kabul edemez); burada telefonlar uzun bir kodu değiş tokuş ederek bağlanır.';
+  };
+  $('#net-btn').addEventListener('click', () => { net.mode = lanPlugin() ? 'lan' : 'rtc'; paintNetNote(); showScreen('net'); });
+  $('#net-adv').addEventListener('click', () => { net.mode = net.mode === 'lan' ? 'rtc' : 'lan'; paintNetNote(); });
   $('#net-back').addEventListener('click', () => { if (net.on) leaveNet(); else showScreen('home'); });
   $('#net-host-btn').addEventListener('click', async () => {
     net.role = 'host'; net.on = true;
     $('#net-choose').classList.add('hidden'); $('#net-host').classList.remove('hidden');
-    paintHost(); await hostPrepare();
+    $('#h-lan').classList.toggle('hidden', net.mode !== 'lan');
+    paintHost();
+    if (net.mode === 'lan') { if (!(await hostLanStart())) { leaveNet(); showScreen('net'); paintNetNote(); } }
+    else await hostPrepare();
   });
-  $('#net-join-btn').addEventListener('click', () => { $('#net-choose').classList.add('hidden'); $('#net-guest').classList.remove('hidden'); });
+  $('#net-join-btn').addEventListener('click', () => {
+    $('#net-choose').classList.add('hidden'); $('#net-guest').classList.remove('hidden');
+    $('#g-lan').classList.toggle('hidden', net.mode !== 'lan'); $('#g-rtc').classList.toggle('hidden', net.mode === 'lan');
+  });
+  $('#g-lan-join').addEventListener('click', guestLan);
+  $('#g-short').addEventListener('keydown', e => { if (e.key === 'Enter') guestLan(); });
   $('#h-link').addEventListener('click', hostAccept);
   $('#h-add').addEventListener('click', hostPrepare);
   $('#h-start').addEventListener('click', startNetMatch);

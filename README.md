@@ -47,12 +47,15 @@ Ana menüdeki **⚙ Ayarlar**: ses efektleri, titreşim, müzik ve müzik sesi, 
 Tüm sesler ve oyun içi sakin arka plan müziği Web Audio ile kodla üretilir (dosya yok). Titreşim `navigator.vibrate` ile çalışır; iPhone Safari titreşimi desteklemez.
 
 ## Çevrimiçi: her telefonda kendi ekranında oyna
-**📡 Çevrimiçi** ile 2-4 telefon bağlanır, herkes kendi tam ekran bölgesinde oynar. Bluetooth web sayfalarından ve APK içindeki WebView'den kullanılamadığı için bunun yerine telefonlar doğrudan birbirine bağlanır (WebRTC). Sunucu gerekmez, aynı Wi-Fi'da ya da internet üzerinden çalışır.
-1. Host "Oda kur" der ve çıkan kodu arkadaşına gönderir (Paylaş / Kopyala).
-2. Arkadaşı "Odaya katıl" der, kodu yapıştırıp "Bağlan" der ve çıkan cevap kodunu host'a gönderir.
-3. Host cevap kodunu yapıştırıp "Bağla" der. Daha fazla oyuncu için "+ Oyuncu ekle", sonra "Maçı başlat".
-Host'un ana menüde seçtiği mod, tur sayısı ve oyunlar kullanılır (Takım modu yoktur). Aynı tur aynı anda ve aynı tohumla başlar (ışık dizisi, kart dizilimi vb. herkeste aynı); herkes kendi oyununu oynar, sonuçlar host'ta karşılaştırılır.
-Not: bağlantı için STUN kullanılır, TURN yoktur. Aynı Wi-Fi'da en güvenilir çalışır, bazı mobil ağlarda doğrudan bağlantı kurulamayabilir.
+**📡 Çevrimiçi** ile 2-4 telefon bağlanır, herkes kendi tam ekran bölgesinde oynar. Host'un ana menüde seçtiği mod, tur sayısı ve oyunlar kullanılır (Takım modu yoktur). Aynı tur aynı anda ve aynı tohumla başlar (ışık dizisi, kart dizilimi vb. herkeste aynı); herkes kendi oyununu oynar, sonuçlar host'ta karşılaştırılır.
+
+**Kısa kodla bağlanma (Android uygulaması):** host "Oda kur" der, ekranda kısa bir **oda kodu** (örneğin `279`) çıkar. Arkadaşları aynı Wi-Fi'ya (ya da host'un telefon hotspot'una) bağlıyken "Odaya katıl" deyip kodu girer, hepsi bu. İnternet gerekmez.
+- Nasıl çalışır: host telefon Wi-Fi'da küçük bir WebSocket sunucusu açar (`android/.../LanServerPlugin.java`). Kod, host IP adresinin son iki bölümüdür (192.168.**1.23** → 279). Misafir, kendi IP'sinin ilk iki bölümüyle host adresini bulup doğrudan bağlanır.
+- Bluetooth web uygulamalarından ve WebView'den kullanılamadığı için yerel ağ bağlantısı kullanılır.
+- Bağlanamazsan: ikisi de aynı Wi-Fi'da mı, router "istemci yalıtımı / AP isolation" açık mı (misafir ağlarında genelde açıktır)? Olmuyorsa birinin telefonunun hotspot'unu açıp diğerini ona bağla.
+- "Gelişmiş bağlantı" seçeneği eski yöntemi (uzun kodu yapıştırarak WebRTC) sunar.
+
+**Tarayıcıda (Pages):** tarayıcılar telefonda bağlantı kabul edemediği için kısa kod yoktur, uzun kod değiş tokuşu (WebRTC) kullanılır. Bağlantı için STUN vardır, TURN yoktur; bazı ağlarda kurulamayabilir.
 
 ## Oynamak
 Canlı adres: https://erenmaral.github.io/dokun/
