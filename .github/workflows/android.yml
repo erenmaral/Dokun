@@ -1,0 +1,74 @@
+name: Android APK
+
+# Her push'ta (ve elle tetiklemede) APK uretir.
+# APK'yi Actions > calisma > Artifacts altindan veya Releases sayfasindan indirebilirsiniz.
+# Debug anahtariyla imzalanir: telefona kurulur, Play Store icin degil.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: apk-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Bagimliliklari kur
+        run: npm ci
+
+      - name: Oyunu Capacitor'a aktar
+        run: npm run sync
+
+      - name: Android SDK bilesenleri
+        run: |
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-36" "build-tools;36.0.0" > /dev/null
+
+      - name: APK derle
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon --stacktrace
+
+      - name: APK adini duzenle
+        id: apk
+        run: |
+          mkdir -p dist
+          cp android/app/build/outputs/apk/debug/app-debug.apk "dist/Dokun-${{ github.run_number }}.apk"
+          ls -la dist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Dokun-${{ github.run_number }}
+          path: dist/*.apk
+
+      # Release izni olmayabilir (depo ayari); basarisiz olursa APK yine Artifacts'ta durur.
+      - name: GitHub Release olustur
+        if: github.event_name == 'push'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "build-${{ github.run_number }}" "dist/Dokun-${{ github.run_number }}.apk" \
+            --target "${{ github.sha }}" --prerelease \
+            --title "Dokun ${{ github.run_number }}" \
+            --notes "Otomatik derleme #${{ github.run_number }}"

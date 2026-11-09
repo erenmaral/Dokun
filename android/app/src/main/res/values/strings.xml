@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Dokun</string>
+    <string name="title_activity_main">Dokun</string>
+    <string name="package_name">com.erenmaral.dokun</string>
+    <string name="custom_url_scheme">com.erenmaral.dokun</string>
+</resources>

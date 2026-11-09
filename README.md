@@ -17,6 +17,12 @@ Ses ve titreşim: tüm sesler Web Audio ile kodla üretilir (dosya yok). Titreş
 Canlı adres: https://erenmaral.github.io/dokun/
 Telefonda dikey kullan. Yerelde: `npx serve .` veya `index.html` dosyasını tarayıcıda aç.
 
+## APK (Android)
+Her `main` push'unda GitHub Actions bir APK derler (Capacitor, debug anahtarıyla imzalı, dikey kilitli).
+İndirmek için: depo → **Actions** → en yeni "Android APK" çalışması → **Artifacts** altındaki `Dokun-N` (zip içinde `.apk`). Release izni varsa **Releases** sayfasında da görünür.
+Telefona kurmak için "bilinmeyen kaynaklardan yüklemeye" izin vermek gerekir. Debug anahtarı Play Store içindir değil, yalnızca denemek içindir.
+Yerelde: `npm ci && npm run sync` sonra `android/` klasörünü Android Studio'da aç.
+
 ## Yayın
 `.github/workflows/pages.yml` varsayılan daldaki `index.html` dosyasını GitHub Pages'e yayınlar.
 Bir kez: depo → Settings → Pages → Source: **GitHub Actions**.
