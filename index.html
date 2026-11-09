@@ -201,6 +201,23 @@
     padding:9px 12px; font-size:16px; width:100%; user-select:text; -webkit-user-select:text; touch-action:auto; }
   input:focus, textarea:focus { outline:none; border-color:#7cc4ff; }
 
+  .hidden { display:none !important; }
+  .stack { width:100%; display:flex; flex-direction:column; align-items:center; gap:12px; }
+  .box { width:100%; text-align:left; padding:12px; border-radius:14px; display:flex; flex-direction:column; gap:8px;
+    background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.16); }
+  .box ul { margin:0; padding-left:18px; line-height:1.6; }
+  .small { font-size:13px; opacity:.85; line-height:1.4; }
+  textarea { resize:none; font-size:12px; font-family:ui-monospace, Menlo, Consolas, monospace; word-break:break-all; }
+  #toast { position:fixed; left:50%; bottom:calc(28px + env(safe-area-inset-bottom)); transform:translateX(-50%); z-index:60;
+    background:rgba(8,10,20,.96); border:1px solid rgba(255,255,255,.3); padding:10px 16px; border-radius:12px; font-weight:700;
+    max-width:86vw; text-align:center; font-size:14px; box-shadow:0 6px 20px rgba(0,0,0,.5); pointer-events:none; }
+  /* ag modunda her telefonda tek oyuncu var: karsidan okunan kopyalar gizlenir */
+  body.net .hline.flip, body.net .pblock.flip, body.net .endrow.flip { display:none; }
+  body.guest #endbar [data-a="again"] { display:none; }
+  /* tek bolge tum ekrani kapladigi icin bilgi kutusu ve bitis dugmeleri icerigin ustune binmesin */
+  body.net #hud { top:13%; }
+  body.net #endbar { top:auto; bottom:calc(64px + env(safe-area-inset-bottom)); transform:translateX(-50%); }
+
   /* ---------- Duraklatma ---------- */
   #ptabs.hidden { display:none; }
   .ptab { position:fixed; top:50%; transform:translateY(-50%); z-index:7; width:30px; height:60px; padding:0; font-size:16px;
@@ -309,6 +326,7 @@
   <button class="alt" id="pick-btn">🎮 Oyun Seç</button>
   <div class="row">
     <button id="set-btn" class="sm">⚙ Ayarlar</button>
+    <button id="net-btn" class="sm">📡 Çevrimiçi</button>
   </div>
 </div></div>
 
@@ -339,6 +357,46 @@
     </div>
   </div>
 </div></div>
+
+<div id="net" class="screen hidden"><div class="inner">
+  <div class="ptop"><button id="net-back">‹ Geri</button><h2>Çevrimiçi</h2></div>
+  <p class="small">Her telefonda herkes kendi ekranında oynar. Bluetooth web uygulamalarında kullanılamadığı için telefonlar kod değiş tokuşuyla doğrudan birbirine bağlanır (aynı Wi-Fi'da ya da internet üzerinden). Sunucu gerekmez.</p>
+  <div id="net-choose" class="stack">
+    <button class="go" id="net-host-btn">📡 Oda kur</button>
+    <button class="alt" id="net-join-btn">🔗 Odaya katıl</button>
+  </div>
+  <div id="net-host" class="stack hidden">
+    <div class="box"><b>Oyuncular</b><ul id="h-list"></ul></div>
+    <div id="h-pair" class="box hidden">
+      <b>1) Bu kodu arkadaşına gönder</b>
+      <textarea id="h-code" readonly rows="3"></textarea>
+      <div class="row"><button class="sm" id="h-copy">Kopyala</button><button class="sm" id="h-share">Paylaş</button></div>
+      <b>2) Arkadaşının cevap kodunu yapıştır</b>
+      <textarea id="h-ans" rows="3" placeholder="Cevap kodunu buraya yapıştır"></textarea>
+      <button class="sm" id="h-link">Bağla</button>
+    </div>
+    <div id="h-status" class="small"></div>
+    <button class="sm hidden" id="h-add">+ Oyuncu ekle</button>
+    <div class="small" id="h-sum"></div>
+    <button class="go" id="h-start" disabled>▶ Maçı başlat</button>
+  </div>
+  <div id="net-guest" class="stack hidden">
+    <div class="box">
+      <b>1) Host'un gönderdiği kodu yapıştır</b>
+      <textarea id="g-code" rows="3" placeholder="Kodu buraya yapıştır"></textarea>
+      <button class="sm" id="g-join">Bağlan</button>
+      <div id="g-ansbox" class="hidden">
+        <b>2) Bu cevap kodunu host'a gönder</b>
+        <textarea id="g-ans" readonly rows="3"></textarea>
+        <div class="row" style="margin-top:8px"><button class="sm" id="g-copy">Kopyala</button><button class="sm" id="g-share">Paylaş</button></div>
+      </div>
+    </div>
+    <div id="g-status" class="small"></div>
+    <div class="box hidden" id="g-roster"><b>Oyuncular</b><ul id="g-list"></ul></div>
+  </div>
+</div></div>
+
+<div id="toast" class="hidden"></div>
 
 <div id="ptabs" class="hidden">
   <button class="ptab" id="ptab-l" aria-label="Duraklat">⏸</button>
@@ -384,6 +442,7 @@
   const board = $('#board'), hud = $('#hud'), menu = $('#menu');
   let N = 2, scores = [], zones = [], handler = null, upHandler = null;
   let modeKey = 'klasik', lives = [], dead = [], elim = [];
+  const net = { on: false, role: null, names: null, myIdx: 0, peers: [], gdc: null, pending: null, prev: null };
   const modeVal = { klasik: 8, yaris: 5, can: 3, takim: 8 };
   const esc = t => String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
@@ -439,6 +498,7 @@
   const music = (() => {
     const CH = [[48, 52, 55, 59], [45, 48, 52, 55], [41, 45, 48, 52], [43, 47, 50, 52]];   // Cmaj7 - Am7 - Fmaj7 - G6
     const hz = n => 440 * Math.pow(2, (n - 69) / 12);
+    const rnd = Math.random.bind(Math);          // ag modunda Math.random tohumlanir; muzik etkilememeli
     const VOL = [0, 0.05, 0.09, 0.15];
     let master = null, timer = null, nextT = 0, step = 0, active = false, ducked = false;
     const level = () => (prefs.music && active ? VOL[prefs.vol] * (ducked ? 0.2 : 1) : 0.0001);
@@ -466,8 +526,8 @@
       while (nextT < c.currentTime + 1.2) {
         const ch = CH[Math.floor(step / 8) % CH.length], k = step % 8;
         if (k === 0) { note(c, hz(ch[0] - 12), nextT, 6.4, 'sine', 0.5, 1.4); note(c, hz(ch[2] - 12), nextT, 6.4, 'sine', 0.32, 1.8); }
-        if (Math.random() > 0.2) note(c, hz(ch[[0, 1, 2, 3, 2, 1, 3, 2][k]] + 12), nextT, 2.4, 'triangle', 0.3, 0.05);
-        if (k === 4 && Math.random() > 0.5) note(c, hz(ch[3] + 24), nextT, 3, 'sine', 0.1, 0.08);
+        if (rnd() > 0.2) note(c, hz(ch[[0, 1, 2, 3, 2, 1, 3, 2][k]] + 12), nextT, 2.4, 'triangle', 0.3, 0.05);
+        if (k === 4 && rnd() > 0.5) note(c, hz(ch[3] + 24), nextT, 3, 'sine', 0.1, 0.08);
         nextT += 0.8; step++;
       }
     };
@@ -520,20 +580,23 @@
   };
 
   // ---------- Arayuz yardimcilari ----------
-  function build() {
+  const pname = i => (net.names && net.names[i]) || nameOf(i);
+  function build(players) {            // players: her bolge icin oyuncu indeksi (ag modunda yalnizca kendi bolgem)
+    players = players || Array.from({ length: N }, (_, k) => k);
     board.innerHTML = '';
-    board.className = 'p' + N;
+    board.className = 'p' + players.length;
     zones = [];
-    for (let i = 0; i < N; i++) {
+    for (let i = 0; i < players.length; i++) {
+      const pi = players[i];
       const z = document.createElement('div');
-      z.className = 'zone';
-      z.style.setProperty('--c', COLORS[i]);
-      const flipped = N === 1 ? false : N === 2 ? i === 0 : i < 2;       // ust siradaki oyuncular karsidan oynar
+      z.className = 'zone'; z.dataset.p = pi;
+      z.style.setProperty('--c', COLORS[pi]);
+      const flipped = players.length === 1 ? false : players.length === 2 ? i === 0 : i < 2;       // ust siradaki oyuncular karsidan oynar
       if (flipped) z.classList.add('flip');
-      z.innerHTML = '<div class="head"><span class="nm">' + esc(nameOf(i)) + '</span><span class="gname"></span><span class="score">0</span></div><div class="body"></div>';
+      z.innerHTML = '<div class="head"><span class="nm">' + esc(pname(pi)) + '</span><span class="gname"></span><span class="score">0</span></div><div class="body"></div>';
       z.addEventListener('pointerdown', e => {
         e.preventDefault();
-        if (vt.paused || dead[i]) return;
+        if (vt.paused || dead[pi]) return;
         try { z.setPointerCapture(e.pointerId); } catch (_) {}
         ripple(z, e, flipped);
         if (handler) { fx.tick(); handler(i, e); }
@@ -550,8 +613,8 @@
   const teamOf = i => (i < 2 ? 0 : 1);
   const teamScore = i => scores.reduce((a, s, k) => a + (teamOf(k) === teamOf(i) ? s : 0), 0);
   const chip = i => modeKey === 'can' ? (dead[i] ? '☠' : '❤' + lives[i]) : modeKey === 'takim' ? teamScore(i) : scores[i];
-  const showScores = () => zones.forEach((z, i) => {
-    const el = z.querySelector('.score'), v = String(chip(i));
+  const showScores = () => zones.forEach(z => {
+    const el = z.querySelector('.score'), v = String(chip(+z.dataset.p));
     if (el.textContent !== v) { el.textContent = v; el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); }
   });
   const resetZones = () => zones.forEach((z, i) => {
@@ -560,6 +623,8 @@
   });
   const arena = (i, html) => { const b = zones[i].querySelector('.body'); b.classList.add('fill'); b.innerHTML = html; };
   const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  let lastScores = [];                       // son oynanan oyunun bolge basina sonuc sayisi (buyuk = iyi); ag modunda kullanilir
+  const RACE = 1e6;                          // yaris oyunlarinda: bitirme suresi ne kadar kisaysa sonuc o kadar yuksek
   const topScorers = arr => { const m = Math.max(...arr); return m > 0 ? arr.map((v, i) => v === m ? i : -1).filter(i => i >= 0) : []; };
   function say(main, sub, big) {
     const h = main + (sub ? '<small>' + sub + '</small>' : '');
@@ -571,7 +636,8 @@
   // ---------- Mini oyunlar: kazananlarin indeksini dondurur ----------
   async function reaction() {
     const out = new Set();
-    let go = false, winner = -1, done = false;
+    let go = false, winner = -1, done = false, goAt = 0;
+    const rt = [];
     zones.forEach((_, i) => body(i, 'Hazır…'));
     await new Promise(res => {
       const finish = () => { done = true; res(); };
@@ -582,17 +648,18 @@
           if (out.size === N) finish();
           return;
         }
-        winner = i; finish();
+        rt[i] = vt.now() - goAt; winner = i; finish();
       };
       vt.timeout(() => {
         if (done) return;
-        go = true;
+        go = true; goAt = vt.now();
         zones.forEach((_, i) => { if (!out.has(i)) { setS(i, 'sig'); body(i, 'DOKUN!'); } });
         fx.go();
         vt.timeout(() => { if (!done) finish(); }, 3000);
       }, 1500 + Math.random() * 2500);
     });
     handler = null;
+    lastScores = zones.map((_, i) => out.has(i) ? -1e9 : rt[i] != null ? 5000 - rt[i] : -5000);
     return winner >= 0 ? [winner] : [];
   }
 
@@ -609,6 +676,7 @@
       await sleep(100);
     }
     handler = null;
+    lastScores = c.slice();
     const max = Math.max(...c);
     return max > 0 ? c.map((v, i) => v === max ? i : -1).filter(i => i >= 0) : [];
   }
@@ -649,12 +717,13 @@
     zones.forEach((z, i) => {
       z.querySelector('.pct').textContent = pos[i] === null ? 'Durdurmadı' : '%' + Math.round((1 - dist[i] * 2) * 100);
     });
+    lastScores = dist.map(d => 1 - d);
     const best = Math.min(...dist);
     return best < 1 ? [dist.indexOf(best)] : [];
   }
 
   async function targets() {
-    const GOAL = 6, cnt = Array(N).fill(0);
+    const GOAL = 6, cnt = Array(N).fill(0), fin = [], T0 = vt.now();
     let winner = -1;
     const place = i => {
       const t = zones[i].querySelector('.tgt');
@@ -670,16 +739,17 @@
         if (winner >= 0 || !e.target.classList.contains('tgt')) return;
         cnt[i]++; fx.hit();
         zones[i].querySelector('.cnt').textContent = cnt[i] + '/' + GOAL;
-        if (cnt[i] >= GOAL) { winner = i; res(); } else place(i);
+        if (cnt[i] >= GOAL) { fin[i] = vt.now() - T0; winner = i; res(); } else place(i);
       };
       vt.timeout(res, 15000);
     });
     handler = null;
+    lastScores = cnt.map((c, i) => fin[i] != null ? RACE - fin[i] : c);
     return winner >= 0 ? [winner] : topScorers(cnt);
   }
 
   async function numbers() {
-    const next = Array(N).fill(1);
+    const next = Array(N).fill(1), fin = [], T0 = vt.now();
     let winner = -1;
     zones.forEach((_, i) => {
       arena(i, '<div class="grid" style="--ar:.67;grid-template-columns:repeat(2,1fr)">' +
@@ -693,18 +763,19 @@
         if (!n) return;
         if (n !== next[i]) { fx.bad(); return; }
         e.target.classList.add('done'); fx.hit();
-        if (++next[i] > 6) { winner = i; res(); }
+        if (++next[i] > 6) { fin[i] = vt.now() - T0; winner = i; res(); }
       };
       vt.timeout(res, 15000);
     });
     handler = null;
+    lastScores = next.map((v, i) => fin[i] != null ? RACE - fin[i] : v - 1);
     return winner >= 0 ? [winner] : topScorers(next.map(v => v - 1));
   }
 
   async function odd() {
     const pairs = [['🙂', '🙃'], ['🍎', '🍅'], ['🔵', '🟣'], ['🐱', '🐯'], ['🍋', '🧀'], ['🐶', '🐺'], ['🍇', '🫐']];
     const [a, b] = pairs[Math.floor(Math.random() * pairs.length)];
-    const lock = Array(N).fill(false);
+    const lock = Array(N).fill(false), fin = [], T0 = vt.now();
     let winner = -1;
     zones.forEach((_, i) => {
       const k = Math.floor(Math.random() * 12);
@@ -716,13 +787,14 @@
     await new Promise(res => {
       handler = (i, e) => {
         if (winner >= 0 || lock[i] || e.target.dataset.odd === undefined) return;
-        if (e.target.dataset.odd === '1') { winner = i; res(); return; }
+        if (e.target.dataset.odd === '1') { fin[i] = vt.now() - T0; winner = i; res(); return; }
         lock[i] = true; setS(i, 'out'); fx.bad();                  // yanlis dokunus: 1,2 sn ceza
         vt.timeout(() => { lock[i] = false; if (winner < 0) setS(i, 'go'); }, 1200);
       };
       vt.timeout(res, 12000);
     });
     handler = null;
+    lastScores = zones.map((_, i) => fin[i] != null ? RACE - fin[i] : 0);
     return winner >= 0 ? [winner] : [];
   }
 
@@ -749,13 +821,14 @@
     handler = null; upHandler = null;
     const err = en.map((e, i) => e === null ? Infinity : Math.abs((e - st[i]) - TARGET));
     zones.forEach((_, i) => body(i, en[i] === null ? '—' : ((en[i] - st[i]) / 1000).toFixed(2) + ' sn'));
+    lastScores = err.map(e => isFinite(e) ? 1e5 - e : -1e9);
     const best = Math.min(...err);
     return isFinite(best) ? [err.indexOf(best)] : [];
   }
 
   // ----- Ortak: soru-cevap oyunu (ilk 'goal' dogruya ulasan kazanir; yanlista 1 sn ceza) -----
   async function quizGame(makeQ, goal = 4, timeout = 20000) {
-    const cnt = Array(N).fill(0), cur = [], lock = Array(N).fill(false);
+    const cnt = Array(N).fill(0), cur = [], lock = Array(N).fill(false), fin = [], T0 = vt.now();
     let winner = -1;
     const draw = i => {
       const q = makeQ();
@@ -775,7 +848,7 @@
         if (+o.dataset.j === cur[i]) {
           cnt[i]++; fx.hit();
           zones[i].querySelector('.cnt').textContent = cnt[i] + '/' + goal;
-          if (cnt[i] >= goal) { winner = i; res(); return; }
+          if (cnt[i] >= goal) { fin[i] = vt.now() - T0; winner = i; res(); return; }
           draw(i);
         } else {
           lock[i] = true; setS(i, 'out'); fx.bad();
@@ -785,6 +858,7 @@
       vt.timeout(res, timeout);
     });
     handler = null;
+    lastScores = cnt.map((c, i) => fin[i] != null ? RACE - fin[i] : c);
     return winner >= 0 ? [winner] : topScorers(cnt);
   }
 
@@ -835,13 +909,14 @@
       zones.forEach(z => { z.querySelector('.lamp').className = 'lamp'; });
     }
     handler = null;
+    lastScores = sc.slice();
     return topScorers(sc);
   }
 
   async function simon() {
     const COL = ['#ff5a5f', '#3ddc97', '#4dabf7', '#ffd43b'], LEN = 4;
     const seq = Array.from({ length: LEN }, () => Math.floor(Math.random() * 4));
-    const prog = Array(N).fill(0), lock = Array(N).fill(false);
+    const prog = Array(N).fill(0), lock = Array(N).fill(false), fin = [], T0 = vt.now();
     let winner = -1;
     zones.forEach((_, i) => {
       arena(i, '<div class="grid" style="--ar:1;grid-template-columns:repeat(2,1fr)">' +
@@ -864,7 +939,7 @@
         const pad = e.target.closest('.pad'); if (!pad) return;
         pad.classList.add('lit'); vt.timeout(() => pad.classList.remove('lit'), 120);
         if (+pad.dataset.k === seq[prog[i]]) {
-          if (++prog[i] >= LEN) { winner = i; res(); }
+          if (++prog[i] >= LEN) { fin[i] = vt.now() - T0; winner = i; res(); }
         } else {
           prog[i] = 0; lock[i] = true; setS(i, 'out'); fx.bad();
           vt.timeout(() => { lock[i] = false; if (winner < 0) setS(i, 'go'); }, 1500);
@@ -873,6 +948,7 @@
       vt.timeout(res, 25000);
     });
     handler = null;
+    lastScores = prog.map((v, i) => fin[i] != null ? RACE - fin[i] : v);
     return winner >= 0 ? [winner] : topScorers(prog);
   }
 
@@ -915,6 +991,7 @@
     await sleep(10000);
     vt.clear(timer); handler = null;
     zones.forEach(z => z.querySelectorAll('.balloon').forEach(b => b.remove()));
+    lastScores = sc.slice();
     return topScorers(sc);
   }
 
@@ -950,6 +1027,7 @@
     tick();
     await sleep(DUR);
     alive = false; handler = null;
+    lastScores = sc.slice();
     return topScorers(sc);
   }
 
@@ -977,7 +1055,7 @@
 
   async function memory() {
     const E = ['🐶', '🐱', '🦊', '🐸', '🐵', '🦄', '🐙', '🍕'], PAIRS = 4;
-    const matched = Array(N).fill(0), first = Array(N).fill(null), lock = Array(N).fill(false);
+    const matched = Array(N).fill(0), first = Array(N).fill(null), lock = Array(N).fill(false), fin = [], T0 = vt.now();
     let winner = -1;
     zones.forEach((_, i) => {
       const em = shuffle(E).slice(0, PAIRS), cards = shuffle([...em, ...em]);
@@ -997,7 +1075,7 @@
         if (f.dataset.e === c.dataset.e) {
           f.classList.add('done'); c.classList.add('done'); matched[i]++; fx.hit();
           zones[i].querySelector('.cnt').textContent = matched[i] + '/' + PAIRS;
-          if (matched[i] >= PAIRS) { winner = i; res(); }
+          if (matched[i] >= PAIRS) { fin[i] = vt.now() - T0; winner = i; res(); }
         } else {
           lock[i] = true;
           vt.timeout(() => {
@@ -1009,6 +1087,7 @@
       vt.timeout(res, 30000);
     });
     handler = null;
+    lastScores = matched.map((m, i) => fin[i] != null ? RACE - fin[i] : m);
     return winner >= 0 ? [winner] : topScorers(matched);
   }
 
@@ -1033,7 +1112,7 @@
 
   // ---------- Ekranlar ----------
   const picker = $('#picker'), settings = $('#settings'), endbar = $('#endbar'), pauseEl = $('#pause'), ptabs = $('#ptabs');
-  const SCREENS = { home: menu, picker, settings };
+  const SCREENS = { home: menu, picker, settings, net: $('#net') };
   const showScreen = name => Object.entries(SCREENS).forEach(([k, el]) => el.classList.toggle('hidden', k !== name));
   const FLOAT = ['🎈', '🎯', '⚡', '🧠', '🐹', '🃏', '🎨', '🔢'];
   Object.values(SCREENS).forEach(el => FLOAT.forEach((e, k) => {
@@ -1082,16 +1161,54 @@
     };
   };
 
+  const zi = pi => zones.findIndex(z => +z.dataset.p === pi);            // oyuncu indeksi -> bolge sirasi (ag modunda yalnizca kendi bolgem)
+
+  // Tur sonucunu duruma isler (puan / can) ve ozet metni dondurur. Yerel ve ag modu ortak kullanir.
+  function applyRound(winners, r) {
+    let msg;
+    if (modeKey === 'can') {
+      const lost = [];
+      if (winners.length) dead.forEach((d, i) => { if (!d && !winners.includes(i)) { lives[i]--; if (lives[i] <= 0) { dead[i] = true; elim[i] = r; } lost.push(i); } });
+      msg = winners.length
+        ? winners.map(pname).join(' & ') + ' güvende' + (lost.length ? ' · ' + lost.map(i => pname(i) + (dead[i] ? ' ☠' : ' −❤')).join(', ') : '')
+        : 'Kimse kazanamadı, can kaybı yok';
+    } else {
+      winners.forEach(i => { scores[i]++; });
+      msg = winners.length
+        ? (modeKey === 'takim' ? [...new Set(winners.map(teamOf))].map(t => 'Takım ' + 'AB'[t]).join(' & ') + ' +' + winners.length : winners.map(pname).join(' & ') + ' +1')
+        : 'Kimse puan alamadı';
+    }
+    return msg;
+  }
+  function roundVisual(winners, msg) {
+    winners.forEach(i => {
+      const k = zi(i); if (k < 0) return;
+      setS(k, 'win'); burst(zones[k]);
+      const pl = document.createElement('div'); pl.className = 'plus'; pl.textContent = modeKey === 'can' ? '❤' : '+1';
+      pl.addEventListener('animationend', () => pl.remove()); zones[k].appendChild(pl);
+    });
+    showScores();
+    if (winners.length) fx.win(); else fx.none();
+    say(msg, null, true);
+  }
+  const addDeadMasks = () => dead.forEach((d, i) => {
+    const k = zi(i); if (!d || k < 0) return;
+    const m = document.createElement('div'); m.className = 'deadmask'; m.textContent = '☠ Elendi'; zones[k].appendChild(m);
+  });
+  const matchPlan = pool => {
+    const val = modeVal[modeKey], open = modeKey === 'yaris' || modeKey === 'can';
+    return { open, total: open ? 60 : (pool.length === GAMES.length ? val : Math.max(val, pool.length)), single: pool.length === 1, val };
+  };
+  const matchOver = val => (modeKey === 'yaris' && scores.some(x => x >= val)) || (modeKey === 'can' && dead.filter(d => !d).length <= 1);
+
   async function play(pool) {
     pool = pool || lastPool || GAMES; lastPool = pool;
     if (modeKey === 'takim' && N !== 4) modeKey = 'klasik';
     const val = modeVal[modeKey];
     scores = Array(N).fill(0); lives = Array(N).fill(val); dead = Array(N).fill(false); elim = Array(N).fill(Infinity);
     build(); showScreen(null); endbar.classList.add('hidden');
-    setPlaying(true); music.start(); wake.on();
-    const nextGame = makeBag(pool), single = pool.length === 1;
-    const total = (modeKey === 'yaris' || modeKey === 'can') ? 60 : (pool.length === GAMES.length ? val : Math.max(val, pool.length));
-    const open = modeKey === 'yaris' || modeKey === 'can';
+    setPlaying(true); music.start(); wake.on(); backGuard.on();
+    const nextGame = makeBag(pool), { open, total, single } = matchPlan(pool);
     for (let r = 1; r <= total; r++) {
       const g = nextGame();
       resetZones(); showScores(); fx.round();
@@ -1105,33 +1222,12 @@
       } else {
         await sleep(700);
       }
-      dead.forEach((d, i) => { if (d) { const m = document.createElement('div'); m.className = 'deadmask'; m.textContent = '☠ Elendi'; zones[i].appendChild(m); } });
+      addDeadMasks();
       await countdown();
       const winners = (await g.run()).filter(i => !dead[i]);
-      winners.forEach(i => {
-        setS(i, 'win'); burst(zones[i]);
-        const pl = document.createElement('div'); pl.className = 'plus'; pl.textContent = modeKey === 'can' ? '❤' : '+1';
-        pl.addEventListener('animationend', () => pl.remove()); zones[i].appendChild(pl);
-      });
-      let msg;
-      if (modeKey === 'can') {
-        const lost = [];
-        if (winners.length) dead.forEach((d, i) => { if (!d && !winners.includes(i)) { lives[i]--; if (lives[i] <= 0) { dead[i] = true; elim[i] = r; } lost.push(i); } });
-        msg = winners.length
-          ? winners.map(nameOf).join(' & ') + ' güvende' + (lost.length ? ' · ' + lost.map(i => nameOf(i) + (dead[i] ? ' ☠' : ' −❤')).join(', ') : '')
-          : 'Kimse kazanamadı, can kaybı yok';
-      } else {
-        winners.forEach(i => { scores[i]++; });
-        msg = winners.length
-          ? (modeKey === 'takim' ? [...new Set(winners.map(teamOf))].map(t => 'Takım ' + 'AB'[t]).join(' & ') + ' +' + winners.length : winners.map(nameOf).join(' & ') + ' +1')
-          : 'Kimse puan alamadı';
-      }
-      showScores();
-      if (winners.length) fx.win(); else fx.none();
-      say(msg, null, true);
+      roundVisual(winners, applyRound(winners, r));
       await sleep(1800);
-      if (modeKey === 'yaris' && scores.some(x => x >= val)) break;
-      if (modeKey === 'can' && dead.filter(d => !d).length <= 1) break;
+      if (matchOver(val)) break;
     }
     await finale();
   }
@@ -1148,29 +1244,34 @@
     const tie = win.length > 1 && modeKey !== 'takim';
     const rank = vals.map(v => 1 + vals.filter(x => x > v).length);
     const subOf = i => modeKey === 'can' ? (dead[i] ? 'Elendi' : lives[i] + ' can') : modeKey === 'takim' ? 'Takım ' + 'AB'[teamOf(i)] + ' · ' + teamScore(i) + ' puan' : scores[i] + ' puan';
-    zones.forEach((z, i) => {
+    zones.forEach((z, k) => {
+      const i = +z.dataset.p;
       z.querySelector('.body').classList.remove('fill'); z.classList.remove('sky');
       z.querySelectorAll('.deadmask').forEach(m => m.remove());
       const champ = win.includes(i);
-      setS(i, champ ? 'champ' : 'lose');
-      body(i, champ
+      setS(k, champ ? 'champ' : 'lose');
+      body(k, champ
         ? '<div class="final"><div class="crown">' + (tie ? '🤝' : '👑') + '</div><div class="rank">' + (tie ? 'BERABERE' : 'KAZANAN') + '</div><div class="sub">' + subOf(i) + '</div></div>'
         : '<div class="final"><div class="rank">' + rank[i] + '.</div><div class="sub">' + subOf(i) + '</div></div>');
     });
-    win.forEach(i => burst(zones[i], 26));
+    const wz = () => win.forEach(i => { const k = zi(i); if (k >= 0) burst(zones[k], 24); });
+    wz();
     let k = 0;
-    const timer = setInterval(() => { win.forEach(i => burst(zones[i], 22)); if (++k > 6) clearInterval(timer); }, 900);
+    const timer = setInterval(() => { wz(); if (++k > 6) clearInterval(timer); }, 900);
     await sleep(2500);                                 // kazara dokunusla cikilmasin diye kisa bekleme
     endbar.classList.remove('hidden');
   }
 
   // ---------- Duraklatma ----------
   function pauseGame() {
-    if (!playing || vt.paused) return;
+    if (!playing) return;
+    if (net.on) { pauseEl.classList.remove('hidden'); return; }        // ag modunda oyun durmaz, yalnizca cikis menusu acilir
+    if (vt.paused) return;
     vt.pause(); document.body.classList.add('paused'); music.duck(true);
     pauseEl.classList.remove('hidden');
   }
   function resumeGame() {
+    if (net.on) { pauseEl.classList.add('hidden'); return; }
     if (!vt.paused) return;
     vt.resume(); document.body.classList.remove('paused'); music.duck(false);
     pauseEl.classList.add('hidden');
@@ -1182,10 +1283,34 @@
     document.body.classList.remove('paused');
     pauseEl.classList.add('hidden'); endbar.classList.add('hidden'); hud.classList.add('hidden');
     pauseEl.querySelectorAll('[data-a="quit"]').forEach(b => { b.textContent = '☰ Menü'; delete b.dataset.armed; });
-    setPlaying(false); music.stop(); wake.off();
+    setPlaying(false); music.stop(); wake.off(); backGuard.off();
     zones = []; board.innerHTML = '';
     showScreen('home');
   }
+  // Geri tusu korumasi: oyun sirasinda geri tusuna (Android geri / tarayici geri / Esc) bir kez basmak yalnizca uyari gosterir,
+  // 2,5 saniye icinde ikinci kez basilirsa oyundan cikilir. Seri Dokun gibi hizli dokunulan oyunlarda yanlislikla cikmayi onler.
+  const backGuard = (() => {
+    let active = false, ignore = false, armedUntil = 0;
+    const confirmBack = () => {
+      if (!active) return;
+      if (Date.now() < armedUntil) { armedUntil = 0; if (net.on) leaveNet(); else quitMatch(); return; }
+      armedUntil = Date.now() + 2500;
+      toast('Oyundan çıkmak için geri tuşuna bir kez daha bas');
+    };
+    window.addEventListener('popstate', () => {
+      if (ignore) { ignore = false; return; }
+      if (!active) return;
+      try { history.pushState({ dokun: 1 }, ''); } catch (_) {}      // geri tusu bir giris tuketti: korumayi yeniden kur
+      confirmBack();
+    });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') confirmBack(); });
+    return {
+      get active() { return active; },
+      confirm: confirmBack,
+      on() { if (active) return; active = true; try { history.pushState({ dokun: 1 }, ''); } catch (_) {} },
+      off() { if (!active) return; active = false; armedUntil = 0; ignore = true; try { history.back(); } catch (_) { ignore = false; } },
+    };
+  })();
   ptabs.addEventListener('click', pauseGame);
   pauseEl.addEventListener('click', e => {
     const b = e.target.closest('button'); if (!b) return;
@@ -1196,10 +1321,10 @@
         setTimeout(() => pauseEl.querySelectorAll('[data-a="quit"]').forEach(x => { if (x.dataset.armed) { x.textContent = '☰ Menü'; delete x.dataset.armed; } }), 3000);
         return;
       }
-      quitMatch();
+      if (net.on) leaveNet(); else quitMatch();
     }
   });
-  document.addEventListener('visibilitychange', () => { if (document.hidden) pauseGame(); });   // arama gelince vb. otomatik duraklat
+  document.addEventListener('visibilitychange', () => { if (document.hidden && !net.on) pauseGame(); });   // arama gelince vb. otomatik duraklat
 
   // ---------- Ana menu ----------
   $('#count-row').addEventListener('click', e => {
@@ -1259,8 +1384,239 @@
   endbar.addEventListener('click', e => {
     const b = e.target.closest('button'); if (!b) return;
     endbar.classList.add('hidden');
-    if (b.dataset.a === 'again') play(lastPool); else { zones = []; board.innerHTML = ''; showScreen('home'); }
+    if (net.on) { if (b.dataset.a === 'again') startNetMatch(); else leaveNet(); return; }
+    if (b.dataset.a === 'again') play(lastPool); else { backGuard.off(); zones = []; board.innerHTML = ''; showScreen('home'); }
   });
+
+
+  // ======================= AG MODU: telefondan telefona (WebRTC, sunucusuz) =======================
+  // Bluetooth web sayfalarindan kullanilamaz; bunun yerine telefonlar kod degis tokusu ile dogrudan baglanir.
+  // Her telefon kendi tam ekran bolgesinde oynar; ayni tohumla ayni tur ayni anda baslar, sonuclar host'ta karsilastirilir.
+  const VERSION = 'dokun-net-1';
+  const toast = msg => { const t = $('#toast'); t.textContent = msg; t.classList.remove('hidden'); clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.add('hidden'), 3500); };
+  const mulberry = a => () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  async function seeded(seed, fn) { const orig = Math.random; Math.random = mulberry(seed); try { return await fn(); } finally { Math.random = orig; } }
+  const b64 = bytes => btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  const unb64 = str => { str = str.replace(/-/g, '+').replace(/_/g, '/'); while (str.length % 4) str += '='; return Uint8Array.from(atob(str), c => c.charCodeAt(0)); };
+  const pipeBytes = async (bytes, stream) => new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(stream)).arrayBuffer());
+  async function encodeDesc(d) {
+    let bytes = new TextEncoder().encode(JSON.stringify({ t: d.type, s: d.sdp })), tag = '0';
+    if (window.CompressionStream) { try { bytes = await pipeBytes(bytes, new CompressionStream('deflate-raw')); tag = '1'; } catch (_) {} }
+    return 'DK' + tag + '-' + b64(bytes);
+  }
+  async function decodeDesc(code) {
+    const m = String(code).replace(/\s+/g, '').match(/DK([01])-([A-Za-z0-9_-]+)/);
+    if (!m) throw new Error('Kod geçersiz');
+    let bytes = unb64(m[2]);
+    if (m[1] === '1') bytes = await pipeBytes(bytes, new DecompressionStream('deflate-raw'));
+    const o = JSON.parse(new TextDecoder().decode(bytes));
+    return { type: o.t, sdp: o.s };
+  }
+  const iceCfg = () => ({ iceServers: window.__dokunIce || [{ urls: 'stun:stun.l.google.com:19302' }] });
+  const waitIce = pc => new Promise(res => {
+    if (pc.iceGatheringState === 'complete') return res();
+    const done = () => { pc.removeEventListener('icegatheringstatechange', chk); res(); };
+    const chk = () => { if (pc.iceGatheringState === 'complete') done(); };
+    pc.addEventListener('icegatheringstatechange', chk);
+    setTimeout(done, 3500);
+  });
+  const jsend = (dc, o) => { if (dc && dc.readyState === 'open') { try { dc.send(JSON.stringify(o)); } catch (_) {} } };
+  const copyText = async el => {
+    el.select();
+    try { await navigator.clipboard.writeText(el.value); toast('Kopyalandı'); }
+    catch (_) { try { document.execCommand('copy'); toast('Kopyalandı'); } catch (__) { toast('Kodu elle seçip kopyala'); } }
+  };
+  const shareText = async el => { if (navigator.share) { try { await navigator.share({ text: el.value }); return; } catch (_) {} } copyText(el); };
+
+  const livePeers = () => net.peers.filter(p => p.open && !p.gone);
+  const adopt = st => { scores = st.scores.slice(); lives = st.lives.slice(); dead = st.dead.slice(); elim = st.elim.map(e => e == null ? Infinity : e); };
+  const stateOut = () => ({ scores, lives, dead, elim: elim.map(e => e === Infinity ? null : e) });
+  const netBoard = () => scores.map((_, i) => pname(i) + ' ' + chip(i)).join(' · ');
+
+  // ---- host ----
+  function paintHost() {
+    const peers = livePeers();
+    $('#h-list').innerHTML = '<li>👤 ' + esc(nameOf(0)) + ' (sen)</li>' + peers.map(p => '<li>📱 ' + esc(p.name) + '</li>').join('');
+    $('#h-start').disabled = peers.length === 0;
+    $('#h-pair').classList.toggle('hidden', !net.pending);
+    $('#h-add').classList.toggle('hidden', !!net.pending || peers.length === 0 || peers.length >= 3);
+    const mn = { klasik: 'Klasik', yaris: 'Yarış', can: 'Hayatta Kal', takim: 'Klasik' }[modeKey];
+    $('#h-sum').textContent = 'Mod: ' + mn + ' · ' + modeVal[modeKey === 'takim' ? 'klasik' : modeKey] + ' · ' + (sel.size ? sel.size + ' seçili oyun' : 'tüm oyunlar') + ' (ana menüden değiştirilir)';
+  }
+  async function hostPrepare() {
+    if (livePeers().length >= 3) return toast('En fazla 4 oyuncu');
+    $('#h-code').value = 'Kod hazırlanıyor…'; $('#h-ans').value = '';
+    const pc = new RTCPeerConnection(iceCfg());
+    const peer = { pc, dc: pc.createDataChannel('dokun'), open: false, gone: false, idx: 0, name: '', waiting: null };
+    net.pending = peer; net.peers.push(peer);
+    peer.dc.onmessage = e => { let m; try { m = JSON.parse(e.data); } catch (_) { return; } onHostMsg(peer, m); };
+    peer.dc.onclose = () => peerGone(peer);
+    pc.onconnectionstatechange = () => { if (pc.connectionState === 'failed' || pc.connectionState === 'closed') peerGone(peer); };
+    await pc.setLocalDescription(await pc.createOffer());
+    await waitIce(pc);
+    $('#h-code').value = await encodeDesc(pc.localDescription);
+    paintHost();
+  }
+  async function hostAccept() {
+    const peer = net.pending; if (!peer) return;
+    try { await peer.pc.setRemoteDescription(await decodeDesc($('#h-ans').value)); $('#h-status').textContent = 'Bağlanıyor…'; }
+    catch (_) { toast('Cevap kodu geçersiz'); }
+  }
+  function broadcastRoster() {
+    const peers = livePeers(), names = [nameOf(0), ...peers.map(p => p.name)];
+    peers.forEach((p, k) => jsend(p.dc, { t: 'roster', names, idx: k + 1 }));
+    paintHost();
+  }
+  function onHostMsg(peer, m) {
+    if (m.t === 'hello') {
+      if (m.v !== VERSION) { jsend(peer.dc, { t: 'bad', msg: 'Uygulama sürümleri uyuşmuyor' }); return; }
+      peer.open = true; peer.name = String(m.name || '').slice(0, 10) || ('Oyuncu ' + (livePeers().length + 1));
+      if (net.pending === peer) net.pending = null;
+      $('#h-status').textContent = peer.name + ' bağlandı ✔';
+      jsend(peer.dc, { t: 'welcome' }); broadcastRoster();
+    } else if (m.t === 'score') {
+      if (peer.waiting && peer.waiting.r === m.r) { const w = peer.waiting; peer.waiting = null; w.res(m.v == null ? -Infinity : m.v); }
+    }
+  }
+  function peerGone(peer) {
+    if (peer.gone) return;
+    peer.gone = true;
+    if (peer.waiting) { const w = peer.waiting; peer.waiting = null; w.res(-Infinity); }
+    if (net.pending === peer) { net.pending = null; }
+    if (peer.open) toast(peer.name + ' ayrıldı');
+    broadcastRoster();
+  }
+
+  async function startNetMatch() {
+    const peers = livePeers();
+    if (!peers.length) return toast('Önce bir arkadaşını bağla');
+    if (modeKey === 'takim') modeKey = 'klasik';
+    peers.forEach((p, k) => { p.idx = k + 1; });
+    const names = [nameOf(0), ...peers.map(p => p.name)], val = modeVal[modeKey], P = peers.length + 1;
+    const pool = sel.size ? [...sel].sort((a, b) => a - b) : GAMES.map((_, k) => k);
+    peers.forEach(p => jsend(p.dc, { t: 'start', idx: p.idx, P, names, mode: modeKey, val, pool }));
+    netEnter(P, names, 0, modeKey, val, pool);
+    await runNetHost(peers);
+  }
+  function netEnter(P, names, idx, mode, val, pool) {
+    if (!net.prev) net.prev = { N, modeKey };
+    net.names = names; net.myIdx = idx; N = 1; modeKey = mode; modeVal[mode] = val;
+    scores = Array(P).fill(0); lives = Array(P).fill(val); dead = Array(P).fill(false); elim = Array(P).fill(Infinity);
+    lastPool = pool.map(k => GAMES[k]);
+    build([idx]); showScreen(null); endbar.classList.add('hidden'); hud.classList.add('hidden');
+    document.body.classList.add('net'); document.body.classList.toggle('guest', net.role === 'guest');
+    setPlaying(true); music.start(); wake.on(); backGuard.on();
+  }
+  // Tek tur (ag modu): intro + geri sayim + oyun (ortak tohum), bu telefonun sonuc sayisini dondurur
+  async function netRound(g, seed, r, total, open, intro) {
+    resetZones(); showScores(); fx.round();
+    zones[0].querySelector('.gname').textContent = netBoard();
+    if (intro) {
+      say(g.icon + ' ' + g.name + ' <small>' + (open ? 'Tur ' + r : 'Tur ' + r + '/' + total) + ' · ' + g.hint + '</small>', null, true);
+      await sleep(2400);
+      hud.classList.add('hidden');
+    } else {
+      await sleep(700);
+    }
+    addDeadMasks();
+    await countdown();
+    await seeded(seed, () => g.run());
+    return lastScores[0];
+  }
+  async function runNetHost(peers) {
+    const pool = lastPool, nextGame = makeBag(pool), { open, total, single, val } = matchPlan(pool);
+    for (let r = 1; r <= total; r++) {
+      const g = nextGame(), seed = (Math.random() * 2147483647) | 0, intro = !single || r === 1;
+      peers.forEach(p => jsend(p.dc, { t: 'round', r, total, open, gi: GAMES.indexOf(g), seed, intro }));
+      const waits = peers.map(p => new Promise(res => {
+        if (p.gone) return res(-Infinity);
+        const h = vt.timeout(() => { p.waiting = null; res(-Infinity); }, 70000);
+        p.waiting = { r, res: v => { vt.clear(h); res(v); } };
+      }));
+      const mine = await netRound(g, seed, r, total, open, intro);
+      const metrics = [mine, ...(await Promise.all(waits))].map((m, i) => (dead[i] || m == null) ? -Infinity : m);
+      const mx = Math.max(...metrics);
+      const winners = mx > 0 ? metrics.map((m, i) => m === mx ? i : -1).filter(i => i >= 0) : [];
+      const msg = applyRound(winners, r);
+      peers.forEach(p => jsend(p.dc, { t: 'result', r, winners, msg, state: stateOut() }));
+      roundVisual(winners, msg);
+      await sleep(1800);
+      if (matchOver(val)) break;
+    }
+    peers.forEach(p => jsend(p.dc, { t: 'final', state: stateOut() }));
+    await finale();
+  }
+
+  // ---- misafir ----
+  async function guestJoin() {
+    let offer;
+    try { offer = await decodeDesc($('#g-code').value); } catch (_) { return toast('Kod geçersiz'); }
+    $('#g-status').textContent = 'Cevap kodu hazırlanıyor…';
+    const pc = new RTCPeerConnection(iceCfg()); net.gpc = pc; net.role = 'guest'; net.on = true;
+    pc.ondatachannel = e => wireGuest(e.channel);
+    pc.onconnectionstatechange = () => { if (pc.connectionState === 'failed' || pc.connectionState === 'closed') leaveNet('Bağlantı koptu'); };
+    await pc.setRemoteDescription(offer);
+    await pc.setLocalDescription(await pc.createAnswer());
+    await waitIce(pc);
+    $('#g-ans').value = await encodeDesc(pc.localDescription);
+    $('#g-ansbox').classList.remove('hidden');
+    $('#g-status').textContent = 'Bu cevap kodunu host\'a gönder. Host kodu girince otomatik bağlanırsın.';
+  }
+  function wireGuest(dc) {
+    net.gdc = dc;
+    dc.onopen = () => jsend(dc, { t: 'hello', v: VERSION, name: prefs.names[0] });
+    dc.onmessage = e => { let m; try { m = JSON.parse(e.data); } catch (_) { return; } onGuestMsg(m); };
+    dc.onclose = () => { if (net.on) leaveNet('Host ile bağlantı koptu'); };
+  }
+  function onGuestMsg(m) {
+    if (m.t === 'welcome') { $('#g-status').textContent = 'Bağlandı ✔ Host maçı başlatınca oyun başlar.'; }
+    else if (m.t === 'roster') {
+      net.names = m.names; net.myIdx = m.idx;
+      $('#g-roster').classList.remove('hidden');
+      $('#g-list').innerHTML = m.names.map((n, i) => '<li>' + (i === m.idx ? '👤 ' + esc(n) + ' (sen)' : '📱 ' + esc(n)) + '</li>').join('');
+    }
+    else if (m.t === 'bad') { leaveNet(m.msg); }
+    else if (m.t === 'start') { netEnter(m.P, m.names, m.idx, m.mode, m.val, m.pool); }
+    else if (m.t === 'round') {
+      (async () => {
+        const v = await netRound(GAMES[m.gi], m.seed, m.r, m.total, m.open, m.intro);
+        jsend(net.gdc, { t: 'score', r: m.r, v });
+      })();
+    }
+    else if (m.t === 'result') { adopt(m.state); roundVisual(m.winners, m.msg); }
+    else if (m.t === 'final') { adopt(m.state); finale(); }
+  }
+
+  function leaveNet(msg) {
+    net.peers.forEach(p => { try { p.dc && p.dc.close(); p.pc.close(); } catch (_) {} });
+    try { if (net.gdc) net.gdc.close(); if (net.gpc) net.gpc.close(); } catch (_) {}
+    const prev = net.prev;
+    Object.assign(net, { on: false, role: null, names: null, myIdx: 0, peers: [], gdc: null, gpc: null, pending: null, prev: null });
+    document.body.classList.remove('net', 'guest');
+    quitMatch();                                       // zamanlayicilar, muzik ve ekranlar sifirlanir, ana menuye donulur
+    if (prev) { N = prev.N; modeKey = prev.modeKey; renderModeUI(); }
+    $('#net-choose').classList.remove('hidden'); $('#net-host').classList.add('hidden'); $('#net-guest').classList.add('hidden');
+    $('#g-ansbox').classList.add('hidden'); $('#g-roster').classList.add('hidden'); $('#g-code').value = ''; $('#h-status').textContent = ''; $('#g-status').textContent = '';
+    if (msg) toast(msg);
+  }
+
+  // ---- ag ekrani ----
+  $('#net-btn').addEventListener('click', () => { showScreen('net'); });
+  $('#net-back').addEventListener('click', () => { if (net.on) leaveNet(); else showScreen('home'); });
+  $('#net-host-btn').addEventListener('click', async () => {
+    net.role = 'host'; net.on = true;
+    $('#net-choose').classList.add('hidden'); $('#net-host').classList.remove('hidden');
+    paintHost(); await hostPrepare();
+  });
+  $('#net-join-btn').addEventListener('click', () => { $('#net-choose').classList.add('hidden'); $('#net-guest').classList.remove('hidden'); });
+  $('#h-link').addEventListener('click', hostAccept);
+  $('#h-add').addEventListener('click', hostPrepare);
+  $('#h-start').addEventListener('click', startNetMatch);
+  $('#h-copy').addEventListener('click', () => copyText($('#h-code')));
+  $('#h-share').addEventListener('click', () => shareText($('#h-code')));
+  $('#g-join').addEventListener('click', guestJoin);
+  $('#g-copy').addEventListener('click', () => copyText($('#g-ans')));
+  $('#g-share').addEventListener('click', () => shareText($('#g-ans')));
 
   renderModeUI();
   showScreen('home');
@@ -1268,7 +1624,7 @@
   // test icin disariya ac
   document.addEventListener('contextmenu', e => { if (!/INPUT|TEXTAREA/.test(e.target.tagName)) e.preventDefault(); });
   window.__dokun = { get scores() { return scores; }, get zones() { return zones; }, get N() { return N; }, GAMES, resetZones, fx, say, finish: finale, burst, setS,
-    vt, music, prefs, pauseGame, resumeGame, quitMatch, play, nameOf,
+    backGuard, vt, music, prefs, pauseGame, resumeGame, quitMatch, play, nameOf, net, leaveNet, get scoresAll() { return scores; }, get lastScores() { return lastScores; },
     setup(n) { N = n; scores = Array(N).fill(0); lives = Array(N).fill(3); dead = Array(N).fill(false); elim = Array(N).fill(Infinity); build(); showScreen(null); } };
 })();
 </script>
