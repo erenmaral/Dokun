@@ -1,0 +1,424 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0b1020">
+<title>Dokun!</title>
+<style>
+  :root { --bg:#0b1020; --ink:#f4f6ff; }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body { margin:0; height:100%; background:var(--bg); color:var(--ink);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    overflow:hidden; overscroll-behavior:none; }
+  body { height:100dvh; }
+  .noselect { user-select:none; -webkit-user-select:none; -webkit-touch-callout:none; touch-action:none; }
+
+  #board { position:fixed; inset:0; display:grid; gap:3px; background:#000; }
+  #board.p2 { grid-template-rows:1fr 1fr; }
+  #board.p3 { grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; }
+  #board.p3 .zone:nth-child(3) { grid-column:1 / -1; }
+  #board.p4 { grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; }
+
+  .zone { position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    background:color-mix(in srgb, var(--c) 22%, #10162a); transition:background .12s;
+    padding:12px; overflow:hidden; }
+  .zone.flip { transform:rotate(180deg); }
+  .zone .head { position:absolute; bottom:10px; left:14px; right:14px; display:flex; justify-content:space-between;
+    font-weight:700; font-size:15px; color:var(--c); letter-spacing:.03em; }
+  .zone .head .score { color:var(--ink); font-size:20px; }
+  .zone .body { font-size:clamp(26px, 9vmin, 64px); font-weight:800; text-align:center; width:100%; }
+  .zone[data-s="go"]  { background:color-mix(in srgb, var(--c) 70%, #10162a); }
+  .zone[data-s="out"] { background:#2a2a33; color:#888; }
+  .zone[data-s="win"] { background:color-mix(in srgb, var(--c) 90%, #fff 10%); }
+  .zone[data-s="win"] .head { color:#10162a; }
+  .zone[data-s="win"] .head .score { color:#10162a; }
+
+  .track { position:relative; width:86%; height:46px; margin:0 auto; background:rgba(0,0,0,.35); border-radius:23px; }
+  .track .mid { position:absolute; left:50%; top:-6px; bottom:-6px; width:4px; margin-left:-2px; background:#fff; border-radius:2px; opacity:.85; }
+  .track .mk { position:absolute; top:5px; width:36px; height:36px; margin-left:-18px; border-radius:50%; background:var(--c);
+    border:3px solid #fff; left:0; }
+  .pct { font-size:clamp(18px,5vmin,30px); margin-top:14px; font-weight:700; }
+
+  .zone .body.fill { height:calc(100% - 34px); }
+  .arena { position:relative; width:100%; height:100%; }
+  .tgt { position:absolute; width:56px; height:56px; margin:-28px 0 0 -28px; border-radius:50%;
+    background:var(--c); border:4px solid #fff; box-shadow:0 0 0 4px rgba(0,0,0,.25); }
+  .cnt { position:absolute; top:0; left:0; font-size:18px; font-weight:700; opacity:.9; }
+  .grid { display:grid; gap:8px; width:100%; margin:0 auto; align-content:center; height:100%;
+    max-width:min(100%, calc((50dvh - 80px) * var(--ar, 1))); }
+  .cell { display:flex; align-items:center; justify-content:center; aspect-ratio:1; background:rgba(255,255,255,.14);
+    border-radius:12px; font-size:clamp(22px, 6vmin, 36px); font-weight:800; }
+  .cell.done { opacity:.25; }
+
+  #hud { position:fixed; left:50%; top:50%; transform:translate(-50%,-50%); z-index:5; pointer-events:none;
+    background:rgba(8,10,20,.85); border:2px solid rgba(255,255,255,.25); border-radius:16px;
+    padding:8px 16px; text-align:center; max-width:86vw; font-weight:700; font-size:16px; line-height:1.3; }
+  #hud small { display:block; font-weight:500; opacity:.7; font-size:12px; }
+  #hud.hidden { display:none; }
+
+  #menu { position:fixed; inset:0; z-index:10; background:var(--bg); display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:18px; padding:24px; text-align:center; }
+  #menu.hidden { display:none; }
+  #menu h1 { font-size:clamp(44px,14vw,84px); margin:0; letter-spacing:.04em; }
+  #menu p { margin:0; opacity:.75; max-width:32ch; line-height:1.4; }
+  .row { display:flex; gap:10px; }
+  button { font:inherit; font-weight:800; color:var(--ink); background:#1c2547; border:2px solid #3a4780;
+    border-radius:14px; padding:14px 22px; font-size:20px; cursor:pointer; }
+  button.sel { background:#4dabf7; border-color:#fff; color:#08101f; }
+  button.go { background:#3ddc97; border-color:#fff; color:#08101f; font-size:24px; padding:16px 40px; }
+</style>
+</head>
+<body class="noselect">
+<div id="board"></div>
+<div id="hud" class="hidden"></div>
+
+<div id="menu">
+  <h1>DOKUN!</h1>
+  <p id="menu-text">Aynı telefonu paylaşan arkadaşlar için hızlı mini oyunlar. Herkes kendi bölgesine dokunur.</p>
+  <div>Oyuncu sayısı</div>
+  <div class="row" id="count-row">
+    <button data-n="2" class="sel">2</button>
+    <button data-n="3">3</button>
+    <button data-n="4">4</button>
+  </div>
+  <button id="sound">🔊 Ses ve titreşim: Açık</button>
+  <button class="go" id="start">Başla</button>
+</div>
+
+<script>
+(() => {
+  const COLORS = ['#ff5a5f', '#3ddc97', '#4dabf7', '#ffd43b'];
+  const $ = s => document.querySelector(s);
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+  const board = $('#board'), hud = $('#hud'), menu = $('#menu');
+  let N = 2, scores = [], zones = [], handler = null, upHandler = null;
+
+  // ---------- Ses (Web Audio, dosya yok) ve titresim ----------
+  const fx = (() => {
+    let ctx = null, on = true;
+    try { on = localStorage.getItem('dokun-ses') !== 'kapali'; } catch (_) {}
+    const ensure = () => {
+      if (!on) return null;
+      if (!ctx) { const C = window.AudioContext || window.webkitAudioContext; if (!C) return null; ctx = new C(); }
+      if (ctx.state === 'suspended') ctx.resume();
+      return ctx;
+    };
+    const tone = (freq, dur, o = {}) => {
+      const c = ensure(); if (!c) return;
+      const { type = 'sine', vol = 0.2, at = 0, slide = 0 } = o;
+      const t = c.currentTime + at, osc = c.createOscillator(), g = c.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, t);
+      if (slide) osc.frequency.exponentialRampToValueAtTime(Math.max(30, freq + slide), t + dur);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(vol, t + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      osc.connect(g); g.connect(c.destination);
+      osc.start(t); osc.stop(t + dur + 0.02);
+    };
+    const vib = pattern => { if (on && navigator.vibrate) { try { navigator.vibrate(pattern); } catch (_) {} } };
+    return {
+      get on() { return on; },
+      unlock: ensure,
+      toggle() {
+        on = !on;
+        try { localStorage.setItem('dokun-ses', on ? 'acik' : 'kapali'); } catch (_) {}
+        if (on) { tone(660, 0.08); vib(30); }
+        return on;
+      },
+      tick()  { tone(900, 0.04, { type: 'square', vol: 0.04 }); vib(8); },
+      hit()   { tone(660, 0.07, { vol: 0.15 }); tone(990, 0.09, { at: 0.06, vol: 0.15 }); vib(20); },
+      go()    { tone(880, 0.18, { type: 'triangle', vol: 0.25 }); vib(60); },
+      bad()   { tone(180, 0.25, { type: 'sawtooth', vol: 0.15, slide: -80 }); vib([60, 40, 60]); },
+      round() { tone(520, 0.08, { vol: 0.15 }); tone(780, 0.1, { at: 0.09, vol: 0.15 }); },
+      win()   { [523, 659, 784].forEach((f, k) => tone(f, 0.14, { at: k * 0.09, vol: 0.2, type: 'triangle' })); vib([40, 30, 80]); },
+      none()  { tone(300, 0.2, { vol: 0.15, slide: -100 }); },
+      fanfare() { [523, 659, 784, 1047, 784, 1047].forEach((f, k) => tone(f, 0.2, { at: k * 0.14, vol: 0.22, type: 'triangle' })); vib([80, 50, 80, 50, 200]); },
+    };
+  })();
+  document.addEventListener('pointerdown', () => fx.unlock(), { passive: true });
+
+  // ---------- Arayuz yardimcilari ----------
+  function build() {
+    board.innerHTML = '';
+    board.className = 'p' + N;
+    zones = [];
+    for (let i = 0; i < N; i++) {
+      const z = document.createElement('div');
+      z.className = 'zone';
+      z.style.setProperty('--c', COLORS[i]);
+      const flipped = N === 2 ? i === 0 : i < 2;       // ust siradaki oyuncular karsidan oynar
+      if (flipped) z.classList.add('flip');
+      z.innerHTML = '<div class="head"><span>Oyuncu ' + (i + 1) + '</span><span class="score">0</span></div><div class="body"></div>';
+      z.addEventListener('pointerdown', e => {
+        e.preventDefault();
+        try { z.setPointerCapture(e.pointerId); } catch (_) {}
+        if (handler) { fx.tick(); handler(i, e); }
+      });
+      const up = () => { if (upHandler) upHandler(i); };
+      z.addEventListener('pointerup', up);
+      z.addEventListener('pointercancel', up);
+      board.appendChild(z);
+      zones.push(z);
+    }
+  }
+  const body = (i, html) => { zones[i].querySelector('.body').innerHTML = html; };
+  const setS = (i, s) => { zones[i].dataset.s = s || ''; };
+  const showScores = () => zones.forEach((z, i) => { z.querySelector('.score').textContent = scores[i]; });
+  const resetZones = () => zones.forEach((z, i) => { setS(i, ''); body(i, ''); z.querySelector('.body').classList.remove('fill'); });
+  const arena = (i, html) => { const b = zones[i].querySelector('.body'); b.classList.add('fill'); b.innerHTML = html; };
+  const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const topScorers = arr => { const m = Math.max(...arr); return m > 0 ? arr.map((v, i) => v === m ? i : -1).filter(i => i >= 0) : []; };
+  function say(main, sub) {
+    hud.innerHTML = main + (sub ? '<small>' + sub + '</small>' : '');
+    hud.classList.remove('hidden');
+  }
+
+  // ---------- Mini oyunlar: kazananlarin indeksini dondurur ----------
+  async function reaction() {
+    const out = new Set();
+    let go = false, winner = -1, done = false;
+    zones.forEach((_, i) => body(i, 'Hazır…'));
+    await new Promise(res => {
+      const finish = () => { done = true; res(); };
+      handler = i => {
+        if (done || out.has(i)) return;
+        if (!go) {                                    // erken dokundu: bu turdan elendi
+          out.add(i); setS(i, 'out'); body(i, 'Erken! ✖'); fx.bad();
+          if (out.size === N) finish();
+          return;
+        }
+        winner = i; finish();
+      };
+      setTimeout(() => {
+        if (done) return;
+        go = true;
+        zones.forEach((_, i) => { if (!out.has(i)) { setS(i, 'go'); body(i, 'DOKUN!'); } });
+        fx.go();
+        setTimeout(() => { if (!done) finish(); }, 3000);
+      }, 1500 + Math.random() * 2500);
+    });
+    handler = null;
+    return winner >= 0 ? [winner] : [];
+  }
+
+  async function spam() {
+    const c = Array(N).fill(0);
+    zones.forEach((_, i) => body(i, 'Hazır…'));
+    await sleep(1200);
+    zones.forEach((_, i) => { setS(i, 'go'); body(i, '0'); });
+    fx.go();
+    handler = i => { c[i]++; body(i, c[i]); };
+    const end = performance.now() + 5000;
+    while (performance.now() < end) {
+      say('Çılgınca dokun!', Math.ceil((end - performance.now()) / 1000) + ' sn');
+      await sleep(100);
+    }
+    handler = null;
+    const max = Math.max(...c);
+    return max > 0 ? c.map((v, i) => v === max ? i : -1).filter(i => i >= 0) : [];
+  }
+
+  async function stopbar() {
+    zones.forEach((_, i) => {
+      setS(i, 'go');
+      body(i, '<div class="track"><div class="mid"></div><div class="mk"></div></div><div class="pct">&nbsp;</div>');
+    });
+    const speed = zones.map(() => 0.7 + Math.random() * 0.7);
+    const phase = zones.map(() => Math.random() * 2);
+    const pos = Array(N).fill(null);
+    const posAt = (i, t) => { const x = (t / 1000 * speed[i] + phase[i]) % 2; return x < 1 ? x : 2 - x; };
+    const t0 = performance.now();
+    const mk = i => zones[i].querySelector('.mk');
+    await new Promise(res => {
+      let raf;
+      const finish = () => { cancelAnimationFrame(raf); res(); };
+      handler = i => {
+        if (pos[i] !== null) return;
+        pos[i] = posAt(i, performance.now() - t0);
+        mk(i).style.left = pos[i] * 100 + '%';
+        if (pos.every(p => p !== null)) setTimeout(finish, 300);
+      };
+      const tick = () => {
+        const t = performance.now() - t0;
+        zones.forEach((_, i) => { if (pos[i] === null) mk(i).style.left = posAt(i, t) * 100 + '%'; });
+        if (t > 6000) { finish(); return; }
+        raf = requestAnimationFrame(tick);
+      };
+      say('Topu ortadaki çizgide durdur!');
+      tick();
+    });
+    handler = null;
+    const dist = pos.map(p => p === null ? 1 : Math.abs(p - 0.5));
+    zones.forEach((z, i) => {
+      z.querySelector('.pct').textContent = pos[i] === null ? 'Durdurmadı' : '%' + Math.round((1 - dist[i] * 2) * 100);
+    });
+    const best = Math.min(...dist);
+    return best < 1 ? [dist.indexOf(best)] : [];
+  }
+
+  async function targets() {
+    const GOAL = 6, cnt = Array(N).fill(0);
+    let winner = -1;
+    const place = i => {
+      const t = zones[i].querySelector('.tgt');
+      t.style.left = (15 + Math.random() * 70) + '%';
+      t.style.top = (18 + Math.random() * 65) + '%';
+    };
+    zones.forEach((_, i) => {
+      arena(i, '<div class="arena"><div class="cnt">0/' + GOAL + '</div><div class="tgt"></div></div>');
+      setS(i, 'go'); place(i);
+    });
+    await new Promise(res => {
+      handler = (i, e) => {
+        if (winner >= 0 || !e.target.classList.contains('tgt')) return;
+        cnt[i]++; fx.hit();
+        zones[i].querySelector('.cnt').textContent = cnt[i] + '/' + GOAL;
+        if (cnt[i] >= GOAL) { winner = i; res(); } else place(i);
+      };
+      setTimeout(res, 15000);
+    });
+    handler = null;
+    return winner >= 0 ? [winner] : topScorers(cnt);
+  }
+
+  async function numbers() {
+    const next = Array(N).fill(1);
+    let winner = -1;
+    zones.forEach((_, i) => {
+      arena(i, '<div class="grid" style="--ar:.67;grid-template-columns:repeat(2,1fr)">' +
+        shuffle([1, 2, 3, 4, 5, 6]).map(n => '<div class="cell" data-n="' + n + '">' + n + '</div>').join('') + '</div>');
+      setS(i, 'go');
+    });
+    await new Promise(res => {
+      handler = (i, e) => {
+        if (winner >= 0) return;
+        const n = +e.target.dataset.n;
+        if (!n) return;
+        if (n !== next[i]) { fx.bad(); return; }
+        e.target.classList.add('done'); fx.hit();
+        if (++next[i] > 6) { winner = i; res(); }
+      };
+      setTimeout(res, 15000);
+    });
+    handler = null;
+    return winner >= 0 ? [winner] : topScorers(next.map(v => v - 1));
+  }
+
+  async function odd() {
+    const pairs = [['🙂', '🙃'], ['🍎', '🍅'], ['⭐', '🌟'], ['🔵', '🟣'], ['🐱', '🐯'], ['🍋', '🧀']];
+    const [a, b] = pairs[Math.floor(Math.random() * pairs.length)];
+    const lock = Array(N).fill(false);
+    let winner = -1;
+    zones.forEach((_, i) => {
+      const k = Math.floor(Math.random() * 12);
+      let h = '';
+      for (let c = 0; c < 12; c++) h += '<div class="cell" data-odd="' + (c === k ? 1 : 0) + '">' + (c === k ? b : a) + '</div>';
+      arena(i, '<div class="grid" style="--ar:.75;grid-template-columns:repeat(3,1fr)">' + h + '</div>');
+      setS(i, 'go');
+    });
+    await new Promise(res => {
+      handler = (i, e) => {
+        if (winner >= 0 || lock[i] || e.target.dataset.odd === undefined) return;
+        if (e.target.dataset.odd === '1') { winner = i; res(); return; }
+        lock[i] = true; setS(i, 'out'); fx.bad();                  // yanlis dokunus: 1,2 sn ceza
+        setTimeout(() => { lock[i] = false; if (winner < 0) setS(i, 'go'); }, 1200);
+      };
+      setTimeout(res, 12000);
+    });
+    handler = null;
+    return winner >= 0 ? [winner] : [];
+  }
+
+  async function hold() {
+    const TARGET = 3000, st = Array(N).fill(null), en = Array(N).fill(null);
+    zones.forEach((_, i) => body(i, 'Basılı tut'));
+    await new Promise(res => {
+      let timer;
+      const done = () => { clearInterval(timer); res(); };
+      handler = i => { if (st[i] === null) { st[i] = performance.now(); setS(i, 'go'); } };
+      upHandler = i => {
+        if (st[i] === null || en[i] !== null) return;
+        en[i] = performance.now(); setS(i, ''); body(i, 'Bıraktın');
+        if (en.every(x => x !== null)) setTimeout(done, 300);
+      };
+      timer = setInterval(() => {
+        const now = performance.now();
+        zones.forEach((_, i) => {
+          if (st[i] !== null && en[i] === null) { const t = now - st[i]; body(i, t < 1000 ? (t / 1000).toFixed(1) + ' sn' : '?'); }
+        });
+      }, 50);
+      setTimeout(done, 10000);
+    });
+    handler = null; upHandler = null;
+    const err = en.map((e, i) => e === null ? Infinity : Math.abs((e - st[i]) - TARGET));
+    zones.forEach((_, i) => body(i, en[i] === null ? '—' : ((en[i] - st[i]) / 1000).toFixed(2) + ' sn'));
+    const best = Math.min(...err);
+    return isFinite(best) ? [err.indexOf(best)] : [];
+  }
+
+  const GAMES = [
+    { name: 'Tepki', hint: 'Yeşil olunca ilk dokunan kazanır. Erken dokunan elenir!', run: reaction },
+    { name: 'Seri Dokun', hint: '5 saniyede en çok dokunan kazanır.', run: spam },
+    { name: 'Tam Ortada', hint: 'Top ortaya en yakın durursa kazanırsın.', run: stopbar },
+    { name: 'Hedef Avı', hint: 'Çıkan daireye dokun. 6 hedefe ilk ulaşan kazanır.', run: targets },
+    { name: 'Sayı Sırası', hint: "1'den 6'ya sırayla dokun. İlk bitiren kazanır.", run: numbers },
+    { name: 'Tek Farklı', hint: 'Farklı olanı bul! Yanlış dokunana ceza var.', run: odd },
+    { name: 'Tut ve Bırak', hint: "Basılı tut, 3 saniye dolunca bırak. İlk 1 sn sayaç görünür, sonra gizlenir!", run: hold },
+  ];
+
+  // ---------- Oyun akisi ----------
+  async function play() {
+    scores = Array(N).fill(0);
+    build();
+    menu.classList.add('hidden');
+    const deck = shuffle(GAMES);
+    for (let r = 1; r <= deck.length; r++) {
+      const g = deck[r - 1];
+      resetZones(); showScores(); fx.round();
+      say(g.name + ' <small>Tur ' + r + '/' + deck.length + ' · ' + g.hint + '</small>');
+      await sleep(2200);
+      const winners = await g.run();
+      winners.forEach(i => { scores[i]++; setS(i, 'win'); });
+      showScores();
+      if (winners.length) fx.win(); else fx.none();
+      say(winners.length ? winners.map(i => 'Oyuncu ' + (i + 1)).join(' & ') + ' +1' : 'Kimse puan alamadı');
+      await sleep(1800);
+    }
+    finish();
+  }
+
+  function finish() {
+    hud.classList.add('hidden');
+    fx.fanfare();
+    const max = Math.max(...scores);
+    const w = scores.map((s, i) => s === max ? 'Oyuncu ' + (i + 1) : null).filter(Boolean);
+    $('#menu h1').textContent = w.length > 1 ? 'BERABERE' : 'KAZANAN';
+    $('#menu-text').innerHTML = '<b style="font-size:26px">' + w.join(' & ') + '</b><br>' +
+      scores.map((s, i) => 'Oyuncu ' + (i + 1) + ': ' + s).join(' · ');
+    $('#start').textContent = 'Tekrar oyna';
+    menu.classList.remove('hidden');
+  }
+
+  // ---------- Menu ----------
+  $('#count-row').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    N = +b.dataset.n;
+    [...$('#count-row').children].forEach(x => x.classList.toggle('sel', x === b));
+  });
+  const soundBtn = $('#sound');
+  const paintSound = () => { soundBtn.textContent = fx.on ? '🔊 Ses ve titreşim: Açık' : '🔇 Ses ve titreşim: Kapalı'; };
+  soundBtn.addEventListener('click', () => { fx.toggle(); paintSound(); });
+  paintSound();
+  $('#start').addEventListener('click', play);
+
+  // test icin disariya ac
+  document.addEventListener('contextmenu', e => e.preventDefault());
+  window.__dokun = { get scores() { return scores; }, get zones() { return zones; }, GAMES, resetZones, fx,
+    setup(n) { N = n; scores = Array(N).fill(0); build(); menu.classList.add('hidden'); } };
+})();
+</script>
+</body>
+</html>
