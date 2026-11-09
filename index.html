@@ -14,7 +14,8 @@
   body { height:100dvh; }
   .noselect { user-select:none; -webkit-user-select:none; -webkit-touch-callout:none; touch-action:none; }
 
-  #board { position:fixed; inset:0; display:grid; gap:3px; background:#000; }
+  #board { position:fixed; inset:0; display:grid; gap:3px; background:#000;
+    padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
   #board.p2 { grid-template-rows:1fr 1fr; }
   #board.p3 { grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; }
   #board.p3 .zone:nth-child(3) { grid-column:1 / -1; }
@@ -22,7 +23,7 @@
 
   .zone { position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center;
     background:color-mix(in srgb, var(--c) 22%, #10162a); transition:background .12s;
-    padding:12px; overflow:hidden; }
+    padding:16px; overflow:hidden; }
   .zone.flip { transform:rotate(180deg); }
   .zone .head { position:absolute; bottom:10px; left:14px; right:14px; display:flex; justify-content:space-between;
     font-weight:700; font-size:15px; color:var(--c); letter-spacing:.03em; }
@@ -36,7 +37,7 @@
 
   .track { position:relative; width:86%; height:46px; margin:0 auto; background:rgba(0,0,0,.35); border-radius:23px; }
   .track .mid { position:absolute; left:50%; top:-6px; bottom:-6px; width:4px; margin-left:-2px; background:#fff; border-radius:2px; opacity:.85; }
-  .track .mk { position:absolute; top:5px; width:36px; height:36px; margin-left:-18px; border-radius:50%; background:var(--c);
+  .track .mk { position:absolute; top:5px; width:36px; height:36px; margin-left:-18px; left:18px; border-radius:50%; background:var(--c);
     border:3px solid #fff; left:0; }
   .pct { font-size:clamp(18px,5vmin,30px); margin-top:14px; font-weight:700; }
 
@@ -56,6 +57,31 @@
     padding:8px 16px; text-align:center; max-width:86vw; font-weight:700; font-size:16px; line-height:1.3; }
   #hud small { display:block; font-weight:500; opacity:.7; font-size:12px; }
   #hud.hidden { display:none; }
+  #hud.mini { padding:3px 12px; font-size:13px; border-radius:12px; border-width:1px; }
+  #hud.mini small { display:inline; margin-left:6px; font-size:12px; }
+
+  .zone .sub { font-size:15px; font-weight:600; opacity:.8; margin-top:8px; }
+  .quiz { width:100%; height:100%; position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; }
+  .quiz .q { font-size:clamp(26px, 8vmin, 46px); font-weight:800; }
+  .quiz .word { background:#10162a; padding:6px 14px; border-radius:12px; }
+  .quiz .opts { display:grid; grid-template-columns:repeat(2, 1fr); gap:10px; width:min(100%, 230px); }
+  .quiz .opt { display:flex; align-items:center; justify-content:center; min-height:clamp(44px, 9vmin, 62px); border-radius:14px;
+    background:rgba(255,255,255,.2); font-size:clamp(20px, 6vmin, 30px); font-weight:800; }
+  .lamp { width:min(60%, 38vmin); aspect-ratio:1; border-radius:50%; background:#10162a; border:6px solid rgba(255,255,255,.35); margin:0 auto; }
+  .lamp.g { background:#22c55e; box-shadow:0 0 40px #22c55e; }
+  .lamp.r { background:#ef4444; box-shadow:0 0 40px #ef4444; }
+  .pad { opacity:.6; transition:opacity .08s; }
+  .pad.lit { opacity:1; box-shadow:0 0 18px #fff; }
+  .balloons { overflow:hidden; }
+  .balloon { position:absolute; bottom:-70px; width:54px; height:66px; margin-left:-27px; border-radius:50% 50% 48% 48%;
+    background:var(--bc); display:flex; align-items:center; justify-content:center; font-size:28px;
+    animation:rise 2.6s linear forwards; }
+  .balloon.pop { transform:scale(1.7); opacity:0; transition:transform .15s, opacity .15s; }
+  @keyframes rise { from { bottom:-70px; } to { bottom:100%; } }
+
+  #rotate { display:none; position:fixed; inset:0; z-index:30; background:var(--bg); align-items:center; justify-content:center;
+    text-align:center; font-size:22px; font-weight:800; padding:24px; }
+  @media (orientation:landscape) and (max-height:520px) { #rotate { display:flex; } }
 
   #menu { position:fixed; inset:0; z-index:10; background:var(--bg); display:flex; flex-direction:column;
     align-items:center; justify-content:center; gap:18px; padding:24px; text-align:center; }
@@ -72,6 +98,7 @@
 <body class="noselect">
 <div id="board"></div>
 <div id="hud" class="hidden"></div>
+<div id="rotate">📱 Telefonu dikey tut</div>
 
 <div id="menu">
   <h1>DOKUN!</h1>
@@ -81,6 +108,12 @@
     <button data-n="2" class="sel">2</button>
     <button data-n="3">3</button>
     <button data-n="4">4</button>
+  </div>
+  <div>Tur sayısı</div>
+  <div class="row" id="round-row">
+    <button data-r="5">5</button>
+    <button data-r="8" class="sel">8</button>
+    <button data-r="12">12</button>
   </div>
   <button id="sound">🔊 Ses ve titreşim: Açık</button>
   <button class="go" id="start">Başla</button>
@@ -93,7 +126,7 @@
   const sleep = ms => new Promise(r => setTimeout(r, ms));
 
   const board = $('#board'), hud = $('#hud'), menu = $('#menu');
-  let N = 2, scores = [], zones = [], handler = null, upHandler = null;
+  let N = 2, ROUNDS = 8, scores = [], zones = [], handler = null, upHandler = null;
 
   // ---------- Ses (Web Audio, dosya yok) ve titresim ----------
   const fx = (() => {
@@ -171,8 +204,9 @@
   const arena = (i, html) => { const b = zones[i].querySelector('.body'); b.classList.add('fill'); b.innerHTML = html; };
   const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
   const topScorers = arr => { const m = Math.max(...arr); return m > 0 ? arr.map((v, i) => v === m ? i : -1).filter(i => i >= 0) : []; };
-  function say(main, sub) {
+  function say(main, sub, big) {
     hud.innerHTML = main + (sub ? '<small>' + sub + '</small>' : '');
+    hud.classList.toggle('mini', !big);
     hud.classList.remove('hidden');
   }
 
@@ -232,18 +266,19 @@
     const posAt = (i, t) => { const x = (t / 1000 * speed[i] + phase[i]) % 2; return x < 1 ? x : 2 - x; };
     const t0 = performance.now();
     const mk = i => zones[i].querySelector('.mk');
+    const mkLeft = p => 'calc(18px + (100% - 36px) * ' + p + ')';
     await new Promise(res => {
       let raf;
       const finish = () => { cancelAnimationFrame(raf); res(); };
       handler = i => {
         if (pos[i] !== null) return;
         pos[i] = posAt(i, performance.now() - t0);
-        mk(i).style.left = pos[i] * 100 + '%';
+        mk(i).style.left = mkLeft(pos[i]);
         if (pos.every(p => p !== null)) setTimeout(finish, 300);
       };
       const tick = () => {
         const t = performance.now() - t0;
-        zones.forEach((_, i) => { if (pos[i] === null) mk(i).style.left = posAt(i, t) * 100 + '%'; });
+        zones.forEach((_, i) => { if (pos[i] === null) mk(i).style.left = mkLeft(posAt(i, t)); });
         if (t > 6000) { finish(); return; }
         raf = requestAnimationFrame(tick);
       };
@@ -308,7 +343,7 @@
   }
 
   async function odd() {
-    const pairs = [['🙂', '🙃'], ['🍎', '🍅'], ['⭐', '🌟'], ['🔵', '🟣'], ['🐱', '🐯'], ['🍋', '🧀']];
+    const pairs = [['🙂', '🙃'], ['🍎', '🍅'], ['🔵', '🟣'], ['🐱', '🐯'], ['🍋', '🧀'], ['🐶', '🐺'], ['🍇', '🫐']];
     const [a, b] = pairs[Math.floor(Math.random() * pairs.length)];
     const lock = Array(N).fill(false);
     let winner = -1;
@@ -334,7 +369,7 @@
 
   async function hold() {
     const TARGET = 3000, st = Array(N).fill(null), en = Array(N).fill(null);
-    zones.forEach((_, i) => body(i, 'Basılı tut'));
+    zones.forEach((_, i) => body(i, 'Basılı tut<div class="sub">3 sn dolunca bırak</div>'));
     await new Promise(res => {
       let timer;
       const done = () => { clearInterval(timer); res(); };
@@ -359,6 +394,159 @@
     return isFinite(best) ? [err.indexOf(best)] : [];
   }
 
+  // ----- Ortak: soru-cevap oyunu (ilk 'goal' dogruya ulasan kazanir; yanlista 1 sn ceza) -----
+  async function quizGame(makeQ, goal = 4, timeout = 20000) {
+    const cnt = Array(N).fill(0), cur = [], lock = Array(N).fill(false);
+    let winner = -1;
+    const draw = i => {
+      const q = makeQ();
+      cur[i] = q.correct;
+      zones[i].querySelector('.q').innerHTML = q.html;
+      zones[i].querySelector('.opts').innerHTML = q.options.map((o, j) =>
+        '<div class="opt" data-j="' + j + '"' + (o.style ? ' style="' + o.style + '"' : '') + '>' + o.html + '</div>').join('');
+    };
+    zones.forEach((_, i) => {
+      arena(i, '<div class="quiz"><div class="cnt">0/' + goal + '</div><div class="q"></div><div class="opts"></div></div>');
+      setS(i, 'go'); draw(i);
+    });
+    await new Promise(res => {
+      handler = (i, e) => {
+        if (winner >= 0 || lock[i]) return;
+        const o = e.target.closest('.opt'); if (!o) return;
+        if (+o.dataset.j === cur[i]) {
+          cnt[i]++; fx.hit();
+          zones[i].querySelector('.cnt').textContent = cnt[i] + '/' + goal;
+          if (cnt[i] >= goal) { winner = i; res(); return; }
+          draw(i);
+        } else {
+          lock[i] = true; setS(i, 'out'); fx.bad();
+          setTimeout(() => { lock[i] = false; if (winner < 0) setS(i, 'go'); }, 1000);
+        }
+      };
+      setTimeout(res, timeout);
+    });
+    handler = null;
+    return winner >= 0 ? [winner] : topScorers(cnt);
+  }
+
+  const INK = [['KIRMIZI', '#ef4444'], ['MAVİ', '#3b82f6'], ['YEŞİL', '#22c55e'], ['SARI', '#facc15']];
+  const stroop = () => quizGame(() => {
+    const w = Math.floor(Math.random() * 4);
+    let c; do { c = Math.floor(Math.random() * 4); } while (c === w);
+    const order = shuffle([0, 1, 2, 3]);
+    return {
+      html: '<span class="word" style="color:' + INK[c][1] + '">' + INK[w][0] + '</span>',
+      options: order.map(k => ({ html: '', style: 'background:' + INK[k][1] })),
+      correct: order.indexOf(c),
+    };
+  });
+
+  const math = () => quizGame(() => {
+    const plus = Math.random() < 0.6;
+    let a = 2 + Math.floor(Math.random() * 9), b = 2 + Math.floor(Math.random() * 9);
+    if (!plus && b > a) [a, b] = [b, a];
+    const ans = plus ? a + b : a - b;
+    const set = new Set([ans]);
+    while (set.size < 4) { const v = ans + Math.floor(Math.random() * 7) - 3; if (v >= 0) set.add(v); }
+    const opts = shuffle([...set]);
+    return { html: a + (plus ? ' + ' : ' − ') + b, options: opts.map(v => ({ html: v })), correct: opts.indexOf(ans) };
+  });
+
+  async function lights() {
+    const ROUNDS = 12, sc = Array(N).fill(0), tapped = Array(N).fill(false);
+    let on = null;                                       // null | 'g' | 'r'
+    const paint = () => zones.forEach((_, i) => {
+      body(i, '<div class="lamp' + (on ? ' ' + on : '') + '"></div><div class="sub">Puan: ' + sc[i] + '</div>');
+    });
+    paint();
+    handler = i => {
+      if (!on || tapped[i]) return;
+      tapped[i] = true;
+      if (on === 'g') { sc[i]++; fx.hit(); } else { sc[i]--; fx.bad(); }
+      paint2(i);
+    };
+    const paint2 = i => { zones[i].querySelector('.sub').textContent = 'Puan: ' + sc[i]; };
+    for (let k = 0; k < ROUNDS; k++) {
+      await sleep(500 + Math.random() * 700);
+      tapped.fill(false);
+      on = Math.random() < 0.65 ? 'g' : 'r';
+      zones.forEach(z => { z.querySelector('.lamp').className = 'lamp ' + on; });
+      await sleep(650);
+      on = null;
+      zones.forEach(z => { z.querySelector('.lamp').className = 'lamp'; });
+    }
+    handler = null;
+    return topScorers(sc);
+  }
+
+  async function simon() {
+    const COL = ['#ff5a5f', '#3ddc97', '#4dabf7', '#ffd43b'], LEN = 4;
+    const seq = Array.from({ length: LEN }, () => Math.floor(Math.random() * 4));
+    const prog = Array(N).fill(0), lock = Array(N).fill(false);
+    let winner = -1;
+    zones.forEach((_, i) => {
+      arena(i, '<div class="grid" style="--ar:1;grid-template-columns:repeat(2,1fr)">' +
+        COL.map((c, k) => '<div class="cell pad" data-k="' + k + '" style="background:' + c + '"></div>').join('') + '</div>');
+      setS(i, 'go');
+    });
+    say('İzle!');
+    await sleep(700);
+    const pads = k => zones.map(z => z.querySelector('.pad[data-k="' + k + '"]'));
+    for (const k of seq) {
+      pads(k).forEach(e => e.classList.add('lit')); fx.tick();
+      await sleep(550);
+      pads(k).forEach(e => e.classList.remove('lit'));
+      await sleep(250);
+    }
+    say('Sıra sende!');
+    await new Promise(res => {
+      handler = (i, e) => {
+        if (winner >= 0 || lock[i]) return;
+        const pad = e.target.closest('.pad'); if (!pad) return;
+        pad.classList.add('lit'); setTimeout(() => pad.classList.remove('lit'), 120);
+        if (+pad.dataset.k === seq[prog[i]]) {
+          if (++prog[i] >= LEN) { winner = i; res(); }
+        } else {
+          prog[i] = 0; lock[i] = true; setS(i, 'out'); fx.bad();
+          setTimeout(() => { lock[i] = false; if (winner < 0) setS(i, 'go'); }, 1500);
+        }
+      };
+      setTimeout(res, 25000);
+    });
+    handler = null;
+    return winner >= 0 ? [winner] : topScorers(prog);
+  }
+
+  async function balloons() {
+    const sc = Array(N).fill(0), BC = ['#ff5a5f', '#3ddc97', '#4dabf7', '#ffd43b', '#c084fc', '#fb923c'];
+    zones.forEach((_, i) => { arena(i, '<div class="arena balloons"><div class="cnt">0</div></div>'); setS(i, 'go'); });
+    handler = (i, e) => {
+      const b = e.target.closest('.balloon');
+      if (!b || b.dataset.dead) return;
+      b.dataset.dead = 1; b.classList.add('pop'); setTimeout(() => b.remove(), 160);
+      if (b.dataset.bomb) { sc[i] = Math.max(0, sc[i] - 2); fx.bad(); } else { sc[i]++; fx.hit(); }
+      zones[i].querySelector('.cnt').textContent = sc[i];
+    };
+    const spawn = () => zones.forEach(z => {
+      const a = z.querySelector('.arena');
+      if (!a) return;
+      const bomb = Math.random() < 0.18, b = document.createElement('div');
+      b.className = 'balloon';
+      b.style.left = (12 + Math.random() * 76) + '%';
+      b.style.setProperty('--bc', bomb ? '#374151' : BC[Math.floor(Math.random() * BC.length)]);
+      b.style.animationDuration = (2.2 + Math.random() * 1.2) + 's';
+      if (bomb) { b.dataset.bomb = 1; b.textContent = '💣'; }
+      b.addEventListener('animationend', () => b.remove());
+      a.appendChild(b);
+    });
+    const timer = setInterval(spawn, 420);
+    spawn();
+    await sleep(9000);
+    clearInterval(timer); handler = null;
+    zones.forEach(z => z.querySelectorAll('.balloon').forEach(b => b.remove()));
+    return topScorers(sc);
+  }
+
   const GAMES = [
     { name: 'Tepki', hint: 'Yeşil olunca ilk dokunan kazanır. Erken dokunan elenir!', run: reaction },
     { name: 'Seri Dokun', hint: '5 saniyede en çok dokunan kazanır.', run: spam },
@@ -366,6 +554,11 @@
     { name: 'Hedef Avı', hint: 'Çıkan daireye dokun. 6 hedefe ilk ulaşan kazanır.', run: targets },
     { name: 'Sayı Sırası', hint: "1'den 6'ya sırayla dokun. İlk bitiren kazanır.", run: numbers },
     { name: 'Tek Farklı', hint: 'Farklı olanı bul! Yanlış dokunana ceza var.', run: odd },
+    { name: 'Renk Tuzağı', hint: 'Yazının ne yazdığına değil RENGİNE bak! Doğru rengi seç, ilk 4 doğruya ulaşan kazanır.', run: stroop },
+    { name: 'Hızlı Matematik', hint: 'Doğru sonucu seç. İlk 4 doğruya ulaşan kazanır, yanlışta 1 sn ceza.', run: math },
+    { name: 'Işık Oyunu', hint: 'Yeşilde dokun, kırmızıda DOKUNMA! Yanlış dokunuş puan düşürür.', run: lights },
+    { name: 'Renk Dizisi', hint: 'Yanıp sönen renkleri aynı sırayla tekrarla. İlk bitiren kazanır.', run: simon },
+    { name: 'Balon Patlat', hint: '9 saniyede en çok balonu patlat. 💣 bombalar 2 puan götürür!', run: balloons },
     { name: 'Tut ve Bırak', hint: "Basılı tut, 3 saniye dolunca bırak. İlk 1 sn sayaç görünür, sonra gizlenir!", run: hold },
   ];
 
@@ -374,17 +567,18 @@
     scores = Array(N).fill(0);
     build();
     menu.classList.add('hidden');
-    const deck = shuffle(GAMES);
+    const deck = shuffle(GAMES).slice(0, ROUNDS);
     for (let r = 1; r <= deck.length; r++) {
       const g = deck[r - 1];
       resetZones(); showScores(); fx.round();
-      say(g.name + ' <small>Tur ' + r + '/' + deck.length + ' · ' + g.hint + '</small>');
-      await sleep(2200);
+      say(g.name + ' <small>Tur ' + r + '/' + deck.length + ' · ' + g.hint + '</small>', null, true);
+      await sleep(2600);
+      say(g.name + ' · ' + r + '/' + deck.length);
       const winners = await g.run();
       winners.forEach(i => { scores[i]++; setS(i, 'win'); });
       showScores();
       if (winners.length) fx.win(); else fx.none();
-      say(winners.length ? winners.map(i => 'Oyuncu ' + (i + 1)).join(' & ') + ' +1' : 'Kimse puan alamadı');
+      say(winners.length ? winners.map(i => 'Oyuncu ' + (i + 1)).join(' & ') + ' +1' : 'Kimse puan alamadı', null, true);
       await sleep(1800);
     }
     finish();
@@ -408,6 +602,11 @@
     N = +b.dataset.n;
     [...$('#count-row').children].forEach(x => x.classList.toggle('sel', x === b));
   });
+  $('#round-row').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    ROUNDS = +b.dataset.r;
+    [...$('#round-row').children].forEach(x => x.classList.toggle('sel', x === b));
+  });
   const soundBtn = $('#sound');
   const paintSound = () => { soundBtn.textContent = fx.on ? '🔊 Ses ve titreşim: Açık' : '🔇 Ses ve titreşim: Kapalı'; };
   soundBtn.addEventListener('click', () => { fx.toggle(); paintSound(); });
@@ -416,7 +615,7 @@
 
   // test icin disariya ac
   document.addEventListener('contextmenu', e => e.preventDefault());
-  window.__dokun = { get scores() { return scores; }, get zones() { return zones; }, GAMES, resetZones, fx,
+  window.__dokun = { get scores() { return scores; }, get zones() { return zones; }, GAMES, resetZones, fx, say,
     setup(n) { N = n; scores = Array(N).fill(0); build(); menu.classList.add('hidden'); } };
 })();
 </script>
