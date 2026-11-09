@@ -16,6 +16,8 @@ Aynı telefonu paylaşan 2-4 arkadaş için hızlı mini oyunlar. Ekran oyuncu s
 - **Balon Patlat:** 9 saniyede en çok balonu patlat, bombalar 2 puan götürür.
 - **Tut ve Bırak:** basılı tut, tam 3 saniye dolunca bırak. Sayaç ilk 1 saniye görünür, sonra gizlenir.
 
+Her bölge koyu, nötr bir zeminde; oyuncu rengi yalnızca çerçeve ve etiket olarak kullanılır, böylece yazı ve oyun renkleri birbirine karışmaz. Bilgi kutuları ve bitiş ekranı karşıdaki oyuncu için ters kopya olarak da gösterilir. Dokunuşta dalga efekti, kazananda konfeti vardır.
+
 Telefonu dikey tut. Tarayıcıda yatay çevrilirse "Telefonu dikey tut" uyarısı çıkar.
 
 Ses ve titreşim: tüm sesler Web Audio ile kodla üretilir (dosya yok). Titreşim `navigator.vibrate` ile çalışır; iPhone Safari titreşimi desteklemez, orada yalnızca ses olur. Menüden açılıp kapatılır, tercih hatırlanır.
