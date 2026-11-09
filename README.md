@@ -2,7 +2,12 @@
 
 Aynı telefonu paylaşan 2-4 arkadaş için hızlı mini oyunlar. Ekran oyuncu sayısına göre bölünür, üstteki oyuncular karşıdan oynar. Çoklu dokunuş desteklenir. Tek dosya (`index.html`), harici dosya yok.
 
-12 mini oyun var. Menüden tur sayısı seçilir (5 / 8 / 12), oyunlar rastgele sırayla ve tekrarsız oynanır.
+16 mini oyun var. Ana menüden iki şekilde oynanır:
+- **🎲 Karışık Maç:** oyunlar rastgele sırayla ve tekrarsız oynanır (3 / 5 / 8 / 12 tur).
+- **🎮 Oyun Seç:** listeden bir oyun seçilir ve yalnızca o oyun seçilen tur sayısı kadar oynanır.
+
+Her turdan önce 3-2-1 geri sayım vardır. Maç bitince kazanan bölge **altın renkte yanıp söner**, "👑 KAZANAN" yazar ve konfeti saçar. Diğer bölgeler sönükleşir ve sıralamasını gösterir. Sonuç her bölgede o oyuncuya doğru yazıldığı için iki yönden de okunur. Ardından "Tekrar" ve "Menü" düğmeleri çıkar.
+
 - **Tepki:** yeşil olunca ilk dokunan kazanır, erken dokunan o turdan elenir.
 - **Seri Dokun:** 5 saniyede en çok dokunan kazanır.
 - **Tam Ortada:** kayan topu ortadaki çizgiye en yakın durduran kazanır.
@@ -13,10 +18,14 @@ Aynı telefonu paylaşan 2-4 arkadaş için hızlı mini oyunlar. Ekran oyuncu s
 - **Hızlı Matematik:** doğru sonucu seç. İlk 4 doğruya ulaşan kazanır, yanlışta 1 sn ceza.
 - **Işık Oyunu:** yeşilde dokun, kırmızıda dokunma. Herkes aynı ışık dizisini görür, yanlış dokunuş puan düşürür.
 - **Renk Dizisi:** yanıp sönen 4 rengi aynı sırayla tekrarla, ilk bitiren kazanır.
-- **Balon Patlat:** 9 saniyede en çok balonu patlat, bombalar 2 puan götürür.
+- **Balon Patlat:** 10 saniyede en çok balonu patlat. Balonun tam üstüne basmak gerekmez, dokunduğun yere en yakın balon patlar. Bomba 1 puan götürür.
 - **Tut ve Bırak:** basılı tut, tam 3 saniye dolunca bırak. Sayaç ilk 1 saniye görünür, sonra gizlenir.
+- **Köstebek Avı:** deliklerden çıkan köstebeğe dokun, 10 saniyede en çok vuran kazanır.
+- **Ok Yönü:** okun yönünü seç, "TERSİNE" yazıyorsa karşı yönü. İlk 5 doğruya ulaşan kazanır.
+- **Hafıza Eşleştir:** kartları çevirip 4 çifti ilk bulan kazanır.
+- **Say Bakalım:** ekrandaki şekilleri say, doğru sayıyı seç. İlk 4 doğruya ulaşan kazanır.
 
-Her bölge koyu, nötr bir zeminde; oyuncu rengi yalnızca çerçeve ve etiket olarak kullanılır, böylece yazı ve oyun renkleri birbirine karışmaz. Bilgi kutuları ve bitiş ekranı karşıdaki oyuncu için ters kopya olarak da gösterilir. Dokunuşta dalga efekti, kazananda konfeti vardır.
+Her bölge koyu, nötr bir zeminde; oyuncu rengi yalnızca çerçeve ve etiket olarak kullanılır. Bilgi kutuları karşıdaki oyuncu için ters kopya olarak da gösterilir.
 
 Telefonu dikey tut. Tarayıcıda yatay çevrilirse "Telefonu dikey tut" uyarısı çıkar.
 
