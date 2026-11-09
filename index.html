@@ -1446,8 +1446,26 @@
   // Host telefon Wi-Fi'da kucuk bir WebSocket sunucusu acar; kod = IP'nin son iki bolumu (ornegin 192.168.1.23 -> 279).
   // Misafir kendi IP'sinin ilk iki bolumunu kullanarak host adresini bulur ve dogrudan baglanir.
   const LAN_PORT = 47813;
-  const lanPlugin = () => window.__dokunLan || ((window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform())
-    ? (lanPlugin.p = lanPlugin.p || window.Capacitor.registerPlugin('LanServer')) : null);
+  // Capacitor'un Android'e enjekte ettigi kopru `registerPlugin` / `Plugins` saglamaz (onlar @capacitor/core paketine aittir),
+  // yalnizca dusuk seviyeli nativePromise ve addListener vardir; eklentiye bunlarla erisilir.
+  const lanPlugin = () => {
+    if (window.__dokunLan) return window.__dokunLan;
+    try {
+      const C = window.Capacitor;
+      if (!C || typeof C.nativePromise !== 'function' || !(C.isNativePlatform && C.isNativePlatform())) return null;
+      if (!lanPlugin.p) {
+        const call = (m, o) => C.nativePromise('LanServer', m, o || {});
+        lanPlugin.p = {
+          getLocalIp: () => call('getLocalIp'), start: o => call('start', o), stop: () => call('stop'),
+          send: o => call('send', o), broadcast: o => call('broadcast', o), close: o => call('close', o),
+          addListener: (e, cb) => C.addListener('LanServer', e, cb),
+        };
+      }
+      return lanPlugin.p;
+    } catch (_) { return null; }
+  };
+  // Ag ekranindaki dugmeler: bir hata olursa sessiz kalmak yerine ekranda gosterilir
+  const safe = fn => async (...a) => { try { await fn(...a); } catch (e) { console.error(e); toast('Hata: ' + ((e && e.message) || e)); } };
   const lanPort = () => window.__dokunLanPort || LAN_PORT;
   const codeFromIp = ip => { const p = ip.split('.').map(Number); return String(p[2] * 256 + p[3]); };
   const ipFromCode = (own, code) => {
@@ -1695,29 +1713,29 @@
         : 'Gelişmiş bağlantı: telefonlar uzun bir kodu değiş tokuş ederek doğrudan (WebRTC) bağlanır. Kısa kod bağlanmazsa deneyebilirsin.')
       : 'Her telefonda herkes kendi ekranında oynar. Kısa kodla bağlanma yalnızca Android uygulamasında çalışır (tarayıcılar telefonda bağlantı kabul edemez); burada telefonlar uzun bir kodu değiş tokuş ederek bağlanır.';
   };
-  $('#net-btn').addEventListener('click', () => { net.mode = lanPlugin() ? 'lan' : 'rtc'; paintNetNote(); showScreen('net'); });
-  $('#net-adv').addEventListener('click', () => { net.mode = net.mode === 'lan' ? 'rtc' : 'lan'; paintNetNote(); });
+  $('#net-btn').addEventListener('click', safe(() => { net.mode = lanPlugin() ? 'lan' : 'rtc'; paintNetNote(); showScreen('net'); }));
+  $('#net-adv').addEventListener('click', safe(() => { net.mode = net.mode === 'lan' ? 'rtc' : 'lan'; paintNetNote(); }));
   $('#net-back').addEventListener('click', () => { if (net.on) leaveNet(); else showScreen('home'); });
-  $('#net-host-btn').addEventListener('click', async () => {
+  $('#net-host-btn').addEventListener('click', safe(async () => {
     net.role = 'host'; net.on = true;
     $('#net-choose').classList.add('hidden'); $('#net-host').classList.remove('hidden');
     $('#h-lan').classList.toggle('hidden', net.mode !== 'lan');
     paintHost();
     if (net.mode === 'lan') { if (!(await hostLanStart())) { leaveNet(); showScreen('net'); paintNetNote(); } }
     else await hostPrepare();
-  });
-  $('#net-join-btn').addEventListener('click', () => {
+  }));
+  $('#net-join-btn').addEventListener('click', safe(() => {
     $('#net-choose').classList.add('hidden'); $('#net-guest').classList.remove('hidden');
     $('#g-lan').classList.toggle('hidden', net.mode !== 'lan'); $('#g-rtc').classList.toggle('hidden', net.mode === 'lan');
-  });
-  $('#g-lan-join').addEventListener('click', guestLan);
-  $('#g-short').addEventListener('keydown', e => { if (e.key === 'Enter') guestLan(); });
-  $('#h-link').addEventListener('click', hostAccept);
-  $('#h-add').addEventListener('click', hostPrepare);
-  $('#h-start').addEventListener('click', startNetMatch);
+  }));
+  $('#g-lan-join').addEventListener('click', safe(guestLan));
+  $('#g-short').addEventListener('keydown', safe(e => { if (e.key === 'Enter') return guestLan(); }));
+  $('#h-link').addEventListener('click', safe(hostAccept));
+  $('#h-add').addEventListener('click', safe(hostPrepare));
+  $('#h-start').addEventListener('click', safe(startNetMatch));
   $('#h-copy').addEventListener('click', () => copyText($('#h-code')));
   $('#h-share').addEventListener('click', () => shareText($('#h-code')));
-  $('#g-join').addEventListener('click', guestJoin);
+  $('#g-join').addEventListener('click', safe(guestJoin));
   $('#g-copy').addEventListener('click', () => copyText($('#g-ans')));
   $('#g-share').addEventListener('click', () => shareText($('#g-ans')));
 
