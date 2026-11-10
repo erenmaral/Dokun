@@ -126,6 +126,14 @@
     text-align:center; font-weight:800; font-size:16px; line-height:1.3; box-shadow:0 4px 18px rgba(0,0,0,.5);
     animation:hin .2s ease-out; text-shadow:none; }
   .hline.flip { transform:rotate(180deg); }
+  #hud.rcard .hline { padding:14px 24px 16px; min-width:min(78vw, 300px); border-radius:24px; border-color:rgba(255,212,59,.55);
+    background:linear-gradient(160deg, rgba(30,40,82,.97), rgba(9,13,28,.97)); box-shadow:0 10px 34px rgba(0,0,0,.65), 0 0 30px rgba(255,212,59,.22); }
+  .rc { display:flex; flex-direction:column; align-items:center; gap:7px; animation:rcIn .4s cubic-bezier(.2,1.5,.4,1); }
+  .rc-t { font-size:32px; font-weight:900; letter-spacing:.08em; line-height:1; color:#ffd43b; text-shadow:0 0 20px rgba(255,212,59,.5); }
+  .hline .rc-t small { display:inline; font-size:20px; font-weight:800; opacity:.85; letter-spacing:.04em; margin:0; }
+  .rc-g { font-size:25px; font-weight:900; line-height:1.15; }
+  .hline .rc-h { font-size:13px; font-weight:600; opacity:.88; line-height:1.35; max-width:270px; }
+  @keyframes rcIn { from { transform:scale(.6); opacity:0; } to { transform:none; opacity:1; } }
   .hline small { display:block; font-weight:500; opacity:.85; font-size:12px; }
   @keyframes hin { from { opacity:0; } to { opacity:1; } }
   #hud.mini { gap:3px; }
@@ -849,13 +857,14 @@
   let lastScores = [];                       // son oynanan oyunun bolge basina sonuc sayisi (buyuk = iyi); ag modunda kullanilir
   const RACE = 1e6;                          // yaris oyunlarinda: bitirme suresi ne kadar kisaysa sonuc o kadar yuksek
   const topScorers = arr => { const m = Math.max(...arr); return m > 0 ? arr.map((v, i) => v === m ? i : -1).filter(i => i >= 0) : []; };
-  function say(main, sub, big) {
+  function say(main, sub, big, kind) {
     const h = main + (sub ? '<small>' + sub + '</small>' : '');
     const lines = hud.querySelectorAll('.hline');
     if (lines.length === 2) { if (hud.dataset.h !== h) lines.forEach(l => { l.innerHTML = h; }); }      // metin ayniysa yeniden cizme (titreme olmasin)
     else hud.innerHTML = '<div class="hline flip">' + h + '</div><div class="hline">' + h + '</div>';
     hud.dataset.h = h;
     hud.classList.toggle('mini', !big);
+    hud.classList.toggle('rcard', kind === 'round');
     hud.classList.remove('hidden');
   }
 
@@ -1457,7 +1466,17 @@
   let playing = false, lastPool = null;
   const setPlaying = v => { playing = v; ptabs.classList.toggle('hidden', !v); };
 
-  const introMs = g => Math.min(4300, 1700 + g.hint.length * 24);          // uzun aciklamalar icin daha fazla okuma suresi
+  // Her oyundan once ortada: "TUR 2 / 8" + oyunun adi (baslik) + kural ozeti. Aciklama uzunluguna gore okuma suresi; ayni oyun art arda
+  // gelirse aciklama gosterilmez ama tur karti yine cikar. Sure herkeste ayni (ag modunda telefonlar ayni anda baslasin diye).
+  const introMs = g => Math.min(4300, 1700 + g.hint.length * 24);
+  async function roundCard(g, r, total, open, withHint) {
+    const lbl = open ? 'TUR ' + r : 'TUR ' + r + '<small> / ' + total + '</small>';
+    const modeTxt = modeKey === 'yaris' ? 'İlk ' + modeVal.yaris + ' puana ulaşan kazanır' : modeKey === 'can' ? 'Turu kazanmayan can kaybeder' : '';
+    const sub = withHint ? g.hint : modeTxt;
+    say('<div class="rc"><div class="rc-t">' + lbl + '</div><div class="rc-g">' + g.icon + ' ' + g.name + '</div>' + (sub ? '<div class="rc-h">' + sub + '</div>' : '') + '</div>', null, true, 'round');
+    await sleep(withHint ? introMs(g) : 1500);
+    hud.classList.add('hidden');
+  }          // uzun aciklamalar icin daha fazla okuma suresi
   async function countdown() {
     for (const n of [3, 2, 1]) {
       zones.forEach((_, i) => body(i, '<div class="count">' + n + '</div>'));
@@ -1528,13 +1547,7 @@
       const lbl = open ? 'Tur ' + r : r + '/' + total;
       // dar bolgelerde (3-4 oyuncu) oyun adi sigmaz: yalnizca tur numarasi
       zones.forEach(z => { z.querySelector('.gname').textContent = z.clientWidth >= 260 ? g.name + ' · ' + lbl : lbl; });
-      if (!single || r === 1) {
-        say(g.icon + ' ' + g.name + ' <small>' + (open ? 'Tur ' + r : 'Tur ' + r + '/' + total) + ' · ' + g.hint + '</small>', null, true);
-        await sleep(introMs(g));
-        hud.classList.add('hidden');
-      } else {
-        await sleep(700);
-      }
+      await roundCard(g, r, total, open, !single || r === 1);
       addDeadMasks();
       await countdown();
       const winners = (await g.run()).filter(i => !dead[i]);
@@ -1989,13 +2002,7 @@
     resetZones(); showScores(); fx.round(); music.setMood(moodOf(g));
     zones[0].querySelector('.gname').textContent = netBoard();
     paintNetBar();
-    if (intro) {
-      say(g.icon + ' ' + g.name + ' <small>' + (open ? 'Tur ' + r : 'Tur ' + r + '/' + total) + ' · ' + g.hint + '</small>', null, true);
-      await sleep(introMs(g));
-      hud.classList.add('hidden');
-    } else {
-      await sleep(700);
-    }
+    await roundCard(g, r, total, open, intro);
     addDeadMasks();
     await countdown();
     reportHook = (i, v, m) => netProgress(v, m);
