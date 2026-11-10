@@ -8,21 +8,21 @@ Aynı telefonu paylaşan 2-4 arkadaş için hızlı mini oyunlar. Ekran oyuncu s
 
 Her turdan önce 3-2-1 geri sayım vardır. Maç bitince kazanan bölge **altın renkte yanıp söner**, "👑 KAZANAN" yazar ve konfeti saçar. Diğer bölgeler sönükleşir ve sıralamasını gösterir. Sonuç her bölgede o oyuncuya doğru yazıldığı için iki yönden de okunur. Ardından "Tekrar" ve "Menü" düğmeleri çıkar.
 
-- **Tepki:** yeşil olunca ilk dokunan kazanır, erken dokunan o turdan elenir.
-- **Seri Dokun:** 5 saniyede en çok dokunan kazanır.
-- **Tam Ortada:** kayan topu ortadaki çizgiye en yakın durduran kazanır.
-- **Hedef Avı:** çıkan daireye dokun, 6 hedefe ilk ulaşan kazanır.
+- **Tepki:** yeşil olunca ilk dokunan kazanır. Bazen önce sarı bir sahte işaret yanar; sarıda ya da erken dokunan o turdan elenir. Tepki süresi gösterilir.
+- **Seri Dokun:** 5 saniyede en çok dokunan kazanır. Rakiplere göre ilerleme çubuğu görünür.
+- **Tam Ortada:** kayan topu yeşil banda en yakın durduran kazanır. Top herkes için aynı hızda ve zamanla hızlanır.
+- **Hedef Avı:** çıkan hedefe dokun, 6 hedefe ilk ulaşan kazanır. Hedef her isabette küçülür, yakına dokunmak yeter.
 - **Sayı Sırası:** 1'den 6'ya sırayla dokun, ilk bitiren kazanır.
-- **Tek Farklı:** farklı emojiyi ilk bulan kazanır, yanlış dokunan 1,2 sn cezalı.
+- **Tek Farklı:** farklı emojiyi bul. 3 bulmacayı (ızgara büyür, emojiler birbirine yaklaşır) ilk çözen kazanır, yanlış dokunan 1,2 sn cezalı.
 - **Renk Tuzağı:** yazının ne yazdığına değil rengine bak, doğru rengi seç. İlk 4 doğruya ulaşan kazanır.
-- **Hızlı Matematik:** doğru sonucu seç. İlk 4 doğruya ulaşan kazanır, yanlışta 1 sn ceza.
-- **Işık Oyunu:** yeşilde dokun, kırmızıda dokunma. Herkes aynı ışık dizisini görür, yanlış dokunuş puan düşürür.
-- **Renk Dizisi:** yanıp sönen 4 rengi aynı sırayla tekrarla, ilk bitiren kazanır.
-- **Balon Patlat:** 10 saniyede en çok balonu patlat. Balonun tam üstüne basmak gerekmez, dokunduğun yere en yakın balon patlar. Bomba 1 puan götürür.
+- **Hızlı Matematik:** doğru sonucu seç. Sorular zorlaşır (toplama/çıkarma, büyük sayılar, çarpma). İlk 4 doğruya ulaşan kazanır, yanlışta 1 sn ceza.
+- **Işık Oyunu:** yeşilde dokun (hızlı basarsan 2 puan), kırmızıda dokunma. Herkes aynı ışık dizisini görür, ışık giderek kısa yanar, yanlış dokunuş puan düşürür.
+- **Renk Dizisi:** yanıp sönen 5 rengi aynı sırayla tekrarla, ilk bitiren kazanır. Yanlış basarsan dizi sana yeniden gösterilir.
+- **Balon Patlat:** 10 saniyede en çok balonu patlat. Balonun tam üstüne basmak gerekmez, dokunduğun yere en yakın balon patlar. ⭐ Altın balon 3 puan, 💣 bomba 1 puan götürür.
 - **Tut ve Bırak:** basılı tut, tam 3 saniye dolunca bırak. Sayaç ilk 1 saniye görünür, sonra gizlenir.
 - **Köstebek Avı:** deliklerden çıkan köstebeğe dokun, 10 saniyede en çok vuran kazanır.
 - **Ok Yönü:** okun yönünü seç, "TERSİNE" yazıyorsa karşı yönü. İlk 5 doğruya ulaşan kazanır.
-- **Hafıza Eşleştir:** kartları çevirip 4 çifti ilk bulan kazanır.
+- **Hafıza Eşleştir:** kartları çevirip 4 çifti ilk bulan kazanır. Yanlış eşleşmede kısa süre kilitlenirsin, rastgele basarak kazanılmaz.
 - **Say Bakalım:** ekrandaki şekilleri say, doğru sayıyı seç. İlk 4 doğruya ulaşan kazanır.
 
 Her bölge koyu, nötr bir zeminde; oyuncu rengi yalnızca çerçeve ve etiket olarak kullanılır. Bilgi kutuları karşıdaki oyuncu için ters kopya olarak da gösterilir.
@@ -39,8 +39,8 @@ Ana menüden oyuncu sayısı ve mod seçilir:
 **🎲 Karışık Maç** tüm oyunlardan, **🎮 Oyun Seç** ise listeden seçtiğin bir ya da birden fazla oyundan oynar.
 
 ## Duraklatma ve çıkış
-Ekranın sol ve sağ kenarının ortasındaki ⏸ sekmesi oyunu duraklatır. Geri sayım, süreler ve balonlar gerçekten donar, devam edince kaldığı yerden sürer. Menüye dönmek için iki dokunuş gerekir. Telefon araması vb. ile uygulama arka plana giderse oyun kendiliğinden duraklar.
-**Geri tuşu koruması:** oyun sırasında geri tuşuna (Android geri / tarayıcı geri / Esc) bir kez basmak yalnızca uyarı gösterir. 2,5 saniye içinde ikinci kez basılırsa oyundan çıkılır. Hızlı dokunulan oyunlarda (Seri Dokun gibi) yanlışlıkla çıkılmaz.
+Ekranın sol ve sağ kenarının ortasındaki ⏸ sekmesine **basılı tutarak** oyunu duraklatırsın (kısa dokunuş yetmez, hızlı dokunulan oyunlarda yanlışlıkla durmasın diye). Geri sayım, süreler ve balonlar gerçekten donar, devam edince kaldığı yerden sürer. Menüye dönmek için iki dokunuş gerekir. Telefon araması vb. ile uygulama arka plana giderse oyun kendiliğinden duraklar.
+**Geri tuşu:** Oyun Seç, Ayarlar ve Çevrimiçi ekranlarında geri tuşu ana menüye döner. Oyun sırasında geri tuşuna (Android geri / tarayıcı geri / Esc) bir kez basmak yalnızca uyarı gösterir. 2,5 saniye içinde ikinci kez basılırsa oyundan çıkılır. Hızlı dokunulan oyunlarda (Seri Dokun gibi) yanlışlıkla çıkılmaz.
 
 ## Ses, müzik ve ayarlar
 Ana menüdeki **⚙ Ayarlar**: ses efektleri, titreşim, müzik ve müzik sesi, ekranın açık kalması ve oyuncu adları. Tercihler hatırlanır.
