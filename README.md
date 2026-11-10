@@ -44,10 +44,16 @@ Ekranın sol ve sağ kenarının ortasındaki ⏸ sekmesine **basılı tutarak**
 
 ## Ses, müzik ve ayarlar
 Ana menüdeki **⚙ Ayarlar**: ses efektleri, titreşim, müzik ve müzik sesi, ekranın açık kalması ve oyuncu adları. Tercihler hatırlanır.
-Tüm sesler ve oyun içi sakin arka plan müziği Web Audio ile kodla üretilir (dosya yok). Titreşim `navigator.vibrate` ile çalışır; iPhone Safari titreşimi desteklemez.
+Tüm sesler ve müzik Web Audio ile kodla üretilir (dosya yok). Müzik oyuna göre değişir: menüde hafif ve neşeli (Do majör), hafıza/zeka oyunlarında sakin ve sıcak (Fa majör), arcade oyunlarında canlı (Sol majör), refleks oyunlarında gergin ama yumuşak (La minör). Tur başında ruh hali kesintisiz geçer, ruh halleri arasındaki ses seviyesi ölçülerek eşitlenmiştir. Menü müziği ve müzik sesi ayarlardan değiştirilir; uygulama arka plana gidince ses durur. Titreşim `navigator.vibrate` ile çalışır; iPhone Safari titreşimi desteklemez.
 
 ## Çevrimiçi: her telefonda kendi ekranında oyna
 **📡 Çevrimiçi** ile 2-4 telefon bağlanır, herkes kendi tam ekran bölgesinde oynar. Host'un ana menüde seçtiği mod, tur sayısı ve oyunlar kullanılır (Takım modu yoktur). Aynı tur aynı anda ve aynı tohumla başlar (ışık dizisi, kart dizilimi vb. herkeste aynı); herkes kendi oyununu oynar, sonuçlar host'ta karşılaştırılır.
+
+**Çevrimiçi oyun kalitesi (aynı Wi-Fi):**
+- **Eşzamanlı başlangıç:** telefonlar arası saat farkı sürekli ölçülür (ping/pong, en düşük gecikmeli örnek), her tur host'un belirlediği ortak ana göre başlar. 25-75 ms Wi-Fi gecikmesi altında oyunun telefonlar arası başlama farkı ~70 ms'den ~9 ms'ye indi (ölçüm: tek yönde 25-75 ms yapay gecikmeli 3 telefon, 3 tur).
+- **Canlı rakip ilerlemesi:** ekranın üstünde rakiplerin ilerleme çubukları ve ✓ (bitirdi) görünür, yanında bağlantı kalitesi (📶 ms).
+- **Otomatik yeniden bağlanma (kısa kod):** bağlantısı kopan oyuncu 25 sn boyunca otomatik yeniden bağlanır, kaydı ve puanı korunur, diğerleri maçı sürdürür. 14 sn hiç cevap gelmeyen bağlantı kopmuş sayılır. Host odayı kapatınca misafirler hemen bilgilendirilir.
+- **Bekleme odası:** oyuncu yuvaları, renkli avatarlar ve herkesin ping değeri görünür.
 
 **Kısa kodla bağlanma (Android uygulaması):** host "Oda kur" der, ekranda kısa bir **oda kodu** (örneğin `279`) çıkar. Arkadaşları aynı Wi-Fi'ya (ya da host'un telefon hotspot'una) bağlıyken "Odaya katıl" deyip kodu girer, hepsi bu. İnternet gerekmez.
 - Nasıl çalışır: host telefon Wi-Fi'da küçük bir WebSocket sunucusu açar (`android/.../LanServerPlugin.java`). Kod, host IP adresinin son iki bölümüdür (192.168.**1.23** → 279). Misafir, kendi IP'sinin ilk iki bölümüyle host adresini bulup doğrudan bağlanır.

@@ -313,6 +313,24 @@
   #h-list .av, #g-list .av { width:28px; height:28px; border-radius:50%; background:var(--c); color:#10162a; display:flex; align-items:center; justify-content:center; font-weight:900; flex:none; }
   #h-list .pg, #g-list .pg { margin-left:auto; font-size:12px; opacity:.85; font-weight:700; }
 
+  /* ---------- Ag oyunu: rakip seridi, baglanti kalitesi, yeniden baglanma ---------- */
+  #netbar { position:fixed; top:max(6px, env(safe-area-inset-top)); left:8px; right:8px; z-index:6; display:flex; gap:8px; align-items:flex-end; pointer-events:none; }
+  .nb { flex:1; min-width:0; font-size:11px; font-weight:800; }
+  .nb span { display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--c); text-shadow:0 1px 3px rgba(0,0,0,.7); }
+  .nb i { display:block; height:6px; border-radius:3px; background:rgba(0,0,0,.55); overflow:hidden; margin-top:2px; }
+  .nb b { display:block; height:100%; background:var(--c); transition:width .15s; }
+  .nb.dn i b { width:100% !important; opacity:.55; }
+  .nb.aw { opacity:.45; }
+  .nq { flex:none; font-size:11px; font-weight:800; padding:2px 7px; border-radius:8px; background:rgba(0,0,0,.6); }
+  .nq.good { color:#4ade80; } .nq.mid { color:#fde047; } .nq.bad { color:#f87171; }
+  body.net .zone { padding-top:40px; }
+  #reconn { position:fixed; inset:0; z-index:40; display:flex; align-items:center; justify-content:center; background:rgba(5,7,15,.82); backdrop-filter:blur(4px); }
+  #reconn .rbox { display:flex; flex-direction:column; align-items:center; gap:10px; padding:22px 26px; border-radius:20px; background:linear-gradient(160deg,#1b2347,#10162a); border:1px solid rgba(255,255,255,.2); text-align:center; }
+  .spin { width:34px; height:34px; border-radius:50%; border:4px solid rgba(255,255,255,.2); border-top-color:#7cc4ff; animation:spin .9s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .slots { display:flex; flex-direction:column; gap:8px; margin-top:8px; }
+  .slot { padding:8px 10px; border-radius:12px; border:1px dashed rgba(255,255,255,.25); font-size:13px; opacity:.6; }
+
   /* ---------- Duraklatma ---------- */
   #ptabs.hidden { display:none; }
   .ptab { position:fixed; top:50%; transform:translateY(-50%); z-index:7; width:30px; height:60px; padding:0; font-size:16px;
@@ -497,7 +515,7 @@
       <div class="small" id="lan-ip"></div>
       <div class="small">Arkadaşların aynı Wi-Fi'ya (ya da senin telefon hotspot'una) bağlıyken <b>Odaya katıl</b> deyip bu kodu girsin.</div>
     </div>
-    <div class="box"><b>Oyuncular</b><ul id="h-list"></ul></div>
+    <div class="box"><b>Oyuncular</b><ul id="h-list"></ul><div id="h-slots" class="slots"></div></div>
     <div id="h-pair" class="box hidden">
       <b>1) Bu kodu arkadaşına gönder</b>
       <textarea id="h-code" readonly rows="3"></textarea>
@@ -532,6 +550,8 @@
   </div>
 </div></div>
 
+<div id="netbar" class="hidden"></div>
+<div id="reconn" class="hidden"><div class="rbox"><div class="spin"></div><b>Bağlantı koptu</b><span>Yeniden bağlanılıyor…</span><button class="sm" id="reconn-cancel">Vazgeç</button></div></div>
 <div id="toast" class="hidden"></div>
 
 <div id="ptabs" class="hidden">
@@ -578,7 +598,8 @@
   const board = $('#board'), hud = $('#hud'), menu = $('#menu');
   let N = 2, scores = [], zones = [], handler = null, upHandler = null;
   let modeKey = 'klasik', lives = [], dead = [], elim = [];
-  const net = { on: false, role: null, mode: 'rtc', names: null, myIdx: 0, peers: [], gdc: null, gws: null, pending: null, prev: null, lan: null, matchStarted: false };
+  const net = { on: false, role: null, mode: 'rtc', names: null, myIdx: 0, peers: [], gdc: null, gws: null, pending: null, prev: null, lan: null, matchStarted: false,
+    rtt: 0, off: null, samples: [], lastPong: 0, weak: false, token: null, lanIp: null, reconnecting: false, leaving: false, round: 0, prog: [], done: [], away: [], timers: [] };
   const modeVal = { klasik: 8, yaris: 5, can: 3, takim: 8 };
   const esc = t => String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
@@ -849,6 +870,8 @@
   const wrong = i => { fx.bad(); pulse(i, 'fbad'); };
   const right = i => { fx.hit(); pulse(i, 'fok'); };
   const aliveZ = i => !!zones[i] && !dead[+zones[i].dataset.p];      // Hayatta Kal modunda elenenler turu bekletmez
+  let reportHook = null;                                              // ag modunda rakiplere canli ilerleme gonderir
+  const report = (i, v, m) => { if (reportHook) reportHook(i, v, m); };
 
   async function reaction() {
     const out = new Set(), rt = [];
@@ -864,7 +887,7 @@
           if (out.size >= live()) finish();
           return;
         }
-        rt[i] = vt.now() - goAt; winner = i; finish();
+        rt[i] = vt.now() - goAt; winner = i; report(i, 1, 1); finish();
       };
       const fire = () => {
         go = true; goAt = vt.now(); fake = false;
@@ -905,7 +928,7 @@
       const mx = Math.max(1, ...c);
       zones.forEach((z, i) => { const n = z.querySelector('.spc'); if (!n) return; n.textContent = c[i]; z.querySelector('.spbar i').style.width = (c[i] / mx * 100) + '%'; });
     };
-    handler = i => { c[i]++; paint(); };
+    handler = i => { c[i]++; paint(); report(i, c[i], 0); };
     const end = vt.now() + 5000;
     let shown = -1;
     while (vt.now() < end) {
@@ -937,7 +960,7 @@
       const allIn = () => zs.every((_, i) => pos[i] !== null || !aliveZ(i));
       handler = i => {
         if (pos[i] !== null) return;
-        pos[i] = posAt(vt.now() - t0);
+        pos[i] = posAt(vt.now() - t0); report(i, 1, 1);
         mk(i).style.left = mkLeft(pos[i]);
         if (allIn()) vt.timeout(finish, 300);
       };
@@ -982,7 +1005,7 @@
         if (winner >= 0) return;
         const r = zones[i].querySelector('.tgt').getBoundingClientRect();
         if (Math.hypot(e.clientX - (r.left + r.width / 2), e.clientY - (r.top + r.height / 2)) > r.width / 2 + 24) return;   // hedefe yakin dokunus yeterli
-        cnt[i]++; right(i);
+        cnt[i]++; right(i); report(i, cnt[i], GOAL);
         zones[i].querySelector('.cnt').textContent = cnt[i] + '/' + GOAL;
         if (cnt[i] >= GOAL) { fin[i] = vt.now() - T0; winner = i; res(); } else place(i);
       };
@@ -1011,7 +1034,7 @@
           wrong(i); const t = e.target; t.classList.add('badc'); vt.timeout(() => t.classList.remove('badc'), 250);
           return;
         }
-        e.target.classList.add('done'); right(i);
+        e.target.classList.add('done'); right(i); report(i, next[i], 6);
         if (++next[i] > 6) { fin[i] = vt.now() - T0; winner = i; res(); }
       };
       vt.timeout(res, 15000);
@@ -1043,7 +1066,7 @@
       handler = (i, e) => {
         if (winner >= 0 || lock[i] || e.target.dataset.odd === undefined) return;
         if (e.target.dataset.odd === '1') {
-          stage[i]++; right(i);
+          stage[i]++; right(i); report(i, stage[i], STAGES);
           if (stage[i] >= STAGES) { fin[i] = vt.now() - T0; winner = i; res(); } else draw(i);
           return;
         }
@@ -1068,7 +1091,7 @@
       handler = i => { if (st[i] === null) { st[i] = vt.now(); setS(i, 'go'); } };
       upHandler = i => {
         if (st[i] === null || en[i] !== null) return;
-        en[i] = vt.now(); setS(i, ''); body(i, 'Bıraktın');
+        en[i] = vt.now(); setS(i, ''); body(i, 'Bıraktın'); report(i, 1, 1);
         if (allIn()) vt.timeout(done, 300);
         else if (grace === null) grace = vt.timeout(done, 3500);   // ilk birakistan sonra digerlerine 3,5 sn: basmayan herkesi bekletmez
       };
@@ -1109,7 +1132,7 @@
         if (winner >= 0 || lock[i]) return;
         const o = e.target.closest('.opt'); if (!o) return;
         if (+o.dataset.j === cur[i]) {
-          cnt[i]++; right(i);
+          cnt[i]++; right(i); report(i, cnt[i], goal);
           zones[i].querySelector('.cnt').textContent = cnt[i] + '/' + goal;
           if (cnt[i] >= goal) { fin[i] = vt.now() - T0; winner = i; res(); return; }
           draw(i);
@@ -1163,7 +1186,7 @@
       tapped[i] = true;
       if (on === 'g') { sc[i] += vt.now() - shownAt < 450 ? 2 : 1; right(i); }   // yesilde hizli basan 2 puan
       else { sc[i]--; wrong(i); }
-      zones[i].querySelector('.sub').textContent = 'Puan: ' + sc[i];
+      zones[i].querySelector('.sub').textContent = 'Puan: ' + sc[i]; report(i, sc[i], 0);
     };
     for (let k = 0; k < ROUNDS; k++) {
       await sleep(450 + Math.random() * 700);
@@ -1216,10 +1239,10 @@
         const pd = e.target.closest('.pad'); if (!pd) return;
         pd.classList.add('lit'); vt.timeout(() => pd.classList.remove('lit'), 120);
         if (+pd.dataset.k === seq[prog[i]]) {
-          right(i);
-          if (++prog[i] >= LEN) { fin[i] = vt.now() - T0; winner = i; res(); }
+          right(i); prog[i]++; report(i, prog[i], LEN);
+          if (prog[i] >= LEN) { fin[i] = vt.now() - T0; winner = i; res(); }
         } else {
-          prog[i] = 0; wrong(i); replay(i);
+          prog[i] = 0; report(i, 0, LEN); wrong(i); replay(i);
         }
       };
       vt.timeout(res, 24000);              // kimse bitiremezse tur uzamasin (toplam ~30 sn)
@@ -1251,7 +1274,7 @@
       best.dataset.dead = 1; best.classList.add('pop'); vt.timeout(() => best.remove(), 160);
       if (best.dataset.bomb) { sc[i] = Math.max(0, sc[i] - 1); wrong(i); }
       else { sc[i] += best.dataset.gold ? 3 : 1; right(i); }
-      zones[i].querySelector('.cnt').textContent = sc[i];
+      zones[i].querySelector('.cnt').textContent = sc[i]; report(i, sc[i], 0);
     };
     const spawn = () => zones.forEach(z => {
       const a = z.querySelector('.arena');
@@ -1289,7 +1312,7 @@
       c.dataset.up = ''; c.textContent = ''; c.classList.remove('up'); c.classList.add('hit');
       vt.timeout(() => c.classList.remove('hit'), 200);
       sc[i]++; right(i);
-      zones[i].querySelector('.cnt').textContent = sc[i];
+      zones[i].querySelector('.cnt').textContent = sc[i]; report(i, sc[i], 0);
     };
     const t0 = vt.now();
     let alive = true;
@@ -1354,7 +1377,7 @@
         if (!f) { first[i] = c; return; }
         first[i] = null;
         if (f.dataset.e === c.dataset.e) {
-          f.classList.add('done'); c.classList.add('done'); matched[i]++; right(i);
+          f.classList.add('done'); c.classList.add('done'); matched[i]++; right(i); report(i, matched[i], PAIRS);
           zones[i].querySelector('.cnt').textContent = matched[i] + '/' + PAIRS;
           if (matched[i] >= PAIRS) { fin[i] = vt.now() - T0; winner = i; res(); }
         } else {
@@ -1798,17 +1821,13 @@
   function lanOpen(id) {
     const L = lanPlugin();
     const chan = { id, readyState: 'open', onmessage: null, onclose: null, send: d => L.send({ id, data: d }), close: () => L.close({ id }) };
-    const full = net.peers.filter(p => !p.gone).length >= 3;
-    if (net.role !== 'host' || net.matchStarted || full) {
-      chan.send(JSON.stringify({ t: 'bad', msg: net.matchStarted ? 'Maç zaten başladı' : 'Oda dolu' }));
-      setTimeout(() => chan.close(), 300);
-      return;
-    }
+    if (net.role !== 'host') { chan.close(); return; }
     lanChans[id] = chan;
-    const peer = { pc: null, dc: chan, open: false, gone: false, idx: 0, name: '', waiting: null };
+    // Kabul / red karari 'hello' mesajinda verilir (ayni oyuncunun yeniden baglanmasi icin belirtec kontrol edilir)
+    const peer = { pc: null, dc: chan, open: false, gone: false, idx: 0, name: '', waiting: null, lastSeen: nowP(), rtt: 0, token: null, away: false, awayTimer: null };
     net.peers.push(peer);
     chan.onmessage = e => { let m; try { m = JSON.parse(e.data); } catch (_) { return; } onHostMsg(peer, m); };
-    chan.onclose = () => peerGone(peer);
+    chan.onclose = () => { if (peer.dc === chan) peerGone(peer); };
   }
   const failLan = msg => { net.on = false; net.role = null; $('#g-status').textContent = ''; toast(msg || 'Bağlanılamadı. Aynı Wi-Fi\'da mısınız, kod doğru mu?'); };
   async function guestLan() {
@@ -1819,7 +1838,7 @@
     const ip = ipFromCode(own, code);
     if (!ip) return toast('Oda kodu geçersiz');
     $('#g-status').textContent = ip + ' adresine bağlanılıyor…';
-    net.role = 'guest'; net.on = true;
+    net.role = 'guest'; net.on = true; net.lanIp = ip; net.leaving = false;
     let ws;
     try { ws = new WebSocket('ws://' + ip + ':' + lanPort()); } catch (_) { return failLan(); }
     const chan = { readyState: 'connecting', onmessage: null, onclose: null, send: d => ws.send(d), close: () => { try { ws.close(); } catch (_) {} } };
@@ -1830,15 +1849,23 @@
     ws.onclose = () => { const was = chan.readyState === 'open'; chan.readyState = 'closed'; if (was && chan.onclose) chan.onclose(); };
   }
 
+  const nowP = () => performance.now();                 // gercek saat (sanal saat degil): ag olcumleri icin
+  const netTimer = (fn, ms) => { const id = setInterval(fn, ms); net.timers.push(id); return id; };
+  const clearNetTimers = () => { net.timers.forEach(clearInterval); net.timers = []; };
   const livePeers = () => net.peers.filter(p => p.open && !p.gone);
   const adopt = st => { scores = st.scores.slice(); lives = st.lives.slice(); dead = st.dead.slice(); elim = st.elim.map(e => e == null ? Infinity : e); };
   const stateOut = () => ({ scores, lives, dead, elim: elim.map(e => e === Infinity ? null : e) });
   const netBoard = () => scores.map((_, i) => pname(i) + ' ' + chip(i)).join(' · ');
 
   // ---- host ----
+  const pingTxt = ms => ms ? Math.round(ms) + ' ms' : '';
+  const rosterHtml = (names, myIdx, pings, awayArr) => names.map((n, i) =>
+    '<li style="--c:' + COLORS[i] + '"><span class="av">' + (i + 1) + '</span><span>' + esc(n) + (i === myIdx ? ' (sen)' : '') + (awayArr && awayArr[i] ? ' ⚠' : '') + '</span><span class="pg">' + (i === 0 && myIdx !== 0 ? 'host' + (pings && pings[i] ? ' · ' : '') : '') + pingTxt(pings && pings[i]) + '</span></li>').join('');
   function paintHost() {
     const peers = livePeers();
-    $('#h-list').innerHTML = '<li>👤 ' + esc(nameOf(0)) + ' (sen)</li>' + peers.map(p => '<li>📱 ' + esc(p.name) + '</li>').join('');
+    const names = [nameOf(0), ...peers.map(p => p.name)];
+    $('#h-list').innerHTML = rosterHtml(names, 0, [0, ...peers.map(p => p.rtt)], [false, ...peers.map(p => p.away)]);
+    $('#h-slots').innerHTML = Array.from({ length: Math.max(0, 4 - names.length) }, () => '<div class="slot">⏳ Oyuncu bekleniyor…</div>').join('');
     $('#h-start').disabled = peers.length === 0;
     $('#h-pair').classList.toggle('hidden', net.mode === 'lan' || !net.pending);
     $('#h-add').classList.toggle('hidden', net.mode === 'lan' || !!net.pending || peers.length === 0 || peers.length >= 3);
@@ -1865,25 +1892,65 @@
     catch (_) { toast('Cevap kodu geçersiz'); }
   }
   function broadcastRoster() {
-    const peers = livePeers(), names = [nameOf(0), ...peers.map(p => p.name)];
-    peers.forEach((p, k) => jsend(p.dc, { t: 'roster', names, idx: k + 1 }));
+    const peers = livePeers(), names = [nameOf(0), ...peers.map(p => p.name)], pings = [0, ...peers.map(p => Math.round(p.rtt || 0))];
+    peers.forEach((p, k) => jsend(p.dc, { t: 'roster', names, idx: k + 1, pings }));
     paintHost();
   }
+  const hostState = () => ({ P: scores.length, names: net.names, mode: modeKey, val: modeVal[modeKey], pool: lastPool ? lastPool.map(g => GAMES.indexOf(g)) : [], state: stateOut() });
+  // Ayni oyuncu yeniden baglandi (kopma sonrasi): yeni kanal eski oyuncu kaydina baglanir
+  function rebind(old, tmp) {
+    net.peers = net.peers.filter(p => p !== tmp);
+    const dc = tmp.dc, prevDc = old.dc;
+    old.dc = dc; old.pc = null; old.open = true; old.gone = false; old.lastSeen = nowP();
+    clearTimeout(old.awayTimer); old.away = false; net.away[old.idx] = false;
+    dc.onmessage = e => { let m; try { m = JSON.parse(e.data); } catch (_) { return; } onHostMsg(old, m); };
+    dc.onclose = () => { if (old.dc === dc) peerGone(old); };
+    try { if (prevDc && prevDc !== dc) prevDc.close(); } catch (_) {}
+    jsend(dc, { t: 'resume', idx: old.idx, started: net.matchStarted, token: old.token, ...(net.matchStarted ? hostState() : {}) });
+    net.peers.forEach(q => q !== old && jsend(q.dc, { t: 'away', i: old.idx, on: false }));
+    toast(old.name + ' geri bağlandı'); broadcastRoster(); paintNetBar();
+  }
+  const dropPeer = peer => { net.peers = net.peers.filter(p => p !== peer); peer.gone = true; };
   function onHostMsg(peer, m) {
+    peer.lastSeen = nowP();
     if (m.t === 'hello') {
+      if (m.token) { const old = net.peers.find(p => p.token === m.token && p !== peer && !p.gone); if (old) { rebind(old, peer); return; } }
       if (m.v !== VERSION) { jsend(peer.dc, { t: 'bad', msg: 'Uygulama sürümleri uyuşmuyor' }); return; }
+      if (net.matchStarted) { jsend(peer.dc, { t: 'bad', msg: 'Maç zaten başladı' }); setTimeout(() => { try { peer.dc.close(); } catch (_) {} }, 300); dropPeer(peer); return; }
+      if (net.peers.filter(p => p !== peer && !p.gone).length >= 3) { jsend(peer.dc, { t: 'bad', msg: 'Oda dolu' }); setTimeout(() => { try { peer.dc.close(); } catch (_) {} }, 300); dropPeer(peer); return; }
       peer.open = true; peer.name = String(m.name || '').slice(0, 10) || ('Oyuncu ' + (livePeers().length + 1));
+      peer.token = Math.random().toString(36).slice(2, 10) + Math.random().toString(36).slice(2, 6);
       if (net.pending === peer) net.pending = null;
       $('#h-status').textContent = peer.name + ' bağlandı ✔';
-      jsend(peer.dc, { t: 'welcome' }); broadcastRoster();
+      jsend(peer.dc, { t: 'welcome', token: peer.token }); broadcastRoster();
+    } else if (m.t === 'ping') {
+      peer.rtt = m.rtt || peer.rtt;
+      jsend(peer.dc, { t: 'pong', t0: m.t0, h: nowP() });
     } else if (m.t === 'score') {
       if (peer.waiting && peer.waiting.r === m.r) { const w = peer.waiting; peer.waiting = null; w.res(m.v == null ? -Infinity : m.v); }
+      if (m.r === net.round) { net.done[peer.idx] = true; net.peers.forEach(q => jsend(q.dc, { t: 'd', i: peer.idx, r: m.r })); paintNetBar(); }
+    } else if (m.t === 'p') {
+      if (m.r !== net.round) return;
+      net.prog[peer.idx] = { v: m.v, m: m.m };
+      net.peers.forEach(q => q !== peer && jsend(q.dc, { t: 'p', i: peer.idx, v: m.v, m: m.m, r: m.r }));
+      paintNetBar();
     }
   }
   function peerGone(peer) {
-    if (peer.gone) return;
-    peer.gone = true;
+    if (peer.gone || !net.on) return;
     if (peer.waiting) { const w = peer.waiting; peer.waiting = null; w.res(-Infinity); }
+    // Mac sirasinda LAN baglantisi kopan oyuncu 25 sn beklenir (otomatik yeniden baglanabilir)
+    if (net.matchStarted && peer.open && peer.token && net.mode === 'lan' && !peer.away) {
+      peer.away = true; net.away[peer.idx] = true;
+      net.peers.forEach(q => q !== peer && jsend(q.dc, { t: 'away', i: peer.idx, on: true }));
+      toast(peer.name + ' bağlantısı koptu, bekleniyor…'); paintNetBar();
+      peer.awayTimer = setTimeout(() => {
+        if (!peer.away) return;
+        peer.away = false; peer.gone = true; toast(peer.name + ' ayrıldı'); paintNetBar();
+      }, 25000);
+      return;
+    }
+    peer.gone = true;
     if (net.pending === peer) { net.pending = null; }
     if (peer.open) toast(peer.name + ' ayrıldı');
     broadcastRoster();
@@ -1893,7 +1960,7 @@
     const peers = livePeers();
     if (!peers.length) return toast('Önce bir arkadaşını bağla');
     if (modeKey === 'takim') modeKey = 'klasik';
-    net.matchStarted = true;
+    net.matchStarted = true; net.round = 0;
     peers.forEach((p, k) => { p.idx = k + 1; });
     const names = [nameOf(0), ...peers.map(p => p.name)], val = modeVal[modeKey], P = peers.length + 1;
     const pool = sel.size ? [...sel].sort((a, b) => a - b) : GAMES.map((_, k) => k);
@@ -1903,7 +1970,7 @@
   }
   function netEnter(P, names, idx, mode, val, pool) {
     if (!net.prev) net.prev = { N, modeKey };
-    net.names = names; net.myIdx = idx; N = 1; modeKey = mode; modeVal[mode] = val;
+    net.names = names; net.myIdx = idx; N = 1; modeKey = mode; modeVal[mode] = val; net.prog = []; net.done = []; net.round = 0;
     scores = Array(P).fill(0); lives = Array(P).fill(val); dead = Array(P).fill(false); elim = Array(P).fill(Infinity);
     lastPool = pool.map(k => GAMES[k]);
     build([idx]); showScreen(null); endbar.classList.add('hidden'); hud.classList.add('hidden');
@@ -1911,9 +1978,17 @@
     setPlaying(true); music.start(moodOf(lastPool[0])); wake.on(); backGuard.on();
   }
   // Tek tur (ag modu): intro + geri sayim + oyun (ortak tohum), bu telefonun sonuc sayisini dondurur
-  async function netRound(g, seed, r, total, open, intro) {
+  // startAt: host saatiyle turun baslayacagi an (herkes ayni anda baslasin diye); misafir kendi saatine cevirir
+  async function netRound(g, seed, r, total, open, intro, startAt, hostSent) {
+    if (startAt != null && !window.__dokunNoSync) {
+      // saat farki henuz olculmediyse host'un mesaji gonderdigi andaki 'kalan sure' kullanilir (en kotu ihtimalle eski davranis, asla erken baslamaz)
+      const d = net.role === 'host' ? startAt - nowP() : (net.off == null ? startAt - (hostSent || startAt) : (startAt - net.off) - nowP());
+      if (d > 0) await sleep(d);
+    }
+    net.round = r; net.prog = []; net.done = [];
     resetZones(); showScores(); fx.round(); music.setMood(moodOf(g));
     zones[0].querySelector('.gname').textContent = netBoard();
+    paintNetBar();
     if (intro) {
       say(g.icon + ' ' + g.name + ' <small>' + (open ? 'Tur ' + r : 'Tur ' + r + '/' + total) + ' · ' + g.hint + '</small>', null, true);
       await sleep(introMs(g));
@@ -1923,20 +1998,56 @@
     }
     addDeadMasks();
     await countdown();
-    await seeded(seed, () => g.run());
+    reportHook = (i, v, m) => netProgress(v, m);
+    try { await seeded(seed, () => g.run()); } finally { reportHook = null; }
+    net.done[net.myIdx] = true; paintNetBar();
     return lastScores[0];
+  }
+  // Canli ilerleme: en fazla her 120 ms'de bir rakiplere gonderilir
+  let progT = null, progLast = null;
+  function netProgress(v, m) {
+    progLast = { v, m }; net.prog[net.myIdx] = progLast; paintNetBar();
+    if (progT) return;
+    progT = setTimeout(() => {
+      progT = null; const o = progLast;
+      if (net.role === 'host') net.peers.forEach(q => jsend(q.dc, { t: 'p', i: 0, v: o.v, m: o.m, r: net.round }));
+      else jsend(net.gdc, { t: 'p', v: o.v, m: o.m, r: net.round });
+    }, 120);
+  }
+  // Ustteki serit: rakiplerin canli ilerlemesi + baglanti kalitesi
+  function netQuality() {
+    let ms = 0;
+    if (net.role === 'guest') ms = net.rtt;
+    else { const r = livePeers().map(p => p.rtt || 0); ms = r.length ? Math.max(...r) : 0; }
+    const cls = net.weak ? 'bad' : ms < 60 ? 'good' : ms < 140 ? 'mid' : 'bad';
+    return { cls, txt: (net.weak ? '⚠ ' : '📶 ') + (ms ? Math.round(ms) + ' ms' : '…') };
+  }
+  function paintNetBar() {
+    const el = $('#netbar');
+    if (!net.on || !net.names || !playing || !net.matchStarted && net.role === 'host') { el.classList.add('hidden'); return; }
+    el.classList.remove('hidden');
+    const mx = Math.max(1, ...Array.from(net.prog, p => p ? Math.max(0, p.v) : 0));      // Array.from: bos (seyrek) indeksler NaN uretmesin
+    const parts = net.names.map((n, i) => {
+      if (i === net.myIdx) return '';
+      const pr = net.prog[i], pct = pr ? Math.min(100, Math.max(0, pr.v) / (pr.m || mx) * 100) : 0;
+      return '<div class="nb' + (net.done[i] ? ' dn' : '') + (net.away[i] ? ' aw' : '') + '" style="--c:' + COLORS[i] + '"><span>' + esc(n) + (net.done[i] ? ' ✓' : net.away[i] ? ' ⚠' : '') + '</span><i><b style="width:' + pct + '%"></b></i></div>';
+    }).join('');
+    const q = netQuality();
+    el.innerHTML = parts + '<div class="nq ' + q.cls + '">' + q.txt + '</div>';
   }
   async function runNetHost(peers) {
     const pool = lastPool, nextGame = makeBag(pool), { open, total, single, val } = matchPlan(pool);
     for (let r = 1; r <= total; r++) {
       const g = nextGame(), seed = (Math.random() * 2147483647) | 0, intro = !single || r === 1;
-      peers.forEach(p => jsend(p.dc, { t: 'round', r, total, open, gi: GAMES.indexOf(g), seed, intro }));
+      const hSent = nowP(), at = hSent + (r === 1 ? 1200 : 700);   // tur birazdan herkeste ayni anda baslar (ilk turda saat olcumu icin biraz daha uzun)
+      peers.forEach(p => jsend(p.dc, { t: 'round', r, total, open, gi: GAMES.indexOf(g), seed, intro, at, h: hSent }));
       const waits = peers.map(p => new Promise(res => {
-        if (p.gone) return res(-Infinity);
+        if (p.gone || p.away) return res(-Infinity);
         const h = vt.timeout(() => { p.waiting = null; res(-Infinity); }, 70000);
         p.waiting = { r, res: v => { vt.clear(h); res(v); } };
       }));
-      const mine = await netRound(g, seed, r, total, open, intro);
+      const mine = await netRound(g, seed, r, total, open, intro, at);
+      net.peers.forEach(q => jsend(q.dc, { t: 'd', i: 0, r }));
       const metrics = [mine, ...(await Promise.all(waits))].map((m, i) => (dead[i] || m == null) ? -Infinity : m);
       const mx = Math.max(...metrics);
       const winners = mx > 0 ? metrics.map((m, i) => m === mx ? i : -1).filter(i => i >= 0) : [];
@@ -1955,7 +2066,7 @@
     let offer;
     try { offer = await decodeDesc($('#g-code').value); } catch (_) { return toast('Kod geçersiz'); }
     $('#g-status').textContent = 'Cevap kodu hazırlanıyor…';
-    const pc = new RTCPeerConnection(iceCfg()); net.gpc = pc; net.role = 'guest'; net.on = true;
+    const pc = new RTCPeerConnection(iceCfg()); net.gpc = pc; net.role = 'guest'; net.on = true; net.leaving = false;
     pc.ondatachannel = e => wireGuest(e.channel);
     pc.onconnectionstatechange = () => { if (pc.connectionState === 'failed' || pc.connectionState === 'closed') leaveNet('Bağlantı koptu'); };
     await pc.setRemoteDescription(offer);
@@ -1968,35 +2079,116 @@
   function wireGuest(dc, open) {
     net.gdc = dc;
     dc.onmessage = e => { let m; try { m = JSON.parse(e.data); } catch (_) { return; } onGuestMsg(m); };
-    dc.onclose = () => { if (net.on) leaveNet('Host ile bağlantı koptu'); };
+    dc.onclose = () => {
+      if (!net.on || net.leaving || net.gdc !== dc) return;
+      if (net.lanIp && net.token) guestReconnect(); else leaveNet('Host ile bağlantı koptu');   // LAN: otomatik yeniden baglan
+    };
     const hello = () => jsend(dc, { t: 'hello', v: VERSION, name: prefs.names[0] });
     if (open) hello(); else dc.onopen = hello;
   }
+  // ---- baglanti kalitesi: ping / saat farki / kopma tespiti ----
+  function startPing() {
+    clearNetTimers(); net.samples = []; net.lastPong = nowP(); net.weak = false;
+    const send = () => jsend(net.gdc, { t: 'ping', t0: nowP(), rtt: Math.round(net.rtt || 0) });
+    send();                                                                                           // ilk olcum hemen
+    let k = 0; const burst = setInterval(() => { send(); if (++k >= 5) clearInterval(burst); }, 160);       // ilk saniyede hizli olcum
+    net.timers.push(burst);
+    netTimer(send, 1500);
+    netTimer(() => {
+      const idle = nowP() - net.lastPong;
+      net.weak = idle > 5000;
+      if (idle > 14000 && net.gdc) { try { net.gdc.close(); } catch (_) {} }                            // cevap yok: kopmus say
+      paintNetBar();
+    }, 1000);
+  }
+  function onPong(m) {
+    const now = nowP(), rtt = now - m.t0;
+    net.lastPong = now; net.weak = false;
+    net.rtt = net.rtt ? net.rtt * 0.7 + rtt * 0.3 : rtt;
+    net.samples.push({ rtt, off: m.h + rtt / 2 - now });                  // off = host saati - kendi saatim
+    if (net.samples.length > 10) net.samples.shift();
+    net.off = net.samples.reduce((a, c) => c.rtt < a.rtt ? c : a).off;    // en dusuk gecikmeli olcum en guvenilirdir
+  }
+  // ---- kopma sonrasi otomatik yeniden baglanma (LAN) ----
+  const showReconn = on => $('#reconn').classList.toggle('hidden', !on);
+  async function guestReconnect() {
+    if (net.reconnecting) return;
+    net.reconnecting = true; clearNetTimers(); showReconn(true);
+    const t0 = nowP();
+    let refused = 0;
+    while (net.on && !net.leaving && nowP() - t0 < 25000) {
+      const t1 = nowP();
+      if (await tryRejoin()) { net.reconnecting = false; showReconn(false); return; }
+      refused = nowP() - t1 < 1500 ? refused + 1 : 0;           // hizla reddedilen baglanti: sunucu kapali (host cikti/coktu)
+      if (refused >= 6) break;
+      await new Promise(r => setTimeout(r, 1500));
+    }
+    net.reconnecting = false; showReconn(false);
+    if (net.on && !net.leaving) leaveNet('Bağlantı kurulamadı');
+  }
+  function tryRejoin() {
+    return new Promise(res => {
+      let ws, done = false, timer = null;
+      const fin = ok => { if (done) return; done = true; clearTimeout(timer); net.rejoinDone = null; res(ok); };
+      try { ws = new WebSocket('ws://' + net.lanIp + ':' + lanPort()); } catch (_) { return res(false); }
+      const chan = { readyState: 'connecting', onmessage: null, onclose: null, send: d => ws.send(d), close: () => { try { ws.close(); } catch (_) {} } };
+      timer = setTimeout(() => { try { ws.close(); } catch (_) {} fin(false); }, 4500);
+      ws.onopen = () => { chan.readyState = 'open'; net.gws = ws; wireGuest(chan, false); jsend(chan, { t: 'hello', v: VERSION, name: prefs.names[0], token: net.token }); };
+      ws.onmessage = e => { if (chan.onmessage) chan.onmessage({ data: e.data }); };
+      ws.onerror = () => fin(false);
+      ws.onclose = () => { const was = chan.readyState === 'open'; chan.readyState = 'closed'; if (!done) fin(false); else if (was && chan.onclose) chan.onclose(); };
+      net.rejoinDone = fin;
+    });
+  }
   function onGuestMsg(m) {
-    if (m.t === 'welcome') { $('#g-status').textContent = 'Bağlandı ✔ Host maçı başlatınca oyun başlar.'; }
+    if (m.t === 'welcome') {
+      net.token = m.token || null;
+      $('#g-status').textContent = 'Bağlandı ✔ Host maçı başlatınca oyun başlar.';
+      wake.on(); startPing();
+    }
+    else if (m.t === 'pong') { onPong(m); }
     else if (m.t === 'roster') {
       net.names = m.names; net.myIdx = m.idx;
       $('#g-roster').classList.remove('hidden');
-      $('#g-list').innerHTML = m.names.map((n, i) => '<li>' + (i === m.idx ? '👤 ' + esc(n) + ' (sen)' : '📱 ' + esc(n)) + '</li>').join('');
+      $('#g-list').innerHTML = rosterHtml(m.names, m.idx, m.pings);
     }
-    else if (m.t === 'bad') { leaveNet(m.msg); }
+    else if (m.t === 'bad') { if (net.rejoinDone) net.rejoinDone(false); leaveNet(m.msg); }
+    else if (m.t === 'bye') { leaveNet('Host odayı kapattı'); }
+    else if (m.t === 'resume') {                                            // yeniden baglandik: durumu al, sonraki turdan devam et
+      net.token = m.token || net.token; net.myIdx = m.idx;
+      if (m.started) { net.names = m.names; adopt(m.state); showScores(); }
+      toast('Yeniden bağlandı ✔'); startPing();
+      if (net.rejoinDone) net.rejoinDone(true);
+    }
     else if (m.t === 'start') { netEnter(m.P, m.names, m.idx, m.mode, m.val, m.pool); }
     else if (m.t === 'round') {
       (async () => {
-        const v = await netRound(GAMES[m.gi], m.seed, m.r, m.total, m.open, m.intro);
+        const v = await netRound(GAMES[m.gi], m.seed, m.r, m.total, m.open, m.intro, m.at, m.h);
         jsend(net.gdc, { t: 'score', r: m.r, v });
       })();
     }
+    else if (m.t === 'p') { if (m.r === net.round) { net.prog[m.i] = { v: m.v, m: m.m }; paintNetBar(); } }
+    else if (m.t === 'd') { if (m.r === net.round) { net.done[m.i] = true; paintNetBar(); } }
+    else if (m.t === 'away') { net.away[m.i] = m.on; if (m.on) toast((net.names && net.names[m.i] || 'Oyuncu') + ' bağlantısı koptu'); paintNetBar(); }
     else if (m.t === 'result') { adopt(m.state); roundVisual(m.winners, m.msg); }
     else if (m.t === 'final') { adopt(m.state); finale(); }
   }
 
   function leaveNet(msg) {
-    net.peers.forEach(p => { try { if (p.dc) p.dc.close(); if (p.pc) p.pc.close(); } catch (_) {} });
-    try { if (net.gdc) net.gdc.close(); if (net.gws) net.gws.close(); if (net.gpc) net.gpc.close(); } catch (_) {}
-    try { if (net.lan && lanPlugin()) lanPlugin().stop(); } catch (_) {}
+    net.leaving = true; clearNetTimers(); showReconn(false); $('#netbar').classList.add('hidden');
+    net.peers.forEach(p => clearTimeout(p.awayTimer));
+    if (net.role === 'host') {                         // misafirler "baglanti koptu" sanip yeniden baglanmaya calismasin: oda kapandi bilgisi gonder
+      const peers = net.peers.slice(), lan = net.lan && lanPlugin();
+      peers.forEach(p => jsend(p.dc, { t: 'bye' }));
+      setTimeout(() => { peers.forEach(p => { try { if (p.dc) p.dc.close(); if (p.pc) p.pc.close(); } catch (_) {} }); try { if (lan) lan.stop(); } catch (_) {} }, 250);
+    } else {
+      net.peers.forEach(p => { try { if (p.dc) p.dc.close(); if (p.pc) p.pc.close(); } catch (_) {} });
+      try { if (net.gdc) net.gdc.close(); if (net.gws) net.gws.close(); if (net.gpc) net.gpc.close(); } catch (_) {}
+      try { if (net.lan && lanPlugin()) lanPlugin().stop(); } catch (_) {}
+    }
     const prev = net.prev;
-    Object.assign(net, { on: false, role: null, names: null, myIdx: 0, peers: [], gdc: null, gws: null, gpc: null, pending: null, prev: null, lan: null, matchStarted: false });
+    Object.assign(net, { on: false, role: null, names: null, myIdx: 0, peers: [], gdc: null, gws: null, gpc: null, pending: null, prev: null, lan: null, matchStarted: false,
+      rtt: 0, off: null, samples: [], lastPong: 0, weak: false, token: null, lanIp: null, reconnecting: false, round: 0, prog: [], done: [], away: [] });
     document.body.classList.remove('net', 'guest');
     quitMatch();                                       // zamanlayicilar, muzik ve ekranlar sifirlanir, ana menuye donulur
     if (prev) { N = prev.N; modeKey = prev.modeKey; renderModeUI(); }
@@ -2005,6 +2197,8 @@
     $('#g-ansbox').classList.add('hidden'); $('#g-roster').classList.add('hidden'); $('#g-code').value = ''; $('#h-status').textContent = ''; $('#g-status').textContent = '';
     if (msg) toast(msg);
   }
+
+  $('#reconn-cancel').addEventListener('click', () => { leaveNet(); });
 
   // ---- ag ekrani ----
   const paintNetNote = () => {
@@ -2021,10 +2215,14 @@
   $('#net-adv').addEventListener('click', safe(() => { net.mode = net.mode === 'lan' ? 'rtc' : 'lan'; paintNetNote(); }));
   $('#net-back').addEventListener('click', () => { if (net.on) leaveNet(); else showScreen('home'); });
   $('#net-host-btn').addEventListener('click', safe(async () => {
-    net.role = 'host'; net.on = true;
+    net.role = 'host'; net.on = true; net.leaving = false; wake.on();
     $('#net-choose').classList.add('hidden'); $('#net-host').classList.remove('hidden');
     $('#h-lan').classList.toggle('hidden', net.mode !== 'lan');
     paintHost();
+    netTimer(() => {                                                    // sessiz oyuncuyu tespit et, bekleme odasinda ping'leri tazele
+      livePeers().forEach(p => { if (!p.away && nowP() - p.lastSeen > 14000) { try { p.dc.close(); } catch (_) {} } });
+      if (!net.matchStarted) broadcastRoster(); else paintNetBar();
+    }, 2000);
     if (net.mode === 'lan') { if (!(await hostLanStart())) { leaveNet(); showScreen('net'); paintNetNote(); } }
     else await hostPrepare();
   }));
