@@ -1,8 +1,11 @@
-name: Android APK
+name: Android APK ve AAB
 
-# Her push'ta (ve elle tetiklemede) APK uretir.
-# APK'yi Actions > calisma > Artifacts altindan veya Releases sayfasindan indirebilirsiniz.
-# Debug anahtariyla imzalanir: telefona kurulur, Play Store icin degil.
+# Her push'ta (ve elle tetiklemede) Android paketlerini uretir:
+#  - DOKUN_KEYSTORE_PASSWORD gizli anahtari tanimliysa: yukleme anahtariyla IMZALI release APK + Google Play'e yuklenecek AAB
+#    (ayni anahtar hep kullanildigi icin APK'lar birbirinin ustune kurulabilir)
+#  - tanimli degilse: yalnizca debug APK (telefona kurulur, Play'e yuklenemez)
+# Dosyalar: Actions > calisma > Artifacts altindan veya Releases sayfasindan indirilir.
+# Imza anahtari (sifreli): android/signing/dokun-upload.jks.enc  |  kurulum: PLAY_CONSOLE.md
 on:
   push:
     branches: [main]
@@ -19,6 +22,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 40
+    env:
+      DOKUN_VERSION_CODE: ${{ github.run_number }}
+      DOKUN_VERSION_NAME: 1.0.${{ github.run_number }}
     steps:
       - uses: actions/checkout@v4
 
@@ -43,25 +49,67 @@ jobs:
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
           "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-36" "build-tools;36.0.0" > /dev/null
 
-      - name: APK derle
+      - name: Imza anahtarini hazirla
+        id: sign
+        env:
+          DOKUN_KEYSTORE_PASSWORD: ${{ secrets.DOKUN_KEYSTORE_PASSWORD }}
+        run: |
+          if [ -n "$DOKUN_KEYSTORE_PASSWORD" ]; then
+            openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 \
+              -in android/signing/dokun-upload.jks.enc -out "$RUNNER_TEMP/dokun-upload.jks" -pass env:DOKUN_KEYSTORE_PASSWORD
+            keytool -list -keystore "$RUNNER_TEMP/dokun-upload.jks" -storepass "$DOKUN_KEYSTORE_PASSWORD" > /dev/null
+            echo "DOKUN_KEYSTORE_FILE=$RUNNER_TEMP/dokun-upload.jks" >> "$GITHUB_ENV"
+            echo "signed=true" >> "$GITHUB_OUTPUT"
+            echo "Yukleme anahtari cozuldu: imzali APK + AAB uretilecek."
+          else
+            echo "signed=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=Imza anahtari yok::DOKUN_KEYSTORE_PASSWORD gizli anahtari tanimli degil. Yalnizca debug APK uretilecek (Play'e yuklenemez). Kurulum: PLAY_CONSOLE.md"
+          fi
+
+      - name: Imzali release APK ve AAB derle
+        if: steps.sign.outputs.signed == 'true'
+        working-directory: android
+        env:
+          DOKUN_KEYSTORE_PASSWORD: ${{ secrets.DOKUN_KEYSTORE_PASSWORD }}
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease bundleRelease --no-daemon --stacktrace
+
+      - name: Debug APK derle
+        if: steps.sign.outputs.signed != 'true'
         working-directory: android
         run: |
           chmod +x gradlew
           ./gradlew assembleDebug --no-daemon --stacktrace
 
-      - name: APK adini duzenle
-        id: apk
+      - name: Dosyalari duzenle
         run: |
           mkdir -p dist
-          cp android/app/build/outputs/apk/debug/app-debug.apk "dist/Dokun-${{ github.run_number }}.apk"
+          if [ "${{ steps.sign.outputs.signed }}" = "true" ]; then
+            cp android/app/build/outputs/apk/release/app-release.apk "dist/Dokun-${{ github.run_number }}.apk"
+            cp android/app/build/outputs/bundle/release/app-release.aab "dist/Dokun-${{ github.run_number }}.aab"
+            BT="$ANDROID_HOME/build-tools/36.0.0"
+            "$BT/apksigner" verify --print-certs "dist/Dokun-${{ github.run_number }}.apk" | tee cert.txt
+            {
+              echo "## Dokun ${{ github.run_number }} (surum 1.0.${{ github.run_number }}, versionCode ${{ github.run_number }})"
+              echo "Imzali release APK ve Play Console'a yuklenecek AAB hazir (Artifacts)."
+              echo
+              echo '```'
+              grep -i "SHA-256\|SHA-1" cert.txt | head -2
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            cp android/app/build/outputs/apk/debug/app-debug.apk "dist/Dokun-${{ github.run_number }}.apk"
+            echo "Debug APK uretildi (imza anahtari tanimli degil)." >> "$GITHUB_STEP_SUMMARY"
+          fi
           ls -la dist
 
       - uses: actions/upload-artifact@v4
         with:
           name: Dokun-${{ github.run_number }}
-          path: dist/*.apk
+          path: dist/*
 
-      # Release izni olmayabilir (depo ayari); basarisiz olursa APK yine Artifacts'ta durur.
+      # Release izni olmayabilir (depo ayari); basarisiz olursa dosyalar yine Artifacts'ta durur.
       - name: GitHub Release olustur
         if: github.event_name == 'push'
         continue-on-error: true

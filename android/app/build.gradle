@@ -1,5 +1,12 @@
 apply plugin: 'com.android.application'
 
+// Surum ve imza bilgileri CI'dan gelir (.github/workflows/android.yml); yerelde varsayilanlar kullanilir.
+def dokunVersionCode = (System.getenv('DOKUN_VERSION_CODE') ?: '1') as Integer
+def dokunVersionName = System.getenv('DOKUN_VERSION_NAME') ?: '1.0'
+def dokunKeystore = System.getenv('DOKUN_KEYSTORE_FILE')
+def dokunKeystorePass = System.getenv('DOKUN_KEYSTORE_PASSWORD')
+def dokunHasKeystore = dokunKeystore && dokunKeystorePass && file(dokunKeystore).exists()
+
 android {
     namespace = "com.erenmaral.dokun"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -7,8 +14,8 @@ android {
         applicationId "com.erenmaral.dokun"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode dokunVersionCode
+        versionName dokunVersionName
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -16,8 +23,20 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        release {
+            if (dokunHasKeystore) {
+                storeFile file(dokunKeystore)
+                storePassword dokunKeystorePass
+                keyAlias 'dokun-upload'
+                keyPassword dokunKeystorePass
+            }
+        }
+    }
     buildTypes {
         release {
+            // Anahtar yoksa (ornegin yerel derleme) debug anahtariyla imzalanir: kurulabilir ama Play'e yuklenemez.
+            signingConfig dokunHasKeystore ? signingConfigs.release : signingConfigs.debug
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }

@@ -33,7 +33,7 @@ jobs:
       - name: Site klasorunu hazirla
         run: |
           mkdir _site
-          cp index.html _site/
+          cp index.html privacy.html _site/
 
       - uses: actions/upload-pages-artifact@v3
         with:
