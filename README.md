@@ -6,7 +6,7 @@ Aynı telefonu paylaşan 2-4 arkadaş için hızlı mini oyunlar. Ekran oyuncu s
 - **🎲 Karışık Maç:** oyunlar rastgele sırayla ve tekrarsız oynanır (3 / 5 / 8 / 12 tur).
 - **🎮 Oyun Seç:** listeden bir oyun seçilir ve yalnızca o oyun seçilen tur sayısı kadar oynanır.
 
-Her turdan önce 3-2-1 geri sayım vardır. Maç bitince kazanan bölge **altın renkte yanıp söner**, "👑 KAZANAN" yazar ve konfeti saçar. Diğer bölgeler sönükleşir ve sıralamasını gösterir. Sonuç her bölgede o oyuncuya doğru yazıldığı için iki yönden de okunur. Ardından "Tekrar" ve "Menü" düğmeleri çıkar.
+Her turdan önce ekranın ortasında **tur kartı** çıkar ("TUR 2 / 8" + oyunun adı + kural özeti, iki yönden okunur), ardından 3-2-1 geri sayım başlar. Oyun sırasında her bölgenin alt/üst kenarında oyuncu adı, puan ve "oyun adı · tur" etiketi durur; 3-4 oyunculu dar bölgelerde bu etiket ayrı bir satıra alınır, böylece kesilmez ve oyun alanına binmez. Tur sayacı küçük bir hap olarak bölgenin ucundadır ve içeriğin üstüne taşmaz. Maç bitince kazanan bölge **altın renkte yanıp söner**, "👑 KAZANAN" yazar ve konfeti saçar. Diğer bölgeler sönükleşir ve sıralamasını gösterir. Sonuç her bölgede o oyuncuya doğru yazıldığı için iki yönden de okunur. Ardından "Tekrar" ve "Menü" düğmeleri çıkar.
 
 - **Tepki:** yeşil olunca ilk dokunan kazanır. Bazen önce sarı bir sahte işaret yanar; sarıda ya da erken dokunan o turdan elenir. Tepki süresi gösterilir.
 - **Seri Dokun:** 5 saniyede en çok dokunan kazanır. Rakiplere göre ilerleme çubuğu görünür.
@@ -27,7 +27,7 @@ Her turdan önce 3-2-1 geri sayım vardır. Maç bitince kazanan bölge **altın
 
 Her bölge koyu, nötr bir zeminde; oyuncu rengi yalnızca çerçeve ve etiket olarak kullanılır. Bilgi kutuları karşıdaki oyuncu için ters kopya olarak da gösterilir.
 
-Telefonu dikey tut. Tarayıcıda yatay çevrilirse "Telefonu dikey tut" uyarısı çıkar.
+Telefonu dikey tut. Tarayıcıda yatay çevrilirse "Telefonu dikey tut" uyarısı çıkar; oyun sırasında telefon yan çevrilirse oyun kendiliğinden duraklar (çevrimiçi maçlarda duraklatma yoktur). Android uygulamasında sistem yazı boyutu büyütülmüş olsa da arayüz taşmasın diye WebView yazı yakınlaştırması %100'e sabitlenir; menü ekranları çentik/durum çubuğu boşluğunu (`safe-area`) dikkate alır.
 
 ## Modlar
 Ana menüden oyuncu sayısı ve mod seçilir:
@@ -51,7 +51,7 @@ Tüm sesler ve müzik Web Audio ile kodla üretilir (dosya yok). Müzik oyuna g�
 
 **Çevrimiçi oyun kalitesi (aynı Wi-Fi):**
 - **Eşzamanlı başlangıç:** telefonlar arası saat farkı sürekli ölçülür (ping/pong, en düşük gecikmeli örnek), her tur host'un belirlediği ortak ana göre başlar. 25-75 ms Wi-Fi gecikmesi altında oyunun telefonlar arası başlama farkı ~70 ms'den ~9 ms'ye indi (ölçüm: tek yönde 25-75 ms yapay gecikmeli 3 telefon, 3 tur).
-- **Canlı rakip ilerlemesi:** ekranın üstünde rakiplerin ilerleme çubukları ve ✓ (bitirdi) görünür, yanında bağlantı kalitesi (📶 ms).
+- **Canlı rakip ilerlemesi:** ekranın üstünde rakiplerin puanı, ilerleme çubukları ve ✓ (bitirdi) görünür, yanında bağlantı kalitesi (📶 ms). Her turdan önceki tur kartı ekranın ortasında çıkar (üstteki rakip şeridine ve ekran kenarına binmez); alt etikette "oyun adı · tur" yazar.
 - **Otomatik yeniden bağlanma (kısa kod):** bağlantısı kopan oyuncu 25 sn boyunca otomatik yeniden bağlanır, kaydı ve puanı korunur, diğerleri maçı sürdürür. 14 sn hiç cevap gelmeyen bağlantı kopmuş sayılır. Host odayı kapatınca misafirler hemen bilgilendirilir.
 - **Bekleme odası:** oyuncu yuvaları, renkli avatarlar ve herkesin ping değeri görünür.
 
