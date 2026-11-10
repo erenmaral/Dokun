@@ -140,7 +140,7 @@
   .screen { position:fixed; inset:0; z-index:10; display:flex; flex-direction:column; align-items:center; justify-content:flex-start;
     gap:14px; padding:20px 20px 24px; text-align:center; overflow-y:auto; overflow-x:hidden; touch-action:pan-y;
     background:radial-gradient(120% 80% at 50% 0%, #1a2350 0%, var(--bg) 70%); }
-  .inner { margin:auto 0; width:100%; max-width:430px; display:flex; flex-direction:column; align-items:center; gap:12px; }
+  .inner { margin:auto 0; width:100%; max-width:430px; display:flex; flex-direction:column; align-items:center; gap:12px; flex:none; }   /* flex:none -> sigmayinca kisilmaz, ekran kayar */
   .screen.hidden { display:none; }
   .screen::before, .screen::after { content:''; position:absolute; width:60vmin; height:60vmin; border-radius:50%; filter:blur(40px);
     opacity:.35; pointer-events:none; animation:drift 12s ease-in-out infinite alternate; }
@@ -224,6 +224,94 @@
   /* tek bolge tum ekrani kapladigi icin bilgi kutusu ve bitis dugmeleri icerigin ustune binmesin */
   body.net #hud { top:13%; }
   body.net #endbar { top:auto; bottom:calc(64px + env(safe-area-inset-bottom)); transform:translateX(-50%); }
+
+
+  /* ============ MENU 2.0 ============ */
+  .screen:not(.hidden) { animation:scrIn .28s ease-out; }
+  @keyframes scrIn { from { opacity:0; transform:translateY(10px) scale(.985); } to { opacity:1; transform:none; } }
+  .home { gap:11px; }
+  .logo { display:flex; gap:4px; font-size:clamp(46px, 15vw, 78px); font-weight:900; line-height:1; filter:drop-shadow(0 6px 18px rgba(0,0,0,.55)); }
+  .logo span { display:inline-block; color:var(--c);
+    text-shadow:0 0 22px color-mix(in srgb, var(--c) 55%, transparent), 0 4px 0 color-mix(in srgb, var(--c) 38%, #000);
+    animation:bob 2.4s ease-in-out infinite; animation-delay:calc(var(--i) * -.28s); }
+  @keyframes bob { 50% { transform:translateY(-7px) rotate(-2deg); } }
+  .home .tag { margin-top:-2px; }
+  .marquee { width:calc(100% + 40px); margin:0 -20px; overflow:hidden; -webkit-mask-image:linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent); mask-image:linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent); }
+  .mtrack { display:flex; gap:20px; width:max-content; font-size:26px; opacity:.85; animation:mq 30s linear infinite; }
+  @keyframes mq { to { transform:translateX(-50%); } }
+  .panel { width:100%; display:flex; flex-direction:column; gap:9px; padding:14px; border-radius:22px; text-align:left;
+    background:linear-gradient(160deg, rgba(255,255,255,.12), rgba(255,255,255,.04)); border:1px solid rgba(255,255,255,.18);
+    box-shadow:0 10px 30px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.16); }
+  .plbl { font-size:11px; letter-spacing:.14em; text-transform:uppercase; opacity:.7; font-weight:800; }
+  .players { display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; }
+  .players button { display:flex; flex-direction:column; align-items:center; gap:3px; padding:9px 4px 8px; font-size:20px; line-height:1; border-radius:14px; }
+  .players small { font-size:10px; opacity:.75; font-weight:700; }
+  .dots { display:flex; height:18px; align-items:center; }
+  .dots i { width:16px; height:16px; border-radius:50%; background:var(--c); border:2px solid #10162a; margin-left:-5px; }
+  .dots i:first-child { margin-left:0; }
+  .players button.sel .dots i { border-color:#d7ecff; }
+  .modes { display:grid; grid-template-columns:repeat(2, 1fr); gap:8px; }
+  .modes button { display:flex; align-items:center; gap:8px; padding:9px 10px; font-size:15px; text-align:left; border-radius:14px;
+    background:linear-gradient(160deg, hsl(var(--h) 45% 27%), hsl(var(--h) 40% 16%)); border-color:hsl(var(--h) 55% 46%); box-shadow:0 4px 0 hsl(var(--h) 45% 10%); }
+  .modes .mi { font-size:22px; }
+  .modes button.sel { background:linear-gradient(160deg, hsl(var(--h) 85% 66%), hsl(var(--h) 75% 50%)); border-color:#fff; color:#08101f;
+    box-shadow:0 4px 0 hsl(var(--h) 60% 28%), 0 0 20px hsl(var(--h) 90% 60% / .55); }
+  .modes button:disabled { filter:grayscale(.8); }
+  .mdesc { min-height:2.7em; margin:0; }
+  .chips { display:flex; gap:8px; justify-content:center; flex-wrap:wrap; }
+  .chips button { min-width:54px; padding:8px 14px; font-size:17px; border-radius:12px; }
+  .hero { width:100%; display:flex; align-items:center; gap:14px; padding:13px 18px; border-radius:22px; text-align:left; color:#06241a;
+    background:linear-gradient(180deg, #62efb5, #2fc983); border:2px solid #fff; box-shadow:0 6px 0 #1a8f5c, 0 12px 34px rgba(61,220,151,.45);
+    animation:heroPulse 2.6s ease-in-out infinite; }
+  .hero.alt2 { background:linear-gradient(180deg, #ffd76a, #ffb703); color:#2a1800; box-shadow:0 6px 0 #b97f00, 0 12px 34px rgba(255,183,3,.35); animation:none; }
+  .hero .hi { font-size:32px; width:54px; height:54px; flex:none; border-radius:16px; background:rgba(255,255,255,.38); display:flex; align-items:center; justify-content:center; }
+  .hero .ht { flex:1; display:flex; flex-direction:column; gap:1px; }
+  .hero .ht b { font-size:22px; font-weight:900; }
+  .hero .ht small { font-size:12px; font-weight:700; opacity:.75; }
+  .hero .harr { font-size:22px; opacity:.65; }
+  .hero:active { transform:translateY(4px); box-shadow:0 2px 0 #1a8f5c; }
+  .hero.alt2:active { box-shadow:0 2px 0 #b97f00; }
+  @keyframes heroPulse { 50% { box-shadow:0 6px 0 #1a8f5c, 0 12px 46px rgba(61,220,151,.75); } }
+  .tiles { width:100%; display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; }
+  .tile { --h:200; display:flex; flex-direction:column; align-items:center; gap:7px; padding:11px 6px 10px; font-size:14px; border-radius:18px;
+    background:linear-gradient(160deg, hsl(var(--h) 45% 26%), hsl(var(--h) 40% 14%)); border-color:hsl(var(--h) 55% 48%); box-shadow:0 5px 0 hsl(var(--h) 45% 8%); }
+  .tile .ti { font-size:26px; width:48px; height:48px; border-radius:15px; display:flex; align-items:center; justify-content:center;
+    background:linear-gradient(160deg, hsl(var(--h) 80% 62%), hsl(var(--h) 70% 42%)); box-shadow:inset 0 2px 0 rgba(255,255,255,.35), 0 3px 8px rgba(0,0,0,.4); }
+  .t-pick { --h:40; } .t-net { --h:200; } .t-set { --h:268; }
+  @media (max-height:720px) {
+    .home .tag, .marquee { display:none; }
+    .logo { font-size:44px; } .home { gap:9px; } .panel { padding:10px; gap:7px; }
+    .hero { padding:9px 14px; } .hero .hi { width:42px; height:42px; font-size:26px; } .hero .ht b { font-size:19px; }
+    .tile { padding:8px 4px 8px; } .tile .ti { width:40px; height:40px; font-size:22px; }
+  }
+
+  /* ---------- Ortak ust cubuk, oyun secme, ayarlar ---------- */
+  .icon-btn { width:44px; height:44px; padding:0 !important; font-size:28px !important; line-height:1; border-radius:14px; flex:none; }
+  .ptitle { text-align:left; flex:1; min-width:0; }
+  .ptitle h2 { font-size:25px; margin:0; }
+  .tags { gap:6px; }
+  .tags button { padding:6px 10px; font-size:13px; border-radius:999px; min-width:0; }
+  .gcard.hide { display:none; }
+  .gcard .ic { width:46px; height:46px; border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:28px; line-height:1;
+    background:hsl(var(--h) 65% 48% / .55); box-shadow:inset 0 2px 0 rgba(255,255,255,.25); }
+  .gcard .tg { font-size:10px; font-weight:800; letter-spacing:.1em; opacity:.8; margin-top:3px; }
+  .csec { width:100%; display:flex; flex-direction:column; gap:8px; padding:12px; border-radius:20px; text-align:left;
+    background:linear-gradient(160deg, rgba(255,255,255,.11), rgba(255,255,255,.04)); border:1px solid rgba(255,255,255,.16); box-shadow:0 8px 24px rgba(0,0,0,.3); }
+  .csec .sh { font-size:12px; letter-spacing:.12em; text-transform:uppercase; opacity:.75; font-weight:800; }
+  .csec .setrow { background:rgba(0,0,0,.22); border:0; }
+  button.tog { position:relative; width:58px; height:32px; min-width:58px !important; padding:0 !important; border-radius:16px; font-size:0 !important; color:transparent !important;
+    background:#2a3262; border:2px solid #4452a0; box-shadow:none; }
+  button.tog::after { content:''; position:absolute; top:2px; left:2px; width:24px; height:24px; border-radius:50%; background:#aab3e6; transition:transform .18s, background .18s; }
+  button.tog.sel { background:linear-gradient(180deg, #62efb5, #2fc983); border-color:#fff; }
+  button.tog.sel::after { transform:translateX(26px); background:#fff; }
+  button.tog:active { transform:none; box-shadow:none; }
+  .seg { gap:0; background:rgba(0,0,0,.35); border-radius:12px; padding:3px; }
+  .seg button { border:0; background:transparent; box-shadow:none; padding:6px 10px !important; border-radius:9px; font-size:13px !important; min-width:0 !important; }
+  .seg button.sel { background:linear-gradient(180deg, #7cc4ff, #4dabf7); color:#08101f; box-shadow:none; }
+  #h-list, #g-list { list-style:none; padding:0 !important; margin:0; display:flex; flex-direction:column; gap:8px; }
+  #h-list li, #g-list li { display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:12px; background:rgba(255,255,255,.08); font-weight:700; }
+  #h-list .av, #g-list .av { width:28px; height:28px; border-radius:50%; background:var(--c); color:#10162a; display:flex; align-items:center; justify-content:center; font-weight:900; flex:none; }
+  #h-list .pg, #g-list .pg { margin-left:auto; font-size:12px; opacity:.85; font-weight:700; }
 
   /* ---------- Duraklatma ---------- */
   #ptabs.hidden { display:none; }
@@ -323,36 +411,45 @@
 <div id="hud" class="hidden"></div>
 <div id="rotate">📱 Telefonu dikey tut</div>
 
-<div id="menu" class="screen"><div class="inner">
-  <h1>DOKUN!</h1>
-  <div class="tag">Aynı telefonu paylaşan arkadaşlar için hızlı mini oyunlar</div>
-  <div class="lbl">Oyuncu sayısı</div>
-  <div class="row" id="count-row">
-    <button data-n="2" class="sel">2</button>
-    <button data-n="3">3</button>
-    <button data-n="4">4</button>
+<div id="menu" class="screen"><div class="inner home">
+  <div class="logo" aria-label="DOKUN!">
+    <span style="--i:0;--c:#ff5a5f">D</span><span style="--i:1;--c:#ffd43b">O</span><span style="--i:2;--c:#3ddc97">K</span><span style="--i:3;--c:#4dabf7">U</span><span style="--i:4;--c:#c084fc">N</span><span style="--i:5;--c:#fb923c">!</span>
   </div>
-  <div class="lbl">Mod</div>
-  <div class="row wrap" id="mode-row">
-    <button data-m="klasik" class="sel">Klasik</button>
-    <button data-m="yaris">Yarış</button>
-    <button data-m="can">Hayatta Kal</button>
-    <button data-m="takim">Takım</button>
+  <div class="tag">Aynı telefonda ya da farklı telefonlarda arkadaşlarla hızlı mini oyunlar</div>
+  <div class="marquee"><div class="mtrack" id="mtrack"></div></div>
+
+  <div class="panel">
+    <div class="plbl">Oyuncu sayısı</div>
+    <div class="players" id="count-row">
+      <button data-n="2" class="sel"><span class="dots"><i style="--c:#ff5a5f"></i><i style="--c:#3ddc97"></i></span><b>2</b><small>oyuncu</small></button>
+      <button data-n="3"><span class="dots"><i style="--c:#ff5a5f"></i><i style="--c:#3ddc97"></i><i style="--c:#4dabf7"></i></span><b>3</b><small>oyuncu</small></button>
+      <button data-n="4"><span class="dots"><i style="--c:#ff5a5f"></i><i style="--c:#3ddc97"></i><i style="--c:#4dabf7"></i><i style="--c:#ffd43b"></i></span><b>4</b><small>oyuncu</small></button>
+    </div>
+    <div class="plbl">Mod</div>
+    <div class="modes" id="mode-row">
+      <button data-m="klasik" class="sel" style="--h:210"><span class="mi">🏁</span><b>Klasik</b></button>
+      <button data-m="yaris" style="--h:45"><span class="mi">⚡</span><b>Yarış</b></button>
+      <button data-m="can" style="--h:350"><span class="mi">❤️</span><b>Hayatta Kal</b></button>
+      <button data-m="takim" style="--h:150"><span class="mi">👥</span><b>Takım</b></button>
+    </div>
+    <div class="mdesc" id="mode-desc"></div>
+    <div class="plbl" id="val-label">Tur sayısı</div>
+    <div class="chips" id="round-row"></div>
   </div>
-  <div class="mdesc" id="mode-desc"></div>
-  <div class="lbl" id="val-label">Tur sayısı</div>
-  <div class="row" id="round-row"></div>
-  <button class="go" id="start">🎲 Karışık Maç</button>
-  <button class="alt" id="pick-btn">🎮 Oyun Seç</button>
-  <div class="row">
-    <button id="set-btn" class="sm">⚙ Ayarlar</button>
-    <button id="net-btn" class="sm">📡 Çevrimiçi</button>
+
+  <button class="hero" id="start"><span class="hi">🎲</span><span class="ht"><b>Karışık Maç</b><small>16 oyundan rastgele</small></span><span class="harr">▶</span></button>
+  <div class="tiles">
+    <button id="pick-btn" class="tile t-pick"><span class="ti">🎮</span><b>Oyun Seç</b></button>
+    <button id="net-btn" class="tile t-net"><span class="ti">📡</span><b>Çevrimiçi</b></button>
+    <button id="set-btn" class="tile t-set"><span class="ti">⚙️</span><b>Ayarlar</b></button>
   </div>
 </div></div>
 
 <div id="picker" class="screen hidden"><div class="inner">
-  <div class="ptop"><button id="back">‹ Geri</button><h2>Oyun Seç</h2></div>
-  <div id="pinfo"></div>
+  <div class="ptop"><button id="back" class="icon-btn" aria-label="Geri">‹</button><div class="ptitle"><h2>Oyun Seç</h2><div id="pinfo"></div></div></div>
+  <div class="chips tags" id="tag-row">
+    <button data-t="all" class="sel">Tümü</button><button data-t="refleks">⚡ Refleks</button><button data-t="hiz">🏃 Hız</button><button data-t="zeka">🧠 Zeka</button><button data-t="hafiza">👁 Dikkat</button>
+  </div>
   <div class="row"><button id="sel-all" class="sm">Tümünü seç</button><button id="sel-none" class="sm">Temizle</button></div>
   <div id="cards"></div>
 </div>
@@ -360,15 +457,22 @@
 </div>
 
 <div id="settings" class="screen hidden"><div class="inner">
-  <div class="ptop"><button id="set-back">‹ Geri</button><h2>Ayarlar</h2></div>
-  <div class="setlist">
-    <div class="setrow"><span>🔊 Ses efektleri</span><button class="tog" data-k="sfx"></button></div>
-    <div class="setrow"><span>📳 Titreşim</span><button class="tog" data-k="vib"></button></div>
-    <div class="setrow"><span>🎵 Müzik</span><button class="tog" data-k="music"></button></div>
-    <div class="setrow"><span>🎚 Müzik sesi</span>
-      <div class="row" id="vol-row"><button data-v="1">Düşük</button><button data-v="2">Orta</button><button data-v="3">Yüksek</button></div></div>
-    <div class="setrow"><span>💡 Ekran açık kalsın</span><button class="tog" data-k="wake"></button></div>
-    <div class="lbl" style="margin-top:6px">Oyuncu adları</div>
+  <div class="ptop"><button id="set-back" class="icon-btn" aria-label="Geri">‹</button><div class="ptitle"><h2>Ayarlar</h2></div></div>
+  <div class="csec">
+    <div class="sh">🔊 Ses</div>
+    <div class="setrow"><span>Ses efektleri</span><button class="tog" data-k="sfx"></button></div>
+    <div class="setrow"><span>Titreşim</span><button class="tog" data-k="vib"></button></div>
+    <div class="setrow"><span>Müzik</span><button class="tog" data-k="music"></button></div>
+    <div class="setrow"><span>Menü müziği</span><button class="tog" data-k="menuMusic"></button></div>
+    <div class="setrow"><span>Müzik sesi</span>
+      <div class="row seg" id="vol-row"><button data-v="1">Düşük</button><button data-v="2">Orta</button><button data-v="3">Yüksek</button></div></div>
+  </div>
+  <div class="csec">
+    <div class="sh">📱 Cihaz</div>
+    <div class="setrow"><span>Ekran açık kalsın</span><button class="tog" data-k="wake"></button></div>
+  </div>
+  <div class="csec">
+    <div class="sh">👤 Oyuncu adları</div>
     <div id="names">
       <label class="nrow" style="--c:#ff5a5f"><i></i><input maxlength="10" data-i="0" placeholder="Oyuncu 1"></label>
       <label class="nrow" style="--c:#3ddc97"><i></i><input maxlength="10" data-i="1" placeholder="Oyuncu 2"></label>
@@ -379,11 +483,11 @@
 </div></div>
 
 <div id="net" class="screen hidden"><div class="inner">
-  <div class="ptop"><button id="net-back">‹ Geri</button><h2>Çevrimiçi</h2></div>
+  <div class="ptop"><button id="net-back" class="icon-btn" aria-label="Geri">‹</button><div class="ptitle"><h2>Çevrimiçi</h2></div></div>
   <p class="small" id="net-note"></p>
   <div id="net-choose" class="stack">
-    <button class="go" id="net-host-btn">📡 Oda kur</button>
-    <button class="alt" id="net-join-btn">🔗 Odaya katıl</button>
+    <button class="hero" id="net-host-btn"><span class="hi">📡</span><span class="ht"><b>Oda kur</b><small>Kod göster, arkadaşların katılsın</small></span><span class="harr">▶</span></button>
+    <button class="hero alt2" id="net-join-btn"><span class="hi">🔗</span><span class="ht"><b>Odaya katıl</b><small>Arkadaşının oda kodunu gir</small></span><span class="harr">▶</span></button>
     <button class="sm hidden" id="net-adv"></button>
   </div>
   <div id="net-host" class="stack hidden">
@@ -479,7 +583,7 @@
   const esc = t => String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
   // ---------- Ayarlar ----------
-  const prefs = { sfx: true, vib: true, music: true, vol: 2, wake: true, names: ['', '', '', ''] };
+  const prefs = { sfx: true, vib: true, music: true, menuMusic: true, vol: 2, wake: true, names: ['', '', '', ''] };
   try { Object.assign(prefs, JSON.parse(localStorage.getItem('dokun-ayar') || '{}')); } catch (_) {}
   prefs.names = [0, 1, 2, 3].map(i => String((prefs.names || [])[i] || '').slice(0, 10));
   const savePrefs = () => { try { localStorage.setItem('dokun-ayar', JSON.stringify(prefs)); } catch (_) {} };
@@ -524,53 +628,118 @@
       fanfare() { [523, 659, 784, 1047, 784, 1047].forEach((f, k) => tone(f, 0.2, { at: k * 0.14, vol: 0.22, type: 'triangle' })); vib([80, 50, 80, 50, 200]); },
     };
   })();
-  document.addEventListener('pointerdown', () => fx.unlock(), { passive: true });
+  document.addEventListener('pointerdown', () => { fx.unlock(); if (typeof playing !== 'undefined' && !playing && !music.active) music.home(); }, { passive: true });
 
-  // ---------- Arka plan muzigi: sakin, yormayan, kodla uretilir (yavas arpej + yumusak pad) ----------
+  // ---------- Arka plan muzigi: kodla uretilir, oyuna gore degisir ----------
+  // Her "ruh hali" kendi anahtar, tempo ve dokusuna sahiptir; hepsi sakin ve yormayacak sekilde tutulur.
+  //  menu   : acik, hafif ve neseli (Do majör)          calm  : sicak ve yavas, dusunme/hafiza oyunlari (Fa majör)
+  //  lively : canli arcade, hafif bas + sapka (Sol majör) tense : gergin ama yumusak, refleks oyunlari (La minör)
+  const MOODS = {
+    menu:   { bpm: 90,  cut: 1900, gain: 0.73, wave: 'triangle', pad: 0.30, chords: [[48, 52, 55, 59], [45, 48, 52, 55], [41, 45, 48, 52], [43, 47, 50, 52]], arp: [0, 1, 2, 3, 2, 1, 3, 2], p: 0.9, bass: [0, -1, -1, -1, 0, -1, -1, -1], hat: [] },
+    calm:   { bpm: 66,  cut: 1300, gain: 0.68, wave: 'sine',     pad: 0.34, chords: [[41, 45, 48, 52], [38, 41, 45, 48], [46, 50, 53, 57], [48, 52, 55, 57]], arp: [0, -1, 2, -1, 3, -1, 2, -1], p: 0.82, bass: [0, -1, -1, -1, -1, -1, -1, -1], hat: [] },
+    lively: { bpm: 108, cut: 2600, gain: 0.85, wave: 'triangle', pad: 0.28, chords: [[43, 47, 50, 55], [40, 43, 47, 50], [48, 52, 55, 59], [38, 42, 45, 50]], arp: [0, 2, 1, 3, 0, 2, 1, 3], p: 0.86, bass: [0, -1, -1, -1, 0, -1, -1, 0], hat: [2, 6] },
+    tense:  { bpm: 122, cut: 1700, gain: 1.12, wave: 'sine',     pad: 0.34, chords: [[45, 48, 52, 57], [41, 45, 48, 53], [38, 41, 45, 50], [40, 44, 47, 52]], arp: [-1, -1, 2, -1, -1, 3, -1, -1], p: 0.8, bass: [0, -1, 0, -1, 0, -1, 0, -1], hat: [1, 3, 5, 7] },
+  };
+  const MOOD_OF = {                                    // hangi oyun hangi ruh haliyle calar
+    'Tepki': 'tense', 'Işık Oyunu': 'tense', 'Tam Ortada': 'tense', 'Tut ve Bırak': 'tense',
+    'Seri Dokun': 'lively', 'Balon Patlat': 'lively', 'Köstebek Avı': 'lively', 'Hedef Avı': 'lively', 'Renk Tuzağı': 'lively', 'Ok Yönü': 'lively',
+    'Sayı Sırası': 'calm', 'Tek Farklı': 'calm', 'Hızlı Matematik': 'calm', 'Say Bakalım': 'calm', 'Renk Dizisi': 'calm', 'Hafıza Eşleştir': 'calm',
+  };
+  const moodOf = g => MOOD_OF[g && g.name] || 'lively';
   const music = (() => {
-    const CH = [[48, 52, 55, 59], [45, 48, 52, 55], [41, 45, 48, 52], [43, 47, 50, 52]];   // Cmaj7 - Am7 - Fmaj7 - G6
     const hz = n => 440 * Math.pow(2, (n - 69) / 12);
     const rnd = Math.random.bind(Math);          // ag modunda Math.random tohumlanir; muzik etkilememeli
     const VOL = [0, 0.05, 0.09, 0.15];
-    let master = null, timer = null, nextT = 0, step = 0, active = false, ducked = false;
-    const level = () => (prefs.music && active ? VOL[prefs.vol] * (ducked ? 0.2 : 1) : 0.0001);
-    const graph = () => {
-      const c = fx.unlock(); if (!c) return null;
-      if (!master) {
-        master = c.createGain(); master.gain.value = 0.0001;
-        const f = c.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 1100;
-        master.connect(f); f.connect(c.destination);
+    let master = null, filt = null, timer = null, nextT = 0, step = 0, active = false, ducked = false, cur = 'menu';
+    const level = () => (prefs.music && active ? VOL[prefs.vol] * MOODS[cur].gain * (ducked ? 0.2 : 1) : 0.0001);
+    const noiseOf = c => {                       // sapka icin kisa beyaz gurultu
+      if (!noiseOf.b || noiseOf.sr !== c.sampleRate) {
+        const b = c.createBuffer(1, Math.floor(c.sampleRate * 0.1), c.sampleRate), d = b.getChannelData(0);
+        for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+        noiseOf.b = b; noiseOf.sr = c.sampleRate;
       }
-      return c;
+      return noiseOf.b;
     };
-    const apply = () => { if (master) { master.gain.cancelScheduledValues(fx.ctx.currentTime); master.gain.setTargetAtTime(level(), fx.ctx.currentTime, 0.45); } };
-    const note = (c, f, t, dur, type, vol, atk) => {
+    const note = (c, dest, f, t, dur, type, vol, atk, hold) => {
       const o = c.createOscillator(), g = c.createGain();
       o.type = type; o.frequency.value = f;
       g.gain.setValueAtTime(0.0001, t);
       g.gain.linearRampToValueAtTime(vol, t + atk);
+      if (hold) g.gain.linearRampToValueAtTime(vol, t + atk + hold);          // pad: seviyeyi tutar, "nefes alip verme" olmaz
       g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-      o.connect(g); g.connect(master); o.start(t); o.stop(t + dur + 0.05);
+      o.connect(g); g.connect(dest); o.start(t); o.stop(t + dur + 0.05);
+    };
+    const hat = (c, dest, t, vol) => {
+      const src = c.createBufferSource(), hp = c.createBiquadFilter(), g = c.createGain();
+      src.buffer = noiseOf(c); hp.type = 'highpass'; hp.frequency.value = 6500;
+      g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.06);
+      src.connect(hp); hp.connect(g); g.connect(dest); src.start(t); src.stop(t + 0.08);
+    };
+    // Tek bir sekizlik adimi calar (gercek zamanli ve cevrimdisi cizimde ortak kullanilir)
+    const playStep = (c, dest, M, st, t, r) => {
+      const k = st % 8, ch = M.chords[Math.floor(st / 8) % M.chords.length], dur = 30 / M.bpm;
+      if (k === 0) { note(c, dest, hz(ch[0] + 12), t, dur * 8.5, 'sine', M.pad * 0.8, 0.9, dur * 5); note(c, dest, hz(ch[2] + 12), t, dur * 8.5, 'sine', M.pad * 0.5, 1.1, dur * 5); }
+      const ai = M.arp[k];
+      if (ai >= 0 && r() < M.p) note(c, dest, hz(ch[ai] + 24), t, dur * 3.5, M.wave, 0.22, 0.03);
+      if (M.bass[k] >= 0) note(c, dest, hz(ch[0]), t, dur * 1.7, 'triangle', 0.4, 0.02);
+      if (M.hat.includes(k)) hat(c, dest, t, 0.05);
+    };
+    const graph = () => {
+      const c = fx.unlock(); if (!c) return null;
+      if (!master) {
+        master = c.createGain(); master.gain.value = 0.0001;
+        filt = c.createBiquadFilter(); filt.type = 'lowpass'; filt.frequency.value = MOODS[cur].cut;
+        master.connect(filt); filt.connect(c.destination);
+      }
+      return c;
+    };
+    const apply = () => {
+      if (!master) return;
+      const t = fx.ctx.currentTime;
+      master.gain.cancelScheduledValues(t); master.gain.setTargetAtTime(level(), t, 0.45);
+      filt.frequency.cancelScheduledValues(t); filt.frequency.setTargetAtTime(MOODS[cur].cut, t, 0.6);
     };
     const schedule = () => {
       const c = fx.ctx; if (!c || !active || !prefs.music || ducked) return;
       if (nextT < c.currentTime) nextT = c.currentTime + 0.05;
-      while (nextT < c.currentTime + 1.2) {
-        const ch = CH[Math.floor(step / 8) % CH.length], k = step % 8;
-        if (k === 0) { note(c, hz(ch[0] - 12), nextT, 6.4, 'sine', 0.5, 1.4); note(c, hz(ch[2] - 12), nextT, 6.4, 'sine', 0.32, 1.8); }
-        if (rnd() > 0.2) note(c, hz(ch[[0, 1, 2, 3, 2, 1, 3, 2][k]] + 12), nextT, 2.4, 'triangle', 0.3, 0.05);
-        if (k === 4 && rnd() > 0.5) note(c, hz(ch[3] + 24), nextT, 3, 'sine', 0.1, 0.08);
-        nextT += 0.8; step++;
-      }
+      const M = MOODS[cur];
+      while (nextT < c.currentTime + 1.2) { playStep(c, master, M, step, nextT, rnd); nextT += 30 / M.bpm; step++; }
+    };
+    // Cevrimdisi cizim (test): ruh halini n saniye uretir, olcum istatistiklerini dondurur
+    const render = async (name, secs, sr = 22050) => {
+      const oc = new OfflineAudioContext(1, Math.floor(sr * secs), sr), M = MOODS[name];
+      const g = oc.createGain(); g.gain.value = 1; const f = oc.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = M.cut;
+      g.connect(f); f.connect(oc.destination);
+      let seed = 7; const r = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+      let t = 0, st = 0; while (t < secs) { playStep(oc, g, M, st, t, r); t += 30 / M.bpm; st++; }
+      const buf = await oc.startRendering(), d = buf.getChannelData(0);
+      let peak = 0, sum = 0; const per = [];
+      for (let i = 0; i < d.length; i++) { const a = Math.abs(d[i]); if (a > peak) peak = a; sum += d[i] * d[i]; }
+      for (let s0 = 0; s0 + sr <= d.length; s0 += sr) { let q = 0; for (let i = s0; i < s0 + sr; i++) q += d[i] * d[i]; per.push(Math.sqrt(q / sr)); }
+      return { peak, rms: Math.sqrt(sum / d.length), perSecondRms: per, bpm: M.bpm };
     };
     return {
       get active() { return active; },
-      start() {
+      get mood() { return cur; },
+      MOODS, render,
+      start(m) {
         if (!prefs.music) return;
         const c = graph(); if (!c) return;
+        if (m && MOODS[m]) cur = m;
         active = true; ducked = false; step = 0; nextT = c.currentTime + 0.1;
         if (!timer) timer = setInterval(schedule, 250);
         apply(); schedule();
+      },
+      // Calan muzigin ruh halini degistirir (kesintisiz: yeni notalar yeni tempo/anahtarla gelir, filtre yumusakca kayar)
+      setMood(m) {
+        if (!MOODS[m] || m === cur) return;
+        cur = m; step = 0;
+        if (active) apply();
+      },
+      // Menu / ana ekran muzigi (ayarlardan kapatilabilir)
+      home() {
+        if (prefs.music && prefs.menuMusic) { if (active) this.setMood('menu'); else this.start('menu'); }
+        else this.stop();
       },
       stop() { active = false; apply(); if (timer) { clearInterval(timer); timer = null; } },
       duck(v) { ducked = v; apply(); if (!v) schedule(); },
@@ -1327,12 +1496,12 @@
     const val = modeVal[modeKey];
     scores = Array(N).fill(0); lives = Array(N).fill(val); dead = Array(N).fill(false); elim = Array(N).fill(Infinity);
     build(); showScreen(null); endbar.classList.add('hidden');
-    setPlaying(true); music.start(); wake.on(); backGuard.on();
+    setPlaying(true); music.start(moodOf(pool[0])); wake.on(); backGuard.on();
     try { if (!localStorage.getItem('dokun-ipucu')) { localStorage.setItem('dokun-ipucu', '1'); toast('Duraklatmak için kenardaki ⏸ simgesine basılı tut'); } } catch (_) {}
     const nextGame = makeBag(pool), { open, total, single } = matchPlan(pool);
     for (let r = 1; r <= total; r++) {
       const g = nextGame();
-      resetZones(); showScores(); fx.round();
+      resetZones(); showScores(); fx.round(); music.setMood(moodOf(g));
       const lbl = open ? 'Tur ' + r : r + '/' + total;
       // dar bolgelerde (3-4 oyuncu) oyun adi sigmaz: yalnizca tur numarasi
       zones.forEach(z => { z.querySelector('.gname').textContent = z.clientWidth >= 260 ? g.name + ' · ' + lbl : lbl; });
@@ -1356,7 +1525,7 @@
   // Bitis: kazanan bolge(ler) altin renkte yanip soner ve "KAZANAN" yazar; digerleri soner ve siralamasini gosterir.
   // Her bolgenin yazisi kendi oyuncusuna dogru donuk oldugu icin sonuc iki yonden de okunur.
   async function finale() {
-    setPlaying(false); music.stop(); wake.off();
+    setPlaying(false); music.home(); wake.off();
     hud.classList.add('hidden');
     fx.fanfare();
     const vals = scores.map((sc, i) => modeKey === 'can' ? (dead[i] ? elim[i] : 1e6 + lives[i]) : modeKey === 'takim' ? teamScore(i) : sc);
@@ -1404,7 +1573,7 @@
     document.body.classList.remove('paused');
     pauseEl.classList.add('hidden'); endbar.classList.add('hidden'); hud.classList.add('hidden');
     pauseEl.querySelectorAll('[data-a="quit"]').forEach(b => { b.textContent = '☰ Menü'; delete b.dataset.armed; });
-    setPlaying(false); music.stop(); wake.off(); backGuard.off();
+    setPlaying(false); music.home(); wake.off(); backGuard.off();
     zones = []; board.innerHTML = '';
     showScreen('home');
   }
@@ -1456,7 +1625,10 @@
       if (net.on) leaveNet(); else quitMatch();
     }
   });
-  document.addEventListener('visibilitychange', () => { if (document.hidden && !net.on) pauseGame(); });   // arama gelince vb. otomatik duraklat
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden && !net.on) pauseGame();
+    const c = fx.ctx; if (c) { try { document.hidden ? c.suspend() : c.resume(); } catch (_) {} }       // arka plandayken ses calmasin
+  });   // arama gelince vb. otomatik duraklat
 
   // ---------- Ana menu ----------
   $('#count-row').addEventListener('click', e => {
@@ -1475,9 +1647,23 @@
 
   // ---------- Oyun sec (coklu secim) ----------
   const sel = new Set();
+  const TAG_OF = {
+    'Tepki': 'refleks', 'Işık Oyunu': 'refleks', 'Tam Ortada': 'refleks', 'Tut ve Bırak': 'refleks',
+    'Seri Dokun': 'hiz', 'Balon Patlat': 'hiz', 'Köstebek Avı': 'hiz', 'Hedef Avı': 'hiz',
+    'Hızlı Matematik': 'zeka', 'Say Bakalım': 'zeka', 'Renk Tuzağı': 'zeka', 'Ok Yönü': 'zeka',
+    'Renk Dizisi': 'hafiza', 'Hafıza Eşleştir': 'hafiza', 'Sayı Sırası': 'hafiza', 'Tek Farklı': 'hafiza',
+  };
+  const TAG_LABEL = { refleks: '⚡ REFLEKS', hiz: '🏃 HIZ', zeka: '🧠 ZEKA', hafiza: '👁 DİKKAT' };
+  let tagFilter = 'all';
   $('#cards').innerHTML = GAMES.map((g, k) =>
-    '<button class="gcard" data-k="' + k + '" style="--h:' + (k * 360 / GAMES.length) + '"><span class="ic">' + g.icon + '</span>' +
-    '<span class="nm2">' + g.name + '</span><span class="ht">' + g.hint + '</span></button>').join('');
+    '<button class="gcard" data-k="' + k + '" data-t="' + (TAG_OF[g.name] || '') + '" style="--h:' + (k * 360 / GAMES.length) + '"><span class="ic">' + g.icon + '</span>' +
+    '<span class="tg">' + (TAG_LABEL[TAG_OF[g.name]] || '') + '</span><span class="nm2">' + g.name + '</span><span class="ht">' + g.hint + '</span></button>').join('');
+  $('#mtrack').innerHTML = [...GAMES, ...GAMES].map(g => '<span>' + g.icon + '</span>').join('');        // ana menudeki kayan oyun ikonlari
+  const applyTag = () => [...$('#cards').children].forEach(c => c.classList.toggle('hide', tagFilter !== 'all' && c.dataset.t !== tagFilter));
+  $('#tag-row').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    tagFilter = b.dataset.t; [...$('#tag-row').children].forEach(x => x.classList.toggle('sel', x === b)); applyTag();
+  });
   const paintSel = () => {
     [...$('#cards').children].forEach(c => c.classList.toggle('on', sel.has(+c.dataset.k)));
     $('#pcount').textContent = sel.size + ' oyun seçili';
@@ -1487,17 +1673,16 @@
     const c = e.target.closest('.gcard'); if (!c) return;
     const k = +c.dataset.k; sel.has(k) ? sel.delete(k) : sel.add(k); paintSel();
   });
-  $('#sel-all').addEventListener('click', () => { GAMES.forEach((_, k) => sel.add(k)); paintSel(); });
+  $('#sel-all').addEventListener('click', () => { GAMES.forEach((g, k) => { if (tagFilter === 'all' || TAG_OF[g.name] === tagFilter) sel.add(k); }); paintSel(); });
   $('#sel-none').addEventListener('click', () => { sel.clear(); paintSel(); });
   $('#pick-btn').addEventListener('click', () => {
-    $('#pinfo').textContent = 'Bir ya da birden fazla oyun seç, sonra oyna.';
+    $('#pinfo').textContent = 'Bir ya da birden fazla oyun seç';
     picker.scrollTop = 0; paintSel(); showScreen('picker');
   });
   $('#back').addEventListener('click', () => showScreen('home'));
   $('#play-sel').addEventListener('click', () => { if (sel.size) play([...sel].sort((a, b) => a - b).map(k => GAMES[k])); });
 
   // ---------- Ayarlar ----------
-  const TOG = { sfx: 'Ses efektleri', vib: 'Titreşim', music: 'Müzik', wake: 'Ekran açık kalsın' };
   const paintSettings = () => {
     settings.querySelectorAll('.tog').forEach(b => { const on = !!prefs[b.dataset.k]; b.classList.toggle('sel', on); b.textContent = on ? 'Açık' : 'Kapalı'; });
     [...$('#vol-row').children].forEach(b => b.classList.toggle('sel', +b.dataset.v === prefs.vol));
@@ -1506,8 +1691,9 @@
   settings.querySelectorAll('.tog').forEach(b => b.addEventListener('click', () => {
     prefs[b.dataset.k] = !prefs[b.dataset.k]; savePrefs(); paintSettings();
     if (b.dataset.k === 'sfx' || b.dataset.k === 'vib') fx.preview();
+    if (b.dataset.k === 'music' || b.dataset.k === 'menuMusic') { if (!prefs.music) music.stop(); else if (!playing) music.home(); }
   }));
-  $('#vol-row').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; prefs.vol = +b.dataset.v; savePrefs(); paintSettings(); });
+  $('#vol-row').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; prefs.vol = +b.dataset.v; savePrefs(); paintSettings(); music.volume(); });
   $('#names').addEventListener('input', e => { const i = +e.target.dataset.i; prefs.names[i] = e.target.value.trim().slice(0, 10); savePrefs(); });
   $('#set-btn').addEventListener('click', () => { paintSettings(); showScreen('settings'); });
   $('#set-back').addEventListener('click', () => showScreen('home'));
@@ -1722,11 +1908,11 @@
     lastPool = pool.map(k => GAMES[k]);
     build([idx]); showScreen(null); endbar.classList.add('hidden'); hud.classList.add('hidden');
     document.body.classList.add('net'); document.body.classList.toggle('guest', net.role === 'guest');
-    setPlaying(true); music.start(); wake.on(); backGuard.on();
+    setPlaying(true); music.start(moodOf(lastPool[0])); wake.on(); backGuard.on();
   }
   // Tek tur (ag modu): intro + geri sayim + oyun (ortak tohum), bu telefonun sonuc sayisini dondurur
   async function netRound(g, seed, r, total, open, intro) {
-    resetZones(); showScores(); fx.round();
+    resetZones(); showScores(); fx.round(); music.setMood(moodOf(g));
     zones[0].querySelector('.gname').textContent = netBoard();
     if (intro) {
       say(g.icon + ' ' + g.name + ' <small>' + (open ? 'Tur ' + r : 'Tur ' + r + '/' + total) + ' · ' + g.hint + '</small>', null, true);
