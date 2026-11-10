@@ -10,6 +10,11 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      selftest:
+        description: "Gizli anahtar olmadan imzali yolu denemek icin gecici bir anahtar uret (yalnizca deneme)"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -52,15 +57,26 @@ jobs:
       - name: Imza anahtarini hazirla
         id: sign
         env:
-          DOKUN_KEYSTORE_PASSWORD: ${{ secrets.DOKUN_KEYSTORE_PASSWORD }}
+          SECRET_PW: ${{ secrets.DOKUN_KEYSTORE_PASSWORD }}
+          SELFTEST: ${{ inputs.selftest }}
         run: |
-          if [ -n "$DOKUN_KEYSTORE_PASSWORD" ]; then
+          if [ -n "$SECRET_PW" ]; then
             openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 \
-              -in android/signing/dokun-upload.jks.enc -out "$RUNNER_TEMP/dokun-upload.jks" -pass env:DOKUN_KEYSTORE_PASSWORD
-            keytool -list -keystore "$RUNNER_TEMP/dokun-upload.jks" -storepass "$DOKUN_KEYSTORE_PASSWORD" > /dev/null
+              -in android/signing/dokun-upload.jks.enc -out "$RUNNER_TEMP/dokun-upload.jks" -pass env:SECRET_PW
+            keytool -list -keystore "$RUNNER_TEMP/dokun-upload.jks" -storepass "$SECRET_PW" > /dev/null
             echo "DOKUN_KEYSTORE_FILE=$RUNNER_TEMP/dokun-upload.jks" >> "$GITHUB_ENV"
+            echo "DOKUN_KEYSTORE_PASSWORD=$SECRET_PW" >> "$GITHUB_ENV"
             echo "signed=true" >> "$GITHUB_OUTPUT"
             echo "Yukleme anahtari cozuldu: imzali APK + AAB uretilecek."
+          elif [ "$SELFTEST" = "true" ]; then
+            PW=$(openssl rand -hex 16)
+            echo "::add-mask::$PW"
+            keytool -genkeypair -keystore "$RUNNER_TEMP/dokun-upload.jks" -storetype PKCS12 -alias dokun-upload \
+              -keyalg RSA -keysize 2048 -validity 100 -storepass "$PW" -keypass "$PW" -dname "CN=Dokun selftest" > /dev/null
+            echo "DOKUN_KEYSTORE_FILE=$RUNNER_TEMP/dokun-upload.jks" >> "$GITHUB_ENV"
+            echo "DOKUN_KEYSTORE_PASSWORD=$PW" >> "$GITHUB_ENV"
+            echo "signed=true" >> "$GITHUB_OUTPUT"
+            echo "::warning title=Deneme anahtari::Gecici anahtar kullanildi; bu dosyalar Play'e yuklenmemeli."
           else
             echo "signed=false" >> "$GITHUB_OUTPUT"
             echo "::notice title=Imza anahtari yok::DOKUN_KEYSTORE_PASSWORD gizli anahtari tanimli degil. Yalnizca debug APK uretilecek (Play'e yuklenemez). Kurulum: PLAY_CONSOLE.md"
@@ -69,8 +85,6 @@ jobs:
       - name: Imzali release APK ve AAB derle
         if: steps.sign.outputs.signed == 'true'
         working-directory: android
-        env:
-          DOKUN_KEYSTORE_PASSWORD: ${{ secrets.DOKUN_KEYSTORE_PASSWORD }}
         run: |
           chmod +x gradlew
           ./gradlew assembleRelease bundleRelease --no-daemon --stacktrace
