@@ -34,6 +34,7 @@
     --ol5:5px 0px 0 var(--ink), 4.3px 2.5px 0 var(--ink), 2.5px 4.3px 0 var(--ink), 0px 5px 0 var(--ink), -2.5px 4.3px 0 var(--ink), -4.3px 2.5px 0 var(--ink), -5px 0px 0 var(--ink), -4.3px -2.5px 0 var(--ink), -2.5px -4.3px 0 var(--ink), 0px -5px 0 var(--ink), 2.5px -4.3px 0 var(--ink), 4.3px -2.5px 0 var(--ink);
   }
   * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html { -webkit-text-size-adjust:100%; text-size-adjust:100%; }                /* tarayicinin yazi sisirmesi (font boosting) yerlesimi bozmasin */
   html,body { margin:0; height:100%; background:var(--ink); color:var(--paper);
     font-family:var(--f-body); font-weight:600; font-synthesis:none; -webkit-font-smoothing:antialiased;
     overflow:hidden; overscroll-behavior:none; }
@@ -531,7 +532,8 @@
 
   #rotate { display:none; position:fixed; inset:0; z-index:30; background:var(--night); align-items:center; justify-content:center; gap:12px; flex-direction:column;
     text-align:center; font-family:var(--f-display); font-size:22px; font-weight:700; padding:24px; text-shadow:var(--ol3); }
-  #rotate svg { width:64px; height:64px; color:var(--yellow); animation:rot 1.8s var(--pop) infinite alternate; }
+  #rotate svg { width:76px; height:76px; padding:12px; border-radius:50%; background:var(--yellow); color:var(--ink); border:var(--ln-b) solid var(--ink); box-shadow:var(--sh-m); animation:rot 1.8s var(--pop) infinite alternate; }
+  #rotate span { background:var(--paper); color:var(--ink); text-shadow:none; border:var(--ln-b) solid var(--ink); border-radius:var(--r-pill); padding:5px 22px 7px; box-shadow:var(--sh-m); }
   @keyframes rot { from { transform:rotate(-90deg); } to { transform:rotate(0); } }
   /* yalniz gercek yatayda (genis ekran): sanal klavye dikey telefonun gorunur alanini kisaltinca bu kural tetiklenmesin */
   @media (orientation:landscape) and (max-height:520px) and (min-width:560px) { #rotate { display:flex; } }
@@ -980,6 +982,27 @@
     box-shadow:var(--sh-m); font-family:var(--f-display); font-weight:700; font-size:clamp(18px, 6vmin, 30px); line-height:1.05; text-shadow:none; transform:rotate(-4deg); animation:pzend .45s var(--pop) both; }
   @keyframes pzend { from { transform:scale(.3) rotate(-14deg); opacity:0; } to { transform:scale(1) rotate(-4deg); opacity:1; } }
 
+  /* ---------- Kisa yatay ekran (7 inc tablet yatayi: 1024x600, 960x540): bolge yuksekligi ekranin yarisidir, vmin tabanli (= ekran yuksekligi) boyutlar dvh ile sinirlanir ---------- */
+  @media (orientation:landscape) and (min-width:700px) and (max-height:660px) {
+    .rt-ic { width:clamp(56px, 23dvh, 200px); height:clamp(56px, 23dvh, 200px); }
+    .rt-tx { font-size:clamp(22px, 7.4dvh, 76px); }
+    .rt-sub { font-size:clamp(14px, 3.6dvh, 32px); }
+    .spc { width:clamp(64px, 19dvh, 200px); height:clamp(64px, 19dvh, 200px); font-size:clamp(30px, 9dvh, 96px); }
+    .hd-btn { margin:6px 0 6px; }
+    .pct { min-height:clamp(40px, 9dvh, 100px); }
+  }
+
+  /* ---------- Genis ekran ana menusu: orta sutunun iki yanina cikartma karolari (magaza ozellik grafigiyle ayni dil); dar ekranlarda gizli ---------- */
+  .deco { display:none; }
+  @media (min-width:880px) and (min-height:600px) {
+    #menu .deco { display:flex; flex-direction:column; gap:30px; position:absolute; top:50%; z-index:0; pointer-events:none; margin-top:-165px; }
+    #menu .deco.l { left:calc(50% - 215px - 56px - 160px); } #menu .deco.r { right:calc(50% - 215px - 56px - 160px); }
+    .deco i { position:relative; width:150px; height:150px; border-radius:28px; background:var(--c); border:var(--ln-b) solid var(--ink); box-shadow:var(--sh-l); transform:rotate(var(--r)); display:flex; align-items:center; justify-content:center; overflow:hidden; }
+    .deco i::before { content:''; position:absolute; inset:0; background:radial-gradient(rgba(255,255,255,.22) 2px, transparent 2.5px) 0 0 / 18px 18px; }
+    .deco svg { position:relative; width:96px; height:96px; display:block; overflow:visible; }
+  }
+  @media (min-width:880px) and (min-height:600px) and (max-width:1100px) { #menu .deco i { width:128px; height:128px; border-radius:24px; } #menu .deco svg { width:80px; height:80px; } #menu .deco { margin-top:-140px; gap:24px; } #menu .deco.l { left:calc(50% - 215px - 40px - 128px); } #menu .deco.r { right:calc(50% - 215px - 40px - 128px); } }
+
   /* ---------- Tablet / buyuk ekran (>= 600 x 600; dar telefon yatayinda #rotate devrede): fisler, tur karti, duraklat ve bitis buyur ---------- */
   @media (min-width:600px) and (min-height:600px) {
     .zone .head { left:18px; right:18px; bottom:10px; }
@@ -1115,7 +1138,10 @@
 </defs></svg>
 <div id="rotate"><svg class="ic" aria-hidden="true"><use href="#i-phone"/></svg><span>Telefonu dikey tut</span></div>
 
-<div id="menu" class="screen"><div class="inner home">
+<div id="menu" class="screen">
+  <div class="deco l" aria-hidden="true"><i style="--c:var(--red);--r:-7deg"><svg viewBox="0 0 64 96"><use href="#a-balloon"/></svg></i><i style="--c:var(--green);--r:6deg"><svg viewBox="0 0 48 48"><use href="#a-target"/></svg></i></div>
+  <div class="deco r" aria-hidden="true"><i style="--c:var(--blue);--r:5deg"><svg viewBox="0 0 48 48"><use href="#f-pig"/></svg></i><i style="--c:var(--yellow);--r:-6deg"><svg viewBox="0 0 48 48"><use href="#a-mole"/></svg></i></div>
+  <div class="inner home">
   <div class="logo" aria-label="DOKUN!">
     <span style="--i:0;--r:-5deg;--c:var(--red)">D</span><span style="--i:1;--r:4deg;--c:var(--yellow)">O</span><span style="--i:2;--r:-3deg;--c:var(--green)">K</span><span style="--i:3;--r:5deg;--c:var(--blue)">U</span><span style="--i:4;--r:-4deg;--c:var(--purple)">N</span><span style="--i:5;--r:7deg;--c:var(--orange)">!</span>
   </div>
@@ -4030,6 +4056,20 @@
   // ilk acilista kisa "Nasil oynanir" rehberi (otomasyon tarayicilarinda ve depolama kapaliyken gosterilmez); ?rehber ile zorla acilir
   try { if (!navigator.webdriver && !localStorage.getItem('dokun-rehber')) openGuide(); } catch (_) {}
   if (/[?&]rehber(=|&|$)/.test(location.search)) openGuide();
+
+  // erisilebilirlik: secili / acik durumu ekran okuyucuya bildirilir (sinif degisince aria-pressed / aria-checked eslenir), ayar anahtarlari baslik + anahtar rolu alir
+  (() => {
+    const sync = () => {
+      settings.querySelectorAll('.tog').forEach(b => {
+        if (!b.hasAttribute('role')) { const l = b.closest('.setrow'), t = l && l.querySelector('span'); b.setAttribute('role', 'switch'); if (t) b.setAttribute('aria-label', (t.childNodes[0] || t).textContent.trim()); }
+        b.setAttribute('aria-checked', b.classList.contains('sel') ? 'true' : 'false');
+      });
+      document.querySelectorAll('#count-row button, #mode-row button, #round-row button, #tag-row button, #vol-row button, #cards .gcard').forEach(b => b.setAttribute('aria-pressed', b.classList.contains('sel') || b.classList.contains('on') ? 'true' : 'false'));
+    };
+    sync();
+    const mo = new MutationObserver(sync);
+    [menu, picker, settings].forEach(el => mo.observe(el, { subtree: true, childList: true, attributes: true, attributeFilter: ['class'] }));
+  })();
 
   // test icin disariya ac
   document.addEventListener('contextmenu', e => { if (!/INPUT|TEXTAREA/.test(e.target.tagName)) e.preventDefault(); });
