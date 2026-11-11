@@ -1871,8 +1871,11 @@
   let liveRun = null, runMark = 0;
   const guardedRun = g => new Promise(resolve => {
     let done = false, errT = null, wd = null;
-    const fin = (v, err) => { if (done) return; done = true; liveRun = null; vt.clear(wd); vt.clear(errT); resolve(err ? { err } : { v }); };
-    runMark = vt.mark();
+    const mark = vt.mark();
+    // tur bitince oyunun geride biraktigi zamanlayicilar (tekrar gosterim, ceza kilidi, aralik sayaclari) ve girdi isleyicileri temizlenir:
+    // sonuc ekranindaki bolge durumunu / icerigi bozmasinlar, sonraki turlara sizmasinlar
+    const fin = (v, err) => { if (done) return; done = true; liveRun = null; vt.clear(wd); vt.clear(errT); vt.clearSince(mark); handler = null; upHandler = null; resolve(err ? { err } : { v }); };
+    runMark = mark;
     liveRun = { note() { if (!errT && !done) errT = vt.timeout(() => fin(null, new Error('yakalanmayan hata sonrasi tur takildi')), 8000); } };
     wd = vt.timeout(() => fin(null, new Error('tur zaman asimi')), 90000);
     let p; try { p = g.run(); } catch (e) { fin(null, e || new Error('tur hatasi')); return; }
@@ -2133,7 +2136,7 @@
     btn.addEventListener('pointerdown', e => { e.preventDefault(); cancel(); btn.classList.add('arming'); t = setTimeout(() => { cancel(); pauseGame(); }, 400); });
     ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => btn.addEventListener(ev, cancel));
   });
-  let armT = null;
+  let armT = null, armAt = 0;
   pauseEl.addEventListener('click', e => {
     const b = e.target.closest('button'); if (!b) return;
     const a = b.dataset.a;
@@ -2142,9 +2145,11 @@
       if (!b.dataset.armed) {                          // yanlislikla cikilmasin / baslamasin: iki dokunus
         disarmAll();
         pauseEl.querySelectorAll('[data-a="' + a + '"]').forEach(qArm);
+        armAt = Date.now();
         clearTimeout(armT); armT = setTimeout(disarmAll, 3000);
         return;
       }
+      if (Date.now() - armAt < 400) return;            // hizli cift dokunus koruma sorusunu atlayamaz: bilincli ikinci dokunus gerekir
       if (a === 'restart') return restartMatch();
       if (net.on) leaveNet(); else quitMatch();
     }
