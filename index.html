@@ -148,10 +148,10 @@
 
   /* ---------- Isik Oyunu: lamba (yesil = yuvarlak + onay, kirmizi = sekizgen + carpi), mesaj satiri, puan ---------- */
   .lt { --hp:182px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:clamp(3px, .8dvh, 8px); }
-  .zone.narrow .lt { --hp:196px; }
-  .lamp { --lp:clamp(66px, calc(50dvh - var(--hp)), min(84%, 270px)); position:relative; width:var(--lp); aspect-ratio:1; flex:none; }
+  .zone.narrow .lt { --hp:200px; padding-bottom:10px; }                          /* dar bolgede alt etiket satirina deymesin */
+  .lamp { --lp:clamp(66px, calc(50dvh - var(--hp)), min(84%, 270px)); position:relative; width:var(--lp); aspect-ratio:1; flex:none; min-height:0; }
   body.net .lamp { --lp:clamp(66px, calc(100dvh - var(--hp) - 48px), min(84%, 300px)); }
-  .lamp svg.lp { display:block; width:100%; height:100%; overflow:visible; }
+  .lamp svg.lp { position:absolute; left:0; top:0; display:block; width:100%; height:100%; overflow:visible; }       /* svg kendi (150px) boyuyla kutuyu buyutmesin */
   .lamp.g svg.lp { animation:lpop .22s var(--pop); }
   .lamp.r svg.lp { animation:lwob .42s var(--out); }
   .lamp.g::after { content:''; position:absolute; inset:6%; border-radius:50%; border:5px solid var(--paper); pointer-events:none; animation:ring .5s var(--out) forwards; }
@@ -166,6 +166,7 @@
   .lt .lt-score { margin:0; padding:0 12px; font-size:15px; line-height:21px; border-radius:var(--r-pill); background:var(--paper); color:var(--ink);
     border:var(--ln-s) solid var(--ink); box-shadow:var(--sh-xs); text-shadow:none; font-weight:600; }
   .lt .lt-score b { font-weight:700; }
+  .zone.narrow .lt .lt-score { padding:0 9px; font-size:13px; line-height:16px; }
   .lt .lt-score.bump { animation:bump .4s var(--pop); }
   .lt-fx { position:absolute; left:50%; top:30%; width:88px; height:88px; margin:-44px 0 0 -44px; display:flex; align-items:center; justify-content:center; pointer-events:none; z-index:5; animation:ltfx .85s var(--out) forwards; }
   .lt-fx svg { position:absolute; inset:0; width:100%; height:100%; }
@@ -195,7 +196,7 @@
   .pad::after { content:''; position:absolute; inset:0; border-radius:inherit; background:var(--paper); opacity:0; transition:opacity .08s; pointer-events:none; }
   .pad.lit { transform:scale(1.07); z-index:1; box-shadow:0 0 0 4px var(--paper), 0 0 0 7px var(--ink), inset 0 -10px 0 var(--pd); }
   .zone.narrow .pad.lit { box-shadow:0 0 0 3px var(--paper), 0 0 0 5px var(--ink), inset 0 -8px 0 var(--pd); }
-  .pad.lit::after { opacity:.38; }
+  .pad.lit::after { opacity:.24; }
   .sm.watch .pad:not(.lit), .sm.lk .pad:not(.lit) { opacity:.6; }
   .psh { position:relative; width:46%; height:46%; display:block; pointer-events:none; transition:opacity .1s; }
   .px { position:absolute; left:16%; top:16%; width:68%; height:68%; display:block; opacity:0; transform:scale(.4); pointer-events:none; z-index:2; transition:opacity .08s, transform .2s var(--pop); }
