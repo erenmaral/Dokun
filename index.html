@@ -1584,8 +1584,9 @@
     const cmb = Array.from({ length: N }, () => ({ t: -1e9, n: 0 })), tms = new Set();       // cmb: bolge basina ard arda patlatma (ses perdesi yukselir)
     let over = false, chain = 0;
     const later = (fn, ms) => { const id = vt.timeout(() => { tms.delete(id); fn(); }, ms); tms.add(id); return id; };
-    const bwOf = a => Math.round(Math.max(44, Math.min(64, a.clientWidth * 0.34)));          // dar serit (3-4 oyuncu) balonlari kuculur: ust uste binme azalir
-    const fit = () => zones.forEach(z => { const a = z.querySelector('.arena'); if (!a) return; a.style.setProperty('--bw', bwOf(a) + 'px'); a.style.setProperty('--aw', a.clientWidth + 'px'); });
+    // balon genisligi: dar serit (3-4 oyuncu) balonlari kuculur (ust uste binme azalir); TUM bolgelerde ayni (en dar bolgeye gore): 3 oyunculu duzende alttaki genis bolge daha buyuk balon gormez
+    const bwOf = () => Math.round(Math.max(44, Math.min(64, Math.min(...zones.map(z => z.querySelector('.arena').clientWidth)) * 0.34)));
+    const fit = () => zones.forEach(z => { const a = z.querySelector('.arena'); if (!a) return; a.style.setProperty('--bw', bwOf() + 'px'); a.style.setProperty('--aw', a.clientWidth + 'px'); });
     const cl = ico('a-cloud');
     zones.forEach((z, i) => {
       z.classList.add('sky');
@@ -1605,7 +1606,7 @@
     const T = [0]; while (T[T.length - 1] <= STOP) T.push(T[T.length - 1] + gapOf(T.length - 1));
     const addBalloon = (z, kind, s, dur) => {
       const a = z.querySelector('.arena'); if (!a) return;
-      const W = a.clientWidth, H = a.clientHeight, bw = bwOf(a), bh = bw * 1.5, path = H + bh + 140;
+      const W = a.clientWidth, H = a.clientHeight, bw = bwOf(), bh = bw * 1.5, path = H + bh + 140;
       const col = kind === 'bomb' ? ['#4a4570', '#383359'] : kind === 'gold' ? ['#ffb703', '#d98a00'] : BC[s.ci];
       const b = document.createElement('div'), bb = document.createElement('div');
       b.className = 'balloon' + (kind === 'gold' ? ' gold' : ''); bb.className = 'bb'; b.appendChild(bb);
