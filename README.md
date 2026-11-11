@@ -27,7 +27,12 @@ Her turdan önce ekranın ortasında **tur kartı** çıkar ("TUR 2 / 8" + oyunu
 
 Her bölge koyu, nötr bir zeminde; oyuncu rengi yalnızca çerçeve ve etiket olarak kullanılır. Bilgi kutuları karşıdaki oyuncu için ters kopya olarak da gösterilir.
 
-Telefonu dikey tut. Tarayıcıda yatay çevrilirse "Telefonu dikey tut" uyarısı çıkar; oyun sırasında telefon yan çevrilirse oyun kendiliğinden duraklar (çevrimiçi maçlarda oyun durmaz: kenardaki sekme yalnızca "Maç sürüyor / Maça dön / Çık" menüsünü açar). Android uygulamasında sistem yazı boyutu büyütülmüş olsa da arayüz taşmasın diye WebView yazı yakınlaştırması %100'e sabitlenir; menü ekranları çentik/durum çubuğu boşluğunu (`safe-area`) dikkate alır.
+Telefonu dikey tut. Tarayıcıda yatay çevrilirse "Telefonu dikey tut" uyarısı çıkar; oyun sırasında telefon yan çevrilirse oyun kendiliğinden duraklar (çevrimiçi maçlarda oyun durmaz: kenardaki sekme yalnızca "Maç sürüyor / Maça dön / Çık" menüsünü açar). Android uygulamasında sistem yazı boyutu büyütülmüş olsa da arayüz taşmasın diye WebView yazı yakınlaştırması %100'e sabitlenir; menü ekranları çentik/durum çubuğu boşluğunu (`safe-area`) dikkate alır. Tablet ve büyük ekranlarda (yatay dahil) bu uyarı çıkmaz; oyun yatayda da oynanır (Android 16 büyük ekranlarda yön kilidini yok sayar).
+
+## Ekran boyutları, erişilebilirlik ve uyumluluk
+- Denetlenen ekranlar: 320x568, 360x640, 360x800, 390x780, 412x915, 430x932, 600x960, 768x1024, 1024x768 (yatay tablet), 844x390 (yatay telefon: "Telefonu dikey tut" katmanı); ayrıca 1024x600, 960x540, 1280x800.
+- Android WebView / Chrome tabanı **108** (`capacitor.config.json` → `minWebViewVersion`). Tek 108 sonrası özellik `text-wrap:balance` (114; yalnızca güzelleştirme). Ayrıntılı tablo ve erişilebilirlik notları: `DESIGN.md` bölüm 9.
+- Erişilebilirlik: WCAG yazı kontrastı ölçülür, dokunma hedefleri >= 34 px, renk körü modu + her renkli öğede renk dışı ipucu, `prefers-reduced-motion` desteği, ayar anahtarlarında `role="switch"`.
 
 ## Modlar
 Ana menüden oyuncu sayısı ve mod seçilir:
