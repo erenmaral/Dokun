@@ -555,7 +555,7 @@
   .hole { position:relative; overflow:hidden; min-width:0; min-height:0; }
   .hole .mh-b, .hole .mh-f { position:absolute; left:0; top:0; width:100%; height:100%; display:block; pointer-events:none; }
   .hole .mh-f { z-index:2; }
-  .hole .mh-m { position:absolute; left:6%; top:10%; width:88%; height:88%; z-index:1; pointer-events:none; transform:translateY(100%); visibility:hidden; }
+  .hole .mh-m { position:absolute; left:6%; top:12%; width:88%; height:88%; z-index:1; pointer-events:none; transform:translateY(100%); transform-origin:50% 100%; visibility:hidden; }
   .hole .mh-m svg { display:block; width:100%; height:100%; overflow:visible; }
   .hole.up .mh-m, .hole.dn .mh-m, .hole.hit .mh-m { visibility:visible; }
   .hole.up .mh-m { animation:mup .2s var(--out) both; }
@@ -566,10 +566,10 @@
   .hole .mh-fx svg { position:absolute; inset:0; width:100%; height:100%; display:block; }
   .hole .mh-fx b { position:relative; font-size:clamp(11px, 38%, 22px); font-weight:700; line-height:1; color:var(--ink); text-shadow:none; }
   .hole .mh-fx b.neg { color:var(--red); }
-  .mgrid .mk-lock { position:absolute; left:50%; top:50%; width:34%; height:34%; margin:-17% 0 0 -17%; z-index:4; pointer-events:none; opacity:0; transform:scale(.4); transition:opacity .1s; }
+  .mgrid .mk-lock { position:absolute; left:50%; top:50%; width:26%; height:26%; margin:-13% 0 0 -13%; z-index:4; pointer-events:none; opacity:0; transform:scale(.4); transition:opacity .1s; }
   .mgrid.lk::after { content:''; position:absolute; inset:0; z-index:3; border-radius:inherit; background:rgba(29,24,56,.55); pointer-events:none; }
   .mgrid.lk .mk-lock { opacity:1; animation:lockpop .35s var(--pop) forwards; }
-  @keyframes mup { 0% { transform:translateY(100%); } 62% { transform:translateY(-7%); } 100% { transform:translateY(0); } }
+  @keyframes mup { 0% { transform:translateY(100%); } 62% { transform:translateY(-5%); } 100% { transform:translateY(0); } }
   @keyframes mdown { from { transform:translateY(0); } to { transform:translateY(100%); } }
   @keyframes mhit { 0% { transform:translateY(0) scale(1.12, .78); } 38% { transform:translateY(7%) scale(1, .88) rotate(-7deg); } 100% { transform:translateY(100%) rotate(9deg); } }
   @keyframes lockpop { from { transform:scale(.4) rotate(-20deg); } to { transform:scale(1) rotate(0); } }
@@ -1715,7 +1715,7 @@
       const s = S[i][h], c = cells[i][h], kind = s.kind, id = s.id, hog = kind === 'hog', gold = kind === 'gold';
       vt.clear(s.tm); tms.delete(s.tm); s.up = false; s.end = vt.now();
       c.className = 'hole hit ' + kind;
-      c.insertAdjacentHTML('beforeend', '<div class="mh-fx">' + ico('a-burst') + (gold ? '<b>+3</b>' : hog ? '<b class="neg">−1</b>' : '') + '</div>');
+      c.insertAdjacentHTML('beforeend', '<div class="mh-fx">' + ico('a-burst') + (gold ? '<b>+3</b>' : hog ? '<b class="neg">−1</b>' : '<b>+1</b>') + '</div>');
       later(() => { if (s.id === id && !s.up) { c.className = 'hole'; c.querySelectorAll('.mh-fx').forEach(n => n.remove()); } }, 380);
       if (hog) {                                                                      // kirpiya dokunmak: -1, kirmizi cakma + sarsinti
         sc[i] = Math.max(0, sc[i] - 1); pulse(i, 'fbad');
