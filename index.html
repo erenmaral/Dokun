@@ -1275,7 +1275,7 @@
       let sum = 0;
       return a.map((v, i) => Math.min(250, i % 2 ? v : Math.max(10, v))).filter(v => { sum += v; return sum <= 600; });
     };
-    return {
+    const api = {
       play(p, pri) {
         if (!can()) return false;
         const now = performance.now();
@@ -1291,6 +1291,9 @@
       },
       cancel() { until = 0; lastPri = 0; try { if (typeof navigator.vibrate === 'function') navigator.vibrate(0); } catch (_) {} },
     };
+    const playH = api.play;
+    api.play = (p, pri) => { try { return playH(p, pri); } catch (_) { return false; } };               // titresim hatasi oyuna / tura sizmaz
+    return api;
   })();
 
   // ---------- Ses motoru (Web Audio, dosya yok) ----------
@@ -1497,7 +1500,8 @@
     };
     const ready = () => { const c = unlock(); return c && c.state === 'running' && !held ? c : null; };
     // Cekirdek: kapi (ayar, durum, ust uste binme, yuk siniri) + cizim
-    const run = (name, pri, gap, cost, len, fn, arg, crowd) => {
+    const run = (name, pri, gap, cost, len, fn, arg, crowd) => { try { return run0(name, pri, gap, cost, len, fn, arg, crowd); } catch (e) { if (!bad.run) { bad.run = 1; console.error('Ses hatasi:', e); } return false; } };       // hicbir ses hatasi oyuna / tura sizmaz
+    const run0 = (name, pri, gap, cost, len, fn, arg, crowd) => {
       if (!prefs.sfx) return false;
       const c = ready(); if (!c) { st.dropped++; return false; }
       const wall = performance.now();
@@ -1587,7 +1591,7 @@
   document.addEventListener('click', e => {
     const b = e.target && e.target.closest && e.target.closest('button');
     if (!b || b.disabled || b.closest('#board, #ptabs') || (b.dataset && (b.dataset.k === 'sfx' || b.dataset.k === 'vib'))) return;       // oyun alani ve duraklat sekmeleri sessiz; ses / titresim anahtarlarinin kendi onizlemesi var
-    audio.play('ui'); haptic.play(10, 1);
+    try { audio.play('ui'); haptic.play(10, 1); } catch (_) {}
   }, true);
 
   // ---------- Arka plan muzigi: kodla uretilir, oyuna gore degisir ----------
@@ -1778,7 +1782,7 @@
       if (!CP || !(typeof CP.isNativePlatform === 'function' ? CP.isNativePlatform() : CP.platform && CP.platform !== 'web') || nativeStart.done) return;
       nativeStart.done = true;
       if (!audio.unlock(true)) return;
-      setTimeout(() => { if (audio.state === 'running' && !music.active && typeof playing !== 'undefined' && !playing) music.home(); }, 300);
+      setTimeout(() => { if (audio.state === 'running' && !document.hidden && !music.active && typeof playing !== 'undefined' && !playing) music.home(); }, 300);
     } catch (_) {}
   };
   nativeStart(); window.addEventListener('load', nativeStart);                    // kopru gec yuklenirse ikinci deneme
