@@ -471,8 +471,9 @@
   @keyframes bpop { 0% { transform:scale(1); opacity:1; } 30% { transform:scale(1.22, .86); opacity:1; } 100% { transform:scale(.25); opacity:0; } }
   @keyframes bhalo { 0% { transform:scale(.75); opacity:.95; } 100% { transform:scale(1.45); opacity:0; } }
   @keyframes twinkle { from { transform:scale(.3) rotate(0); opacity:.2; } to { transform:scale(1.1) rotate(45deg); opacity:1; } }
-  .spark { transform-box:fill-box; transform-origin:center; animation:flick .3s steps(2, jump-none) infinite; }
-  @keyframes flick { from { transform:scale(.8) rotate(0); } to { transform:scale(1.15) rotate(20deg); } }
+  /* bomba kivilcimi: sprite icindeki SVG animasyonu ana is parcacigini her karede mesgul ettigi icin (her bomba icin stil + SVG yeniden cizimi) HTML katmaninda
+     (transform / opacity, kompozitor) parildar; sprite'taki yildiz statik kalir */
+  .balloon .spk.fz { left:59.4%; top:11.3%; animation-duration:.55s; }
   .pfx { position:absolute; left:50%; top:calc(var(--bw) * .6); width:0; height:0; pointer-events:none; z-index:3; }
   .pfx .st { position:absolute; left:-36px; top:-36px; width:72px; height:72px; animation:stburst .4s var(--out) forwards; }
   .pfx .st svg { display:block; width:100%; height:100%; }
@@ -501,7 +502,7 @@
     text-align:center; font-family:var(--f-display); font-weight:600; font-size:16px; line-height:1.3; box-shadow:var(--sh-m);
     animation:hin .22s var(--pop); text-shadow:none; }
   .hline.flip { transform:rotate(180deg); animation-name:hinf; }
-  #hud.rcard .hline { padding:12px 22px 14px; min-width:min(78vw, 300px); border-radius:var(--r-l); border-width:var(--ln-b); box-shadow:var(--sh-l); }
+  #hud.rcard .hline { padding:12px 22px 14px; min-width:min(74vw, 300px); border-radius:var(--r-l); border-width:var(--ln-b); box-shadow:var(--sh-l); }
   .rc { display:flex; flex-direction:column; align-items:center; gap:7px; }
   .rc-t { display:inline-block; font-size:clamp(20px, 3.8dvh, 26px); font-weight:700; letter-spacing:.06em; line-height:1; color:var(--ink); background:var(--yellow);
     border:var(--ln) solid var(--ink); border-radius:var(--r-pill); padding:5px 16px 6px; box-shadow:var(--sh-s); }
@@ -799,7 +800,7 @@
   .spc.tap { animation:tapb .2s var(--pop); }
   @keyframes tapb { 0% { transform:scale(1.22,.86); } 60% { transform:scale(.94,1.08); } 100% { transform:none; } }
   .spbar { width:72%; height:clamp(16px, 2.6vmin, 24px); flex:none; border-radius:var(--r-pill); background:var(--ink); border:3px solid var(--ink); margin:0; overflow:hidden; box-shadow:0 0 0 2px rgba(255,244,220,.35); }
-  .spbar i { display:block; height:100%; width:0; background:var(--c); border-radius:var(--r-pill); transition:width .1s; }
+  .spbar i { display:block; height:100%; width:0; background:var(--c); border-radius:var(--r-pill); }                /* genislik gecisi yok: hizli dokunusta her karede yerlesim hesaplatiyordu */
   .ptab.arming { background:var(--yellow); }
 
   /* ---------- Bitis cubugu (her iki yonden) ---------- */
@@ -961,13 +962,14 @@
 
   /* ---------- Hareketi azalt (sistem erisilebilirlik ayari): yalniz suslu animasyonlar kapanir, oyunun kendi hareketleri korunur ---------- */
   @media (prefers-reduced-motion: reduce) {
-    .logo span, .mtrack, .hero::after, .hero .hi, .float, .cloud, .tgt svg, .balloon .bb, .balloon .spk, .spark, #rotate svg, .gcard.on::after,
+    .logo span, .mtrack, .hero::after, .hero .hi, .float, .cloud, .tgt svg, .balloon .bb, .balloon .spk, #rotate svg, .gcard.on::after,
     .zone[data-s="champ"]::before, .zone[data-s="champ"] .body, .count, .score.bump, .score.lost, .body.shake, .hline, .pad,
     .screen:not(.hidden), #guide, #toast, #toast2, #endbar { animation:none !important; }
     /* surekli nabiz / titreme / donme: Tepki simgeleri, son saniye uyari cubuklari, Tut ve Birak halkasi, bomba / altin balon halesi, Sayi Sirasi ipucu (aciliyet renk degisimiyle zaten verilir) */
     .rt-wait .rt-ic svg, .rt-warn .rt-ic svg, .rt-go .rt-ic svg.bu, .rt-go .rt-ic svg.bo, .sp-time.low, .tr-time.low, .hd-time.low, .pz-tm, .hd.on .hd-btn::before,
     .balloon[data-bomb]::before, .balloon.gold::before, .pz .cell.nc.hint { animation:none !important; }
     .rt-go .rt-ic svg.bo { transform:none; } .balloon[data-bomb]::before, .balloon.gold::before { opacity:.9; }
+    .balloon .spk.fz { display:none; }
     .rip, .conf { animation-duration:.01s !important; }                           /* animationend yine tetiklenir (kendini siler) */
     .plus { animation-name:plusfade !important; }                                  /* tur kazanani etiketi hareketsiz belirip solar */
     @keyframes plusfade { 0% { opacity:0; } 15% { opacity:1; } 75% { opacity:1; } 100% { opacity:0; } }
@@ -1077,7 +1079,7 @@
 <symbol id="a-balloon-s" viewBox="0 0 48 48"><svg x="9" y="0" width="30" height="46" viewBox="0 0 64 96"><use href="#a-balloon"/></svg></symbol>
 <symbol id="a-bomb-s" viewBox="0 0 48 48"><svg x="4" y="2" width="40" height="60" viewBox="0 0 64 96"><use href="#a-bomb"/></svg></symbol>
 <symbol id="a-balloon" viewBox="0 0 64 96"><path d="M32 78c-6 5 6 9 0 14" fill="none" stroke="#1d1838" stroke-width="2.500" stroke-linecap="round"/><path d="M32 70l-6 9h12Z" style="fill:var(--bd,#d93a45)" stroke="#1d1838" stroke-width="3" stroke-linejoin="round"/><path d="M32 4C17 4 5 17 5 34c0 19 14 33 27 37 13-4 27-18 27-37C59 17 47 4 32 4Z" style="fill:var(--bc,#ff5a5f)" stroke="#1d1838" stroke-width="3.500" stroke-linejoin="round"/><path d="M49 15c8 9 9 23 3 35-4 8-11 15-20 19 11-6 20-17 21-31 0-9-1-17-4-23Z" style="fill:var(--bd,#d93a45)"/><path d="M32 4C17 4 5 17 5 34c0 19 14 33 27 37 13-4 27-18 27-37C59 17 47 4 32 4Z" fill="none" stroke="#1d1838" stroke-width="3.500" stroke-linejoin="round"/><path d="M15 24c1-6 5-11 11-13" fill="none" stroke="#fff4dc" stroke-width="5" stroke-linecap="round"/><circle cx="14" cy="33" r="2.600" fill="#fff4dc"/></symbol>
-<symbol id="a-bomb" viewBox="0 0 64 96"><path d="M32 36c0-8 4-12 12-14" fill="none" stroke="#1d1838" stroke-width="7" stroke-linecap="round"/><path d="M32 36c0-8 4-12 12-14" fill="none" stroke="#d9b36a" stroke-width="3" stroke-linecap="round"/><rect x="22" y="31" width="20" height="11" rx="3" fill="#8e87c4" stroke="#1d1838" stroke-width="3.500" stroke-linejoin="round"/><circle cx="32" cy="62" r="27" fill="#4a4570" stroke="#1d1838" stroke-width="3.500"/><path d="M54 52a27 27 0 0 1-8 29 27 27 0 0 1-22 5 27 27 0 0 0 30-34Z" fill="#383359"/><path d="M14 54a19 19 0 0 1 8-9" fill="none" stroke="#fff4dc" stroke-width="4.500" stroke-linecap="round"/><ellipse cx="23.500" cy="62" rx="5.500" ry="6.500" fill="#fff4dc" stroke="#1d1838" stroke-width="2.500"/><ellipse cx="40.500" cy="62" rx="5.500" ry="6.500" fill="#fff4dc" stroke="#1d1838" stroke-width="2.500"/><circle cx="24.500" cy="64" r="2.500" fill="#1d1838"/><circle cx="39.500" cy="64" r="2.500" fill="#1d1838"/><path d="M16 52l13 5M48 52l-13 5" fill="none" stroke="#1d1838" stroke-width="3.500" stroke-linecap="round"/><path d="M23 76q9-5 18 0" fill="none" stroke="#1d1838" stroke-width="3.500" stroke-linecap="round"/><g class="spark"><path d="M54.5 10.5L51.0 19.0L54.5 27.5L46.0 24.0L37.5 27.5L41.0 19.0L37.5 10.5L46.0 14.0Z" fill="#ffd23f" stroke="#1d1838" stroke-width="2.500" stroke-linejoin="round"/></g></symbol>
+<symbol id="a-bomb" viewBox="0 0 64 96"><path d="M32 36c0-8 4-12 12-14" fill="none" stroke="#1d1838" stroke-width="7" stroke-linecap="round"/><path d="M32 36c0-8 4-12 12-14" fill="none" stroke="#d9b36a" stroke-width="3" stroke-linecap="round"/><rect x="22" y="31" width="20" height="11" rx="3" fill="#8e87c4" stroke="#1d1838" stroke-width="3.500" stroke-linejoin="round"/><circle cx="32" cy="62" r="27" fill="#4a4570" stroke="#1d1838" stroke-width="3.500"/><path d="M54 52a27 27 0 0 1-8 29 27 27 0 0 1-22 5 27 27 0 0 0 30-34Z" fill="#383359"/><path d="M14 54a19 19 0 0 1 8-9" fill="none" stroke="#fff4dc" stroke-width="4.500" stroke-linecap="round"/><ellipse cx="23.500" cy="62" rx="5.500" ry="6.500" fill="#fff4dc" stroke="#1d1838" stroke-width="2.500"/><ellipse cx="40.500" cy="62" rx="5.500" ry="6.500" fill="#fff4dc" stroke="#1d1838" stroke-width="2.500"/><circle cx="24.500" cy="64" r="2.500" fill="#1d1838"/><circle cx="39.500" cy="64" r="2.500" fill="#1d1838"/><path d="M16 52l13 5M48 52l-13 5" fill="none" stroke="#1d1838" stroke-width="3.500" stroke-linecap="round"/><path d="M23 76q9-5 18 0" fill="none" stroke="#1d1838" stroke-width="3.500" stroke-linecap="round"/><g><path d="M54.5 10.5L51.0 19.0L54.5 27.5L46.0 24.0L37.5 27.5L41.0 19.0L37.5 10.5L46.0 14.0Z" fill="#ffd23f" stroke="#1d1838" stroke-width="2.500" stroke-linejoin="round"/></g></symbol>
 <symbol id="a-spark" viewBox="0 0 24 24"><path d="M12 0c1 7 5 11 12 12-7 1-11 5-12 12-1-7-5-11-12-12 7-1 11-5 12-12Z" fill="#fff4dc"/></symbol>
 <symbol id="a-burst" viewBox="0 0 64 64"><path d="M32.0 3.0L37.5 17.0L50.6 9.8L45.9 24.0L60.6 27.0L47.8 34.8L57.1 46.5L42.3 44.3L41.9 59.3L32.0 48.0L22.1 59.3L21.7 44.3L6.9 46.5L16.2 34.8L3.4 27.0L18.1 24.0L13.4 9.8L26.5 17.0Z" fill="#fff4dc" stroke="#1d1838" stroke-width="3" stroke-linejoin="round"/><path d="M32.0 15.0L35.4 22.6L42.9 19.0L40.7 27.0L48.7 29.0L41.8 33.7L46.7 40.5L38.4 39.7L37.8 48.0L32.0 42.0L26.2 48.0L25.6 39.7L17.3 40.5L22.2 33.7L15.3 29.0L23.3 27.0L21.1 19.0L28.6 22.6Z" fill="#ffd23f"/></symbol>
 <symbol id="a-cloud" viewBox="0 0 110 62"><defs><g id="cloud-s"><circle cx="30" cy="34" r="16"/><circle cx="52" cy="24" r="20"/><circle cx="76" cy="32" r="17"/><rect x="26" y="32" width="64" height="18" rx="9"/></g></defs><use href="#cloud-s" fill="#2b78c4" stroke="#2b78c4" stroke-width="6" stroke-linejoin="round"/><use href="#cloud-s" fill="#fff4dc"/><path d="M40 14a14 14 0 0 1 10-4" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/></symbol>
@@ -2544,7 +2546,7 @@
       b.style.animationDuration = (dur * Math.min(1, (H + 140) / 436) * path / (H + 140)).toFixed(2) + 's';      // kisa arenada hiz (px/sn) ayni kalir: balonlar birbirine yigilmaz
       bb.style.animationDelay = (-s.ph * 1.3).toFixed(2) + 's';
       bb.innerHTML = ico(kind === 'bomb' ? 'a-bomb' : 'a-balloon');
-      if (kind === 'bomb') b.dataset.bomb = 1;
+      if (kind === 'bomb') { b.dataset.bomb = 1; bb.insertAdjacentHTML('beforeend', '<span class="spk fz">' + ico('a-spark') + '</span>'); }
       else if (kind === 'gold') { b.dataset.gold = 1; bb.insertAdjacentHTML('beforeend', '<span class="emb">' + ico('i-star-w') + '</span><span class="spk" style="left:-6px;top:14%">' + ico('a-spark') + '</span><span class="spk" style="right:-4px;top:46%;animation-delay:-.45s">' + ico('a-spark') + '</span>'); }
       b.addEventListener('animationend', e => { if (e.target === b) b.remove(); });
       a.appendChild(b);
@@ -2884,7 +2886,7 @@
         noWin = 0;
         const lost = [];
         dead.forEach((d, i) => { if (!d && !winners.includes(i)) { lives[i]--; if (lives[i] <= 0) { dead[i] = true; elim[i] = r; } lost.push(i); } });
-        msg = winners.map(i => esc(pname(i))).join(' & ') + ' güvende' + (lost.length ? ' · ' + lost.map(i => esc(pname(i)) + (dead[i] ? ' ' + ico('i-skull', 'inl') : ' −' + ico('i-heart', 'inl'))).join(', ') : '');
+        msg = winners.map(i => esc(pname(i))).join(' & ') + ' güvende' + (lost.length ? ' · ' + lost.map(i => esc(pname(i)) + (dead[i] ? '\u00a0' + ico('i-skull', 'inl') : '\u00a0−' + ico('i-heart', 'inl'))).join(', ') : '');       // bolunmez bosluk: isim ile −kalp ayri satirlara dusmesin
       } else if (++noWin >= 2) {                                       // ust uste 2 kazanansiz tur: mac sonsuza uzamasin, hayattakilerin hepsi bir can kaybeder
         noWin = 0; loseAll();
         msg = 'Üst üste kazanan çıkmadı: herkes −' + ico('i-heart', 'inl');
