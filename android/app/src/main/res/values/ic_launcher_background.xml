@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- adaptif simgenin arka plani -->
     <color name="ic_launcher_background">#141C40</color>
-    <color name="dokun_splash_bg">#141C40</color>
+    <!-- uygulamanin ilk karesiyle (index.html, ink rengi) ayni zemin: acilis ekrani, pencere, durum ve gezinme cubugu -->
+    <color name="dokun_splash_bg">#1D1838</color>
 </resources>

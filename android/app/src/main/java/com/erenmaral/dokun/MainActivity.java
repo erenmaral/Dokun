@@ -1,5 +1,6 @@
 package com.erenmaral.dokun;
 
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -15,7 +16,7 @@ public class MainActivity extends BridgeActivity {
     // uygulama kendi icinde geri gitmistir (alt ekrandan menuye, macta cikis uyarisi vb.); false ise sistemin varsayilani calisir.
     private static final String BACK_JS =
             "(function(){try{return typeof window.__dokunBack==='function'&&window.__dokunBack()===true;}catch(e){return false;}})()";
-    // JS cevap vermezse (sayfa donmus / yuklenmemis) geri tusu yine de calissin
+    // JS cevap vermezse (sayfa donmus / yuklenmemis / eski WebView hata sayfasi) geri tusu yine de calissin
     private static final long BACK_TIMEOUT_MS = 700;
 
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
@@ -23,19 +24,39 @@ public class MainActivity extends BridgeActivity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        registerPlugin(LanServerPlugin.class);     // yerel ag sunucusu (kisa kodla baglanti)
+        registerPlugin(LanServerPlugin.class);     // yerel ag sunucusu (kisa kodla baglanti); super.onCreate'ten ONCE kaydedilmeli
         super.onCreate(savedInstanceState);
-        // Oyun arayuzu piksel olculerle tasarlandi: telefonun "yazi boyutu" ayari WebView yazilarini buyutup
-        // kartlarin ust uste binmesine yol acmasin diye sistem yazi olcegi yok sayilir.
-        try {
-            getBridge().getWebView().getSettings().setTextZoom(100);
-        } catch (Exception ignored) { }
+        applyWebViewSettings();
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
                 onHardwareBack(this);
             }
         });
+    }
+
+    // Oyun arayuzu piksel olculerle tasarlandi: telefonun "yazi boyutu" ayari WebView yazilarini buyutup
+    // kartlarin ust uste binmesine yol acmasin diye sistem yazi olcegi yok sayilir.
+    private void applyWebViewSettings() {
+        try {
+            if (getBridge() != null && getBridge().getWebView() != null) {
+                getBridge().getWebView().getSettings().setTextZoom(100);
+            }
+        } catch (Exception ignored) { }
+    }
+
+    // Yazi boyutu / yon / dil degisince etkinlik yeniden olusturulmaz (manifestte configChanges); yarim kalan mac kaybolmasin
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        applyWebViewSettings();
+    }
+
+    @Override
+    public void onDestroy() {
+        mainHandler.removeCallbacksAndMessages(null);
+        backPending = false;
+        super.onDestroy();
     }
 
     private void onHardwareBack(final OnBackPressedCallback callback) {
@@ -90,6 +111,9 @@ public class MainActivity extends BridgeActivity {
 
     // Sistemin varsayilan geri davranisi (ana menude: uygulamadan cik / arka plana at)
     private void defaultBack(OnBackPressedCallback callback) {
+        if (isFinishing() || isDestroyed()) {
+            return;
+        }
         callback.setEnabled(false);
         try {
             getOnBackPressedDispatcher().onBackPressed();

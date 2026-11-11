@@ -2,11 +2,20 @@
   "appId": "com.erenmaral.dokun",
   "appName": "Dokun",
   "webDir": "www",
+  "backgroundColor": "#1d1838",
   "server": {
     "androidScheme": "http",
-    "cleartext": true
+    "cleartext": true,
+    "errorPath": "webview-guncelle.html"
   },
   "android": {
-    "allowMixedContent": true
+    "allowMixedContent": true,
+    "minWebViewVersion": 108
+  },
+  "plugins": {
+    "SystemBars": {
+      "style": "DARK",
+      "initialViewportFitValueHint": "cover"
+    }
   }
 }
