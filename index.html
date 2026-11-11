@@ -493,7 +493,7 @@
 
   /* ---------- Bilgi kutusu: her iki yonden okunur ---------- */
   #hud { position:fixed; left:50%; top:50%; transform:translate(-50%,-50%); z-index:5; pointer-events:none;
-    display:flex; flex-direction:column; align-items:center; gap:8px; max-width:86vw; }
+    display:flex; flex-direction:column; align-items:center; gap:8px; width:max-content; max-width:86vw; }
   #hud.hidden { display:none; }
   .hline { background:var(--paper); color:var(--ink); border:var(--ln) solid var(--ink); border-radius:var(--r-m); padding:8px 16px;
     text-align:center; font-family:var(--f-display); font-weight:600; font-size:16px; line-height:1.3; box-shadow:var(--sh-m);
@@ -608,7 +608,7 @@
     border:var(--ln) solid var(--ink); border-radius:var(--r-m); box-shadow:var(--sh-s); padding:4px 8px 6px; }
   #g-short { font-family:var(--f-display); font-size:28px; text-align:center; letter-spacing:.2em; font-weight:700; }
   textarea { resize:none; font-size:12px; font-family:ui-monospace, Menlo, Consolas, monospace; font-weight:600; word-break:break-all; }
-  #toast, #toast2 { position:fixed; left:50%; bottom:calc(28px + env(safe-area-inset-bottom)); transform:translateX(-50%); z-index:60;
+  #toast, #toast2 { position:fixed; left:50%; bottom:calc(28px + env(safe-area-inset-bottom)); transform:translateX(-50%); z-index:60; width:max-content;
     background:var(--paper); color:var(--ink); border:var(--ln) solid var(--ink); padding:9px 16px; border-radius:var(--r-m); font-family:var(--f-display); font-weight:600;
     max-width:86vw; text-align:center; font-size:14px; line-height:1.3; box-shadow:var(--sh-m); pointer-events:none; animation:toastIn .26s var(--pop); }
   @keyframes toastIn { from { transform:translate(-50%,24px) scale(.85); opacity:0; } to { transform:translate(-50%,0); opacity:1; } }
@@ -684,16 +684,33 @@
     .hero { padding:8px 14px; } .hero .hi { width:44px; height:44px; padding:6px; } .hero .ht b { font-size:20px; }
     .tile { padding:7px 4px 7px; } .tile .ti { width:36px; height:36px; }
   }
+  /* kisa ekranlar (360x640 ve 320x568): ana menu kaydirmadan sigsin diye ust/alt bosluklar ve dolgular kisilir */
+  @media (max-height:660px) {
+    #menu { padding-top:max(12px, calc(env(safe-area-inset-top, 0px) + 8px)); padding-bottom:max(14px, calc(env(safe-area-inset-bottom, 0px) + 8px)); }
+  }
+  @media (max-height:600px) {
+    #menu { padding-top:max(8px, calc(env(safe-area-inset-top, 0px) + 6px)); padding-bottom:max(10px, calc(env(safe-area-inset-bottom, 0px) + 6px)); }
+    .logo { font-size:42px; padding:4px 0 2px; } .home { gap:7px; } .panel { padding:8px 10px; gap:5px; }
+    .plbl { font-size:11px; }
+    .players button { padding:4px 4px 3px; font-size:19px; } .dots { height:16px; } .dots i { width:14px; height:14px; }
+    .modes button { padding:5px 8px; font-size:14px; } .modes .mi { width:24px; height:24px; }
+    .mdesc { font-size:13px; }
+    .chips button { padding:5px 12px; font-size:17px; }
+    .hero { padding:6px 12px; } .hero .hi { width:40px; height:40px; padding:5px; } .hero .ht b { font-size:19px; }
+    .tiles { gap:8px; } .tile { padding:6px 4px; } .tile .ti { width:30px; height:30px; } .tile { font-size:14px; }
+  }
 
   /* ---------- Ortak ust cubuk, oyun secme, ayarlar ---------- */
   .icon-btn { width:46px; height:46px; padding:0 !important; display:flex; align-items:center; justify-content:center; border-radius:var(--r-m); flex:none; }
   .icon-btn svg { width:24px; height:24px; margin:0 !important; }
   .ptitle { text-align:left; flex:1; min-width:0; }
   .ptitle h2 { font-size:26px; margin:0; }
-  .tags { gap:6px; }
-  .tags { flex-wrap:nowrap; gap:5px; }
-  .tags button { padding:6px 9px; font-size:13px; border-radius:var(--r-pill); min-width:0; min-height:38px; box-shadow:var(--sh-s); white-space:nowrap; }
-  .tags button[data-t]:not([data-t="all"])::before { content:''; display:inline-block; width:9px; height:9px; margin-right:6px; border-radius:50%; background:var(--gc); border:2px solid var(--ink); vertical-align:0; }
+  /* kategori etiketleri: dar ekranda 3 + 2 izgara (hicbiri kesilmez / tasmaz), genis ekranda tek satir */
+  .tags { display:grid; grid-template-columns:repeat(6, minmax(0, 1fr)); gap:6px; width:100%; }
+  .tags button { grid-column:span 2; display:flex; align-items:center; justify-content:center; padding:6px 4px; font-size:13px; border-radius:var(--r-pill); min-width:0; min-height:38px; box-shadow:var(--sh-s); white-space:nowrap; }
+  .tags button[data-t="zeka"], .tags button[data-t="hafiza"] { grid-column:span 3; }
+  @media (min-width:440px) { .tags { display:flex; flex-wrap:nowrap; justify-content:center; gap:5px; width:auto; } .tags button { padding:6px 9px; } }
+  .tags button[data-t]:not([data-t="all"])::before { content:''; display:inline-block; flex:none; width:9px; height:9px; margin-right:6px; border-radius:50%; background:var(--gc); border:2px solid var(--ink); vertical-align:0; }
   .tags [data-t="refleks"] { --gc:var(--red); } .tags [data-t="hiz"] { --gc:var(--orange); } .tags [data-t="zeka"] { --gc:var(--blue); } .tags [data-t="hafiza"] { --gc:var(--green); }
   .gcard.hide { display:none; }
   .gcard .ic { width:48px; height:48px; padding:5px; border-radius:var(--r-s); display:block; background:var(--gc); border:var(--ln) solid var(--ink); margin:0 0 4px; }
@@ -713,6 +730,7 @@
   .seg button { border:2px solid transparent; background:transparent; box-shadow:none; padding:6px 10px !important; min-height:34px; border-radius:7px; font-size:13px !important; min-width:0 !important; }
   .seg button.sel { background:var(--yellow); border-color:var(--ink); }
   .seg button:active { transform:none; box-shadow:none; }
+  @media (max-width:339px) { .setrow.sr-seg { flex-wrap:wrap; } .setrow.sr-seg .seg { flex:1 1 100%; } .setrow.sr-seg .seg button { flex:1 1 0; } }
   #h-list, #g-list { list-style:none; padding:0 !important; margin:0; display:flex; flex-direction:column; gap:8px; }
   #h-list li, #g-list li { display:flex; align-items:center; gap:10px; padding:6px 10px; border-radius:var(--r-s); background:rgba(29,24,56,.07); font-weight:700; }
   #h-list .av, #g-list .av { width:30px; height:30px; border-radius:50%; background:var(--c); color:var(--ink); border:var(--ln) solid var(--ink); display:flex; align-items:center; justify-content:center; font-family:var(--f-display); font-weight:700; flex:none; }
@@ -793,6 +811,7 @@
   #endbar button[data-a="again"] { background:var(--yellow); }
   #endbar button[data-a="golden"] { background:var(--orange); }
   #endbar.tie button { font-size:15px; padding:8px 11px; }
+  @media (max-width:339px) { #endbar.tie .endrow { gap:6px; } #endbar.tie button { font-size:14px; padding:8px 9px; } }
   #endbar.tie button[data-a="again"] { background:#fff; }
   /* ortalama transform'u (translate) animasyon sirasinda ezilmesin: kendi anahtar kareleri */
   @keyframes hinc { from { transform:translate(-50%,-50%) scale(.8); opacity:0; } to { transform:translate(-50%,-50%); opacity:1; } }
@@ -810,7 +829,7 @@
   .count { display:inline-block; font-size:clamp(64px, 22vmin, 140px); font-weight:700; line-height:1; text-shadow:var(--ol5), 0 8px 0 var(--ink); animation:cdp .55s var(--out); }
   @keyframes cdp { 0% { transform:scale(1.8,.5); opacity:0; } 30% { transform:scale(.82,1.22); opacity:1; } 55% { transform:scale(1.1,.92); } 100% { transform:scale(1); } }
   .count.go { font-size:clamp(40px, 14vmin, 84px); color:var(--yellow); animation-name:cdg; }                /* geri sayim sonu: BASLA! */
-  .zone.narrow .count.go { font-size:clamp(30px, 8.6vmin, 56px); }
+  .zone.narrow .count.go { font-size:clamp(22px, min(8.6vmin, calc(13vw - 14px)), 56px); }               /* "BASLA!" dar bolgeye (yaklasik %50 genislik - 40 px) sigsin */
   @keyframes cdg { 0% { transform:scale(.4) rotate(-8deg); opacity:0; } 45% { transform:scale(1.25) rotate(3deg); opacity:1; } 70% { transform:scale(.94) rotate(0); } 100% { transform:scale(1); } }
 
   /* bitis: kazanan zıplar, digerleri soner */
@@ -1103,7 +1122,7 @@
     <div class="setrow"><span>Titreşim</span><button class="tog" data-k="vib"></button></div>
     <div class="setrow"><span>Müzik</span><button class="tog" data-k="music"></button></div>
     <div class="setrow"><span>Menü müziği</span><button class="tog" data-k="menuMusic"></button></div>
-    <div class="setrow"><span>Müzik sesi</span>
+    <div class="setrow sr-seg"><span>Müzik sesi</span>
       <div class="row seg" id="vol-row"><button data-v="1">Düşük</button><button data-v="2">Orta</button><button data-v="3">Yüksek</button></div></div>
   </div>
   <div class="csec">
