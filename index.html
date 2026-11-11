@@ -161,6 +161,12 @@
   .zone.narrow .sp-time { width:80%; }
 
   /* --- Tam Ortada --- */
+  .tr-time { position:relative; width:72%; height:clamp(9px, 1.8vmin, 14px); margin:0 auto clamp(8px, 2vmin, 14px); border-radius:var(--r-pill); background:var(--ink); border:2px solid var(--ink); box-shadow:0 0 0 2px rgba(255,244,220,.35); overflow:hidden; transition:opacity .2s; }
+  .tr-time i { position:absolute; inset:0; border-radius:var(--r-pill); background:var(--yellow); transform-origin:0 50%; }
+  .tr-time.low i { background:var(--red); }
+  .tr-time.low { animation:spshake .34s linear infinite; }
+  .tr-time.off { opacity:.3; }
+  body.cb .tr-time.low i { background:repeating-linear-gradient(135deg, var(--red) 0 7px, var(--paper) 7px 14px); }
   .tr-cap { font-size:clamp(17px, 4.8vmin, 38px); font-weight:700; line-height:1.1; margin-bottom:clamp(12px, 3.4vmin, 22px); }
   .zone.narrow .tr-cap { font-size:clamp(13px, 4vmin, 18px); margin-bottom:12px; }
   .track { --bd:32px; --mr:19px; height:46px; }
@@ -184,9 +190,9 @@
   body.cb .track::after { background:radial-gradient(var(--ink) 1.2px, transparent 1.6px) 0 0 / 6px 6px, var(--yellow); }
 
   /* --- Tut ve Birak --- */
-  .hd { gap:clamp(6px, 1.8vmin, 14px); }
-  .hd-btn { position:relative; width:clamp(84px, 30vmin, 200px); height:clamp(84px, 30vmin, 200px); margin-bottom:clamp(8px, 2.4vmin, 20px); border-radius:50%; background:var(--c); border:var(--ln-b) solid var(--ink); box-shadow:var(--sh-l);
-    display:flex; align-items:center; justify-content:center; color:var(--ink); text-shadow:none; transition:transform .12s var(--out), box-shadow .12s var(--out); }
+  .hd { gap:clamp(6px, 1.8vmin, 14px); overflow:clip; }       /* donen kesikli halkanin (gorunmez) kose kutulari govdeden tasmasin */
+  .hd-btn { position:relative; width:clamp(84px, 30vmin, 200px); height:clamp(84px, 30vmin, 200px); margin:14px 0 clamp(8px, 2.4vmin, 20px); border-radius:50%; background:var(--c); border:var(--ln-b) solid var(--ink); box-shadow:var(--sh-l);
+    display:flex; align-items:center; justify-content:center; color:var(--ink); text-shadow:none; transition:transform .12s var(--out); }
   .hd-btn::before { content:''; position:absolute; inset:-12px; border-radius:50%; border:3px dashed var(--paper); opacity:.5; }
   .hd-btn::after { content:''; position:absolute; left:14%; top:12%; width:30%; height:18%; border-radius:50%; background:var(--paper); opacity:.85; transform:rotate(-32deg); }
   .hd-ic { width:56%; height:56%; display:block; overflow:visible; }
@@ -208,7 +214,7 @@
   .hd-rule i { position:absolute; top:50%; }
   .hd-rule .tg { width:4px; height:22px; margin:-11px 0 0 -2px; background:var(--ink); border-radius:2px; }
   .hd-rule .mk { width:16px; height:16px; margin:-8px 0 0 -8px; border-radius:50%; background:var(--c); border:var(--ln-s) solid var(--ink); }
-  .zone.narrow .hd-btn { width:clamp(70px, 26vmin, 104px); height:clamp(70px, 26vmin, 104px); margin-bottom:12px; }
+  .zone.narrow .hd-btn { width:clamp(70px, 26vmin, 104px); height:clamp(70px, 26vmin, 104px); margin:14px 0 12px; }
   .zone.narrow .hd-tx { font-size:clamp(17px, 5.6vmin, 24px); }
   .zone.narrow .hd-sub { font-size:clamp(11px, 3.4vmin, 14px); }
   .zone.narrow .hd-diff { font-size:clamp(12px, 3.6vmin, 15px); padding:1px 8px 2px; }
@@ -1170,6 +1176,14 @@
   // ======================= REFLEKS OYUNLARI: ortak yardimcilar =======================
   // Donanim zamani: PointerEvent.timeStamp (performance.now() tabani) sanal saate (vt) cevrilir; isleyici gecikmesi (ripple, ses, kare) sonuca karismaz.
   const evT = e => { const lat = e && e.timeStamp > 0 ? performance.now() - e.timeStamp : 0; return vt.now() - (lat > 0 && lat < 400 ? lat : 0); };
+  const blip = (freq, dur, o = {}) => {                       // kisa sentez sesi (fx.tone disariya acik degil); ayarlardan kapatilabilir
+    if (!prefs.sfx) return; const c = fx.unlock(); if (!c) return;
+    const { type = 'sine', vol = 0.16, at = 0, slide = 0 } = o, t = c.currentTime + at, osc = c.createOscillator(), g = c.createGain();
+    osc.type = type; osc.frequency.setValueAtTime(freq, t); if (slide) osc.frequency.exponentialRampToValueAtTime(Math.max(30, freq + slide), t + dur);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    osc.connect(g); g.connect(c.destination); osc.start(t); osc.stop(t + dur + 0.02);
+  };
+  const buzz = pat => { if (prefs.vib && navigator.vibrate) { try { navigator.vibrate(pat); } catch (_) {} } };
   const dec1 = v => v.toFixed(1).replace('.', ',');           // Turkce ondalik ayraci
   const dec2 = v => v.toFixed(2).replace('.', ',');
   // Parmak izleyici: bolge basina basili pointer'lar. Geri sayimda basilip tutulan parmak oyun baslayinca bilinir; ikinci parmak ve iptal ayirt edilir.
@@ -1219,12 +1233,13 @@
     // rastgele degerler hep ayni sirada ve basta cekilir (ag modunda tohumlu: telefonlar arasi ayni kalir)
     const decoy = Math.random() < 0.4, wait1 = 1500 + Math.random() * 2500, fakeLen = 550 + Math.random() * 450, wait2 = 700 + Math.random() * 1300;
     const msBox = v => '<div class="rt-ms"><b>' + Math.round(v) + '</b> ms</div>';
+    zones.forEach(z => { delete z.dataset.rh; });
+    const put = (i, s, html) => { setS(i, s); if (zones[i].dataset.rh !== html) { zones[i].dataset.rh = html; body(i, html); } };      // yalniz degisen bolge yeniden cizilir
     const paintAll = () => zones.forEach((_, i) => {
       if (out.has(i) || !aliveZ(i)) return;
-      if (rt[i] == null) { setS(i, ''); body(i, '<div class="rt rt-lose"><div class="rt-tag">' + (winners.length ? 'Geç kaldın' : 'Süre doldu') + '</div></div>'); return; }
-      if (winners.includes(i)) { setS(i, 'sig'); body(i, '<div class="rt rt-res"><div class="rt-ic"><svg class="bu"><use href="#a-burst"/></svg><svg class="bo"><use href="#i-bolt"/></svg></div>' + msBox(rt[i]) + '<div class="rt-sub">' + (winners.length > 1 ? 'Berabere!' : (prevRec < Infinity && best < prevRec) ? 'Yeni rekor!' : 'En hızlı!') + '</div></div>'); return; }
-      setS(i, '');
-      body(i, '<div class="rt rt-lose"><div class="rt-tag">Geç kaldın</div>' + msBox(rt[i]) + '<div class="rt-sub">+' + Math.round(rt[i] - best) + ' ms geride</div></div>');
+      if (rt[i] == null) { put(i, '', '<div class="rt rt-lose"><div class="rt-tag">Geç kaldın</div></div>'); return; }
+      if (winners.includes(i)) { put(i, 'sig', '<div class="rt rt-res"><div class="rt-ic"><svg class="bu"><use href="#a-burst"/></svg><svg class="bo"><use href="#i-bolt"/></svg></div>' + msBox(rt[i]) + '<div class="rt-sub">' + (winners.length > 1 ? 'Berabere!' : (prevRec < Infinity && best < prevRec) ? 'Yeni rekor!' : 'En hızlı!') + '</div></div>'); return; }
+      put(i, '', '<div class="rt rt-lose"><div class="rt-tag">Geç kaldın</div>' + msBox(rt[i]) + '<div class="rt-sub">+' + Math.round(rt[i] - best) + ' ms geride</div></div>');
     });
     const decide = () => {                                        // donanim zamanina gore kazanan(lar)
       const v = rt.filter(x => x != null);
@@ -1262,7 +1277,7 @@
         if (!decoy) return fire();
         fake = true;                                              // sahte isaret: sari yanip soner, dokunan elenir
         zones.forEach((_, i) => { if (!out.has(i)) { setS(i, 'warn'); body(i, rtBox('warn', 'Bekle…')); } });
-        fx.tick();
+        blip(300, 0.1, { type: 'square', vol: 0.07 }); blip(300, 0.1, { type: 'square', vol: 0.07, at: 0.16 }); buzz([18, 50, 18]);
         vt.timeout(() => {
           if (done) return;
           fake = false; fakeEnd = vt.now();
@@ -1316,7 +1331,7 @@
     }
     handler = null;
     zs.forEach(z => { const tm = z.querySelector('.sp-time'); if (tm) { tm.firstChild.style.transform = 'scaleX(0)'; tm.classList.add('low'); } z.querySelectorAll('.spw').forEach(w => w.classList.add('fin')); });
-    say('DUR!', null, true);
+    say('DUR!', null, true); blip(190, 0.38, { type: 'sawtooth', vol: 0.14, slide: -70 }); buzz(110);
     lastScores = c.slice();
     const max = Math.max(...c);
     zs.forEach((z, i) => { const b = z.querySelector('.spbar'); if (b) b.outerHTML = '<div class="sp-rate">' + dec1(c[i] / (DUR / 1000)) + ' dokunuş/sn</div>'; });
@@ -1329,10 +1344,10 @@
   // Yuzde 0,1 hassasiyetle gosterilir ve ayni gosterilen deger beraberliktir. Parkur genisligi tum bolgelerde esitlenir (3 oyuncuda alt bolge de kisa parkur).
   const stopRate = pct => pct >= 99 ? 'Tam isabet!' : pct >= 96 ? 'Mükemmel!' : pct >= 86 ? 'Harika!' : pct >= 60 ? 'Fena değil' : 'Uzak kaldı';
   async function stopbar() {
-    const zs = zones, n = zs.length;
+    const zs = zones, n = zs.length, LIMIT = 6000;                                  // en cok 6 sn
     zs.forEach((_, i) => {
       setS(i, 'go');
-      body(i, '<div class="tr-cap">Ortada durdur!</div><div class="track"><i class="mid"></i><svg class="tstar"><use href="#i-star"/></svg><div class="mk"></div></div><div class="pct"></div>');
+      body(i, '<div class="tr-time"><i></i></div><div class="tr-cap">Ortada durdur!</div><div class="track"><i class="mid"></i><svg class="tstar"><use href="#i-star"/></svg><div class="mk"></div></div><div class="pct"></div>');
     });
     const tws = zs.map(z => z.querySelector('.body').clientWidth);                         // tum parkurlar en dar bolgeninki kadar
     const okW = tws.filter(v => v > 0);
@@ -1353,16 +1368,21 @@
         pos[i] = posAt(drawn); report(i, 1, 1);                              // oyuncunun gordugu konum
         const pc = (1 - Math.abs(pos[i] - 0.5) * 2) * 100, q = Math.round(pc * 10) / 10;
         mk(i).style.left = mkLeft(pos[i]); mk(i).classList.add('stop');
-        zs[i].querySelector('.pct').innerHTML = '<b>' + (q >= 100 ? '%100' : '%' + dec1(q)) + '</b><small>' + stopRate(pc) + '</small>';
-        if (pc >= 96) { right(i); const fxEl = document.createElement('div'); fxEl.className = 'trfx'; fxEl.style.left = mkLeft(pos[i]); fxEl.innerHTML = ico('a-burst'); fxEl.addEventListener('animationend', () => fxEl.remove()); zs[i].querySelector('.track').appendChild(fxEl); }
+        zs[i].querySelector('.pct').innerHTML = '<b>' + (q >= 100 ? '%100' : '%' + dec1(q)) + '</b><small>' + stopRate(q) + '</small>';
+        if (q < 96) blip(240 + q * 2.4, 0.11, { type: 'triangle', vol: 0.11 });          // isabet ne kadar iyiyse ses o kadar tiz
+        if (q >= 96) { right(i); const fxEl = document.createElement('div'); fxEl.className = 'trfx'; fxEl.style.left = mkLeft(pos[i]); fxEl.innerHTML = ico('a-burst'); fxEl.addEventListener('animationend', () => fxEl.remove()); zs[i].querySelector('.track').appendChild(fxEl); }
         if (allIn()) vt.timeout(finish, 300);
       };
       const tick = () => {
         if (zones !== zs) return;                    // mac yarida birakildi / yeni mac kuruldu: eski dongu durur
         const t = vt.now() - t0, pp = posAt(t);
         drawn = t;
-        zs.forEach((_, i) => { if (pos[i] === null) mk(i).style.left = mkLeft(pp); });
-        if (t > 6000) { finish(); return; }
+        const lf = Math.max(0, 1 - t / LIMIT);
+        zs.forEach((z, i) => {
+          if (pos[i] === null) mk(i).style.left = mkLeft(pp);
+          const tm = z.querySelector('.tr-time'); if (tm) { tm.firstChild.style.transform = 'scaleX(' + lf.toFixed(3) + ')'; tm.classList.toggle('low', lf < 0.25 && pos[i] === null); tm.classList.toggle('off', pos[i] !== null); }
+        });
+        if (t > LIMIT) { finish(); return; }
         raf = requestAnimationFrame(tick);
       };
       tick();
@@ -1514,18 +1534,24 @@
       const done = () => { if (fin) return; fin = true; vt.clear(tm); vt.clear(last); unsub(); res(); };
       const allIn = () => zs.every((_, i) => !aliveZ(i) || en[i] !== null || no[i]);
       const check = () => { if (allIn() && last === null) last = vt.timeout(done, 300); };
+      const tooLong = i => {                                    // cok uzun tutuldu: bu oyuncunun turu biter (gecersiz, kazanamaz)
+        over[i] = true; en[i] = st[i] + MAXHOLD; setS(i, ''); wrong(i);
+        body(i, '<div class="hd hd-res"><div class="hd-big"><b>4,5+</b><small>sn</small></div><div class="hd-diff bad">Çok uzun!</div></div>'); check();
+      };
       const release = (i, e) => {
         const t = evT(e), held = t - st[i];
         if (held < MINHOLD) { wrong(i); reset(i, 'Çok kısa!', 'Tekrar bas'); return; }
-        en[i] = Math.min(t, st[i] + MAXHOLD); hs[i] = Math.round((en[i] - st[i]) / 10);
+        if (held >= MAXHOLD) { tooLong(i); return; }
+        en[i] = t; hs[i] = Math.round((en[i] - st[i]) / 10);
         setS(i, ''); body(i, resultBox(i)); report(i, 1, 1);
         const ae = Math.abs(hs[i] - TARGET / 10);
-        if (ae <= 15) right(i);
-        if (ae <= 5) burst(zs[i], 16);                          // 3,00'a +-0,05 sn: kutlama
+        if (ae <= 15) right(i); else blip(300 - Math.min(ae, 120) * 0.8, 0.14, { type: 'triangle', vol: 0.1 });
+        if (ae <= 5) { burst(zs[i], 16); blip(1175, 0.16, { at: 0.1, vol: 0.12 }); buzz([30, 40, 60]); }                          // 3,00'a +-0,05 sn: kutlama
         check();
       };
       handler = (i, e) => { if (st[i] === null && en[i] === null && !no[i]) press(i, evT(e)); };
       const unsub = touches.on((e, z) => {
+        if (zones !== zs) { unsub(); return; }                    // mac yarida birakildi: eski abonelik kendini temizler
         const i = zs.indexOf(z);
         if (i < 0 || st[i] === null || en[i] !== null || over[i]) return;
         if (touches.n(z) > 0) return;                             // baska parmak hala basili: ikinci parmagin kalkisi tutmayi bitirmez
@@ -1541,11 +1567,7 @@
           if (st[i] !== null && en[i] === null) {
             if (lifted[i]) { if (touches.n(z) > 0) press(i, now); else reset(i, 'Tekrar bas', 'Parmağını yeniden bas', 2500); return; }
             const t = now - st[i];
-            if (t >= MAXHOLD && !over[i]) {                       // cok uzun tutuldu: bu oyuncunun turu biter
-              over[i] = true; en[i] = st[i] + MAXHOLD; setS(i, ''); wrong(i);                  // gecersiz (DNF): kazanamaz
-              body(i, '<div class="hd hd-res"><div class="hd-big"><b>4,5+</b><small>sn</small></div><div class="hd-diff bad">Çok uzun!</div></div>'); check();
-              return;
-            }
+            if (t >= MAXHOLD && !over[i]) { tooLong(i); return; }
             paintNum(i, t);
           } else if (st[i] === null && en[i] === null && !no[i] && now >= ent[i]) {      // hic basmadi
             no[i] = true; setS(i, ''); body(i, '<div class="hd hd-res"><div class="hd-big"><b>—</b></div><div class="hd-diff">Basmadın</div></div>'); check();
