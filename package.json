@@ -4,7 +4,7 @@
   "private": true,
   "description": "Dokun! - ayni ekranda 2-4 kisilik mini oyunlar",
   "scripts": {
-    "www": "mkdir -p www && sed \"s/__DOKUN_VERSION__/${DOKUN_VERSION_NAME:-dev}/g\" index.html > www/index.html",
+    "www": "mkdir -p www && sed \"s/__DOKUN_VERSION__/${DOKUN_VERSION_NAME:-dev}/g\" index.html > www/index.html && cp webview-guncelle.html www/webview-guncelle.html",
     "sync": "npm run www && cap sync android"
   },
   "dependencies": {
