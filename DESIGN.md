@@ -43,6 +43,7 @@ Not: Lilita One ve Fredoka denendi ama Turkce ğ ş İ glifleri YOK; bu yuzden s
 - **Geri sayim:** `cdp` squash & stretch (1.8x0.5 -> 0.82x1.22 -> 1.1x0.92 -> 1) + 5px kontur.
 - **Bitis:** kazanan: donen gunisigi + kagit madalyon icinde tac + "KAZANAN"; digerleri: oyuncu rengi sira rozeti. Beraberlikte uc yildiz.
 - **Duraklatma / yeniden baglanma / toast:** duz yari saydam murekkep zemin (backdrop blur YOK), kagit cikartma kartlari.
+- **Soru-cevap oyunlari (Renk Tuzagi / Hizli Matematik / Ok Yonu / Say Bakalim):** ortak `.quiz` kabi bolgenin govdesini doldurur (container query birimleri: tablette buyur, 320x568'de secenek >= 34 px kalir); ustte sure cubugu (`.pz-tm`) + sayac, ortada soru alani, altta SABIT yukseklikli 2x2 secenek (sorular arasinda kayma yok). Soru dizisi herkes icin ortak, yanlista ayni soruda kalinir (ceza 1 / 1,5 / 2 sn, denenen secenek pasif), dogru cevabin ardindan ~250 ms girdi yok sayilir; dogru secenekte yesil, yanlista kirmizi rozet.
 - **Rakip seridi (ag):** 9px murekkep iz + oyuncu rengi dolgu, baglanti kalitesi kagit hap + renkli nokta (yesil/sari/kirmizi).
 
 ## 5. Simgeler ve oyun varliklari (emoji YOK)
@@ -52,7 +53,7 @@ Tek bir satir ici SVG `<symbol>` sprite'i (`<use href="#...">`; ~29 KB): 3px mur
 - **Balon Patlat:** `a-balloon` (yumurta govde, golge dilimi, parlama, dugum, ip; renk `--bc/--bd`), `a-bomb` (kizgin yuzlu bomba + titreyen kivilcim), altin balon (yildiz amblemi + kipirdayan parilti), kalin murekkep bulutlar, patlama: yildiz-patlama + 6 parca + `+1 / +3 / -1` etiketi. Balonlar bolgenin altindan dogup ustunden cikar (kesik kenar yok), yavasca sallanir.
 - **Hedef Avi:** `a-target` (oyuncu renkli halkalar, sari goz, parlama), sicrayarak belirir, hafif sallanir, isabette patlama yildizi.
 - **Hafiza Eslestir:** 8 cikartma yuz (`f-bear f-cat f-frog f-bunny f-panda f-pig f-octo f-pizza`), mor noktali kart arkasi + "?" , cevirme `scaleX` animasyonu, eslesince ziplama; genis bolgede 4x2 yerlesim (kartlar buyuk), dar bolgede 2x4.
-- **Tek Farkli:** ayni yuzler + `o-smile/wink/smirk` (zorluk artar). **Ok Yonu:** `a-arrow`. **Say Bakalim:** `a-bee a-apple a-fish i-star a-balloon-s`. **Kostebek:** `a-mole` + toprak delik, sicrayarak cikar. **Seri Dokun:** oyuncu renkli sayac rozeti, her dokunusta siçrar. **Isik Oyunu:** kalin cizgili lamba + halka dalgasi. **Renk Dizisi:** parlak ped, yanarken kagit kaplama + buyume. **Tam Ortada:** kagit iz + yesil hedef bolgesi + oyuncu rengi top.
+- **Tek Farkli:** ayni yuzler + `o-smile/wink/smirk` (zorluk artar). **Ok Yonu:** `a-arrow` (kagit kadran icinde buyuk ok; kural rozeti: yesil "AYNI YON" + `q-same` (es oklar), kirmizi "TERSINE!" + `q-rev` (zit oklar); secenek oklari oyuncu renginde). **Say Bakalim:** `a-bee a-apple a-fish i-star a-balloon-s`, nesneler sabit boyutlu tepsideki 4x3 kutulara (kutu basina en fazla bir, kayma + egim) yerlesir. **Renk Tuzagi:** her rengin sekli (Renk Dizisi ile ayni: kirmizi ucgen, yesil daire, mavi kare, sari baklava) secenekte hep gorunur, kelime kutusunun kosesinde murekkep renginin simgesi durur; Renk koru modunda ayrica desen (cizgi / nokta / izgara / yatay cizgi) ve renkli simge cipi eklenir. **Kostebek:** `a-mole` + toprak delik, sicrayarak cikar. **Seri Dokun:** oyuncu renkli sayac rozeti, her dokunusta siçrar. **Isik Oyunu:** kalin cizgili lamba + halka dalgasi. **Renk Dizisi:** parlak ped, yanarken kagit kaplama + buyume. **Tam Ortada:** kagit iz + yesil hedef bolgesi + oyuncu rengi top.
 
 ## 6. Performans kurallari (dusuk donanim, Android WebView)
 - Hic `filter`, `backdrop-filter`, `blur()`, `color-mix`, animasyonlu `box-shadow` / `background-position` YOK. Tum surekli animasyonlar `transform` / `opacity` (gecisler: renk, `transform`).
@@ -65,7 +66,7 @@ Tek bir satir ici SVG `<symbol>` sprite'i (`<use href="#...">`; ~29 KB): 3px mur
 Tum 16 oyun yeni kabuga ve simgelere gecirildi. Isteyen icin ince ayar fikirleri:
 1. **Sayi Sirasi / Tek Farkli / Hizli Matematik:** hucrelere kucuk "dogru" cikartmasi (kagit yildiz) animasyonu.
 2. **Tut ve Birak / Tepki:** rakam ve sonuc yazilarina simge (kronometre) eklemek.
-3. **Renk Tuzagi:** secenek hucrelerine renk-kor modu icin desen (nokta/cizgi) ayrimi.
+3. ~~**Renk Tuzagi:** secenek hucrelerine renk-kor modu icin desen (nokta/cizgi) ayrimi.~~ Yapildi: sekil + cb modunda desen (bkz. bolum 5).
 4. Menude kucuk "cikartma" dekorlari (yildiz, sprey nokta) eklenebilir; simdilik temiz birakildi (floating emoji deseni kaldirildi).
 5. Gece/gunduz temasi gerekirse yalniz `--night`, `--night2`, `--paper` degistirilir.
 
