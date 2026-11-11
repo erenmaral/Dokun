@@ -38,7 +38,7 @@ Not: Lilita One ve Fredoka denendi ama Turkce ğ ş İ glifleri YOK; bu yuzden s
 - **Fisler:** isim fisi = oyuncu rengi, puan fisi = kagit; 2px cizgi, 2px golge. Dar bolgede oyun adi ustte ayri satir.
 - **Dugme:** kagit zemin, murekkep cizgi, sert golge; `.sel` sari; `.go` yesil; `.alt` sari buyuk; `.sm` kucuk. Anahtar (toggle) cikartma dugmesi: yesil/gri iz + kagit top.
 - **Paneller:** kagit krem + 4px cizgi + 6px golge; basliklar murekkep hap etiketi.
-- **Oyun Sec kartlari:** kategori rengi (refleks kirmizi, hiz turuncu, zeka mavi, dikkat yesil) simge rozeti; secili kart hafif egilir + yesil "onay" cikartmasi.
+- **Oyun Sec kartlari:** kategoriye gore GRUPLU dizilir (refleks, hiz, zeka, dikkat; her grubun basinda `.gsec` baslik seridi: renkli nokta + ad + ince cizgi + oyun sayisi; kategori filtresinde seritler gizlenir); kategori rengi (refleks kirmizi, hiz turuncu, zeka mavi, dikkat yesil) simge rozeti; secili kart hafif egilir + yesil "onay" cikartmasi.
 - **Bilgi kutusu / tur karti:** kagit karti, 4px cizgi; ust satir sari "TUR n / toplam" hapi, oyun simgesi rozeti + ad. Iki yonden okunur (180 derece kopya korunur).
 - **Geri sayim:** `cdp` squash & stretch (1.8x0.5 -> 0.82x1.22 -> 1.1x0.92 -> 1) + 5px kontur.
 - **Bitis:** kazanan: donen gunisigi + kagit madalyon icinde tac + "KAZANAN"; digerleri: oyuncu rengi sira rozeti. Beraberlikte uc yildiz.

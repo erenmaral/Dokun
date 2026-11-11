@@ -550,6 +550,14 @@
     background:var(--paper); }
   .gcard[data-t="refleks"] { --gc:var(--red); } .gcard[data-t="hiz"] { --gc:var(--orange); }
   .gcard[data-t="zeka"] { --gc:var(--blue); } .gcard[data-t="hafiza"] { --gc:var(--green); }
+  /* kategori baslik seridi ("Tumu" gorunumu): renkli nokta + ad + ince cizgi + oyun sayisi; tum sutunlari kaplar */
+  .gsec { --gc:var(--blue); grid-column:1 / -1; display:flex; align-items:center; gap:8px; margin-top:8px; padding:0 2px; color:var(--paper); }
+  .gsec:first-child { margin-top:0; }
+  .gsec[data-t="refleks"] { --gc:var(--red); } .gsec[data-t="hiz"] { --gc:var(--orange); } .gsec[data-t="hafiza"] { --gc:var(--green); }
+  .gsec i { flex:none; width:12px; height:12px; border-radius:50%; background:var(--gc); border:var(--ln-s) solid var(--ink); box-shadow:0 0 0 2px rgba(255,244,220,.5); }
+  .gsec b { flex:none; font-family:var(--f-display); font-size:15px; font-weight:600; letter-spacing:.12em; text-shadow:var(--ol2); }
+  .gsec span { flex:1; min-width:12px; height:3px; border-radius:2px; background:rgba(255,244,220,.22); }
+  .gsec small { flex:none; font-family:var(--f-body); font-size:12.5px; font-weight:700; opacity:.78; }
   .gcard.on { background:#ffe38a; transform:translateY(2px) rotate(-1deg); box-shadow:0 2px 0 var(--ink); }
   .gcard.on::after { content:''; position:absolute; top:-9px; right:-7px; width:28px; height:28px; border-radius:50%; background:var(--green) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cpath d='m11 25 9 9 18-20' fill='none' stroke='%231d1838' stroke-width='8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 70% no-repeat;
     border:var(--ln) solid var(--ink); animation:stick .25s var(--pop); }
@@ -688,7 +696,7 @@
   @media (min-width:440px) { .tags { display:flex; flex-wrap:nowrap; justify-content:center; gap:5px; width:auto; } .tags button { padding:6px 9px; } }
   .tags button[data-t]:not([data-t="all"])::before { content:''; display:inline-block; flex:none; width:9px; height:9px; margin-right:6px; border-radius:50%; background:var(--gc); border:2px solid var(--ink); vertical-align:0; }
   .tags [data-t="refleks"] { --gc:var(--red); } .tags [data-t="hiz"] { --gc:var(--orange); } .tags [data-t="zeka"] { --gc:var(--blue); } .tags [data-t="hafiza"] { --gc:var(--green); }
-  .gcard.hide { display:none; }
+  .gcard.hide, .gsec.hide { display:none; }
   .gcard .ic { width:48px; height:48px; padding:5px; border-radius:var(--r-s); display:block; background:var(--gc); border:var(--ln) solid var(--ink); margin:0 0 4px; }
   .gcard .tg { font-family:var(--f-display); font-size:11px; font-weight:600; letter-spacing:.1em; opacity:.72; }
   .gcard .nm2 { font-family:var(--f-display); font-size:16px; font-weight:600; line-height:1.15; }
@@ -3676,11 +3684,17 @@
   };
   const TAG_LABEL = { refleks: 'REFLEKS', hiz: 'HIZ', zeka: 'ZEKA', hafiza: 'DİKKAT' };
   let tagFilter = 'all';
-  $('#cards').innerHTML = GAMES.map((g, k) =>
-    '<button class="gcard" data-k="' + k + '" data-t="' + (TAG_OF[g.name] || '') + '">' + ico(g.icon, 'ic') +
-    '<span class="tg">' + (TAG_LABEL[TAG_OF[g.name]] || '') + '</span><span class="nm2">' + g.name + '</span><span class="ht">' + g.hint + '</span></button>').join('');
+  // Kartlar KATEGORIYE gore birlikte dizilir (Refleks, Hiz, Zeka, Dikkat; kategori icinde oyun listesi sirasi); data-k yine GAMES dizinidir. "Tumu" gorunumunde her grubun basinda baslik seridi durur.
+  const TAG_ORDER = ['refleks', 'hiz', 'zeka', 'hafiza'];
+  const gcardHtml = k => { const g = GAMES[k];
+    return '<button class="gcard" data-k="' + k + '" data-t="' + (TAG_OF[g.name] || '') + '">' + ico(g.icon, 'ic') +
+      '<span class="tg">' + (TAG_LABEL[TAG_OF[g.name]] || '') + '</span><span class="nm2">' + g.name + '</span><span class="ht">' + g.hint + '</span></button>'; };
+  $('#cards').innerHTML = TAG_ORDER.map(t => {
+    const ks = GAMES.map((g, k) => k).filter(k => TAG_OF[GAMES[k].name] === t);
+    return ks.length ? '<div class="gsec" data-t="' + t + '"><i></i><b>' + TAG_LABEL[t] + '</b><span></span><small>' + ks.length + ' oyun</small></div>' + ks.map(gcardHtml).join('') : '';
+  }).join('') + GAMES.map((g, k) => k).filter(k => !TAG_ORDER.includes(TAG_OF[GAMES[k].name])).map(gcardHtml).join('');        // etiketsiz oyun kalmaz (yedek)
   $('#mtrack').innerHTML = [...GAMES, ...GAMES].map(g => ico(g.icon)).join('');        // ana menudeki kayan oyun ikonlari
-  const applyTag = () => [...$('#cards').children].forEach(c => c.classList.toggle('hide', tagFilter !== 'all' && c.dataset.t !== tagFilter));
+  const applyTag = () => [...$('#cards').children].forEach(c => c.classList.toggle('hide', tagFilter !== 'all' && (c.classList.contains('gsec') || c.dataset.t !== tagFilter)));
   const paintTag = () => { [...$('#tag-row').children].forEach(x => x.classList.toggle('sel', x.dataset.t === tagFilter)); applyTag(); };
   $('#tag-row').addEventListener('click', e => {
     const b = e.target.closest('button'); if (!b) return;
@@ -3692,7 +3706,7 @@
     return modeKey === 'yaris' ? 'ilk ' + val + ' puana kadar' : modeKey === 'can' ? val + ' can, son kalan kazanır' : Math.max(val, sel.size) + ' tur';
   };
   const paintSel = () => {
-    [...$('#cards').children].forEach(c => c.classList.toggle('on', sel.has(+c.dataset.k)));
+    $('#cards').querySelectorAll('.gcard').forEach(c => c.classList.toggle('on', sel.has(+c.dataset.k)));
     $('#pcount').innerHTML = '<span>' + sel.size + ' oyun seçili</span>' + (sel.size ? '<small>' + planText() + '</small>' : '');
     $('#play-sel').disabled = sel.size === 0;
   };

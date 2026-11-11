@@ -4,7 +4,7 @@ Aynı telefonu paylaşan 2-4 arkadaş için hızlı mini oyunlar. Ekran oyuncu s
 
 17 mini oyun var. Ana menüden iki şekilde oynanır:
 - **Karışık Maç:** oyunlar rastgele sırayla ve tekrarsız oynanır (3 / 5 / 8 / 12 tur).
-- **Oyun Seç:** listeden bir oyun seçilir ve yalnızca o oyun seçilen tur sayısı kadar oynanır.
+- **Oyun Seç:** listeden bir ya da birden fazla oyun seçilir. Oyunlar kategorilerine göre (Refleks, Hız, Zeka, Dikkat) gruplanmış, her grubun başında başlık şeridi bulunur; üstteki çiplerle tek bir kategori gösterilebilir.
 
 Her turdan önce ekranın ortasında **tur kartı** çıkar ("TUR 2 / 8" + oyunun adı + kural özeti, iki yönden okunur), ardından 3-2-1 geri sayım başlar. Oyun sırasında her bölgenin alt/üst kenarında oyuncu adı, puan ve "oyun adı · tur" etiketi durur; 3-4 oyunculu dar bölgelerde bu etiket ayrı bir satıra alınır, böylece kesilmez ve oyun alanına binmez. Tur sayacı küçük bir hap olarak bölgenin ucundadır ve içeriğin üstüne taşmaz. Maç bitince kazanan bölge **altın renkte yanıp söner**, "👑 KAZANAN" yazar ve konfeti saçar. Diğer bölgeler sönükleşir ve sıralamasını gösterir. Sonuç her bölgede o oyuncuya doğru yazıldığı için iki yönden de okunur. Ardından "Tekrar" ve "Menü" düğmeleri çıkar.
 
