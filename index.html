@@ -1167,11 +1167,11 @@
       <button class="sm" id="g-lan-join">Bağlan</button>
     </div>
     <div class="box" id="g-rtc">
-      <b>1) Host'un gönderdiği kodu yapıştır</b>
+      <b>1) Oda sahibinin gönderdiği kodu yapıştır</b>
       <textarea id="g-code" rows="3" placeholder="Kodu buraya yapıştır"></textarea>
       <button class="sm" id="g-join">Bağlan</button>
       <div id="g-ansbox" class="hidden">
-        <b>2) Bu cevap kodunu host'a gönder</b>
+        <b>2) Bu cevap kodunu oda sahibine gönder</b>
         <textarea id="g-ans" readonly rows="3"></textarea>
         <div class="row" style="margin-top:8px"><button class="sm" id="g-copy">Kopyala</button><button class="sm" id="g-share">Paylaş</button></div>
       </div>
@@ -3444,7 +3444,7 @@
     const timer = setTimeout(() => { if (chan.readyState !== 'open') { try { ws.close(); } catch (_) {} failLan(); } }, 6000);
     ws.onopen = () => {
       clearTimeout(timer); chan.readyState = 'open'; net.gws = ws; wireGuest(chan, true);
-      net.welcomeT = setTimeout(() => { if (net.on && !net.leaving && !net.token) leaveNet('Host cevap vermedi'); }, HELLO_MS + 2000);      // el sikisma cevabi gelmezse sonsuza kadar beklenmez
+      net.welcomeT = setTimeout(() => { if (net.on && !net.leaving && !net.token) leaveNet('Oda sahibi cevap vermedi'); }, HELLO_MS + 2000);      // el sikisma cevabi gelmezse sonsuza kadar beklenmez
     };
     ws.onmessage = e => { if (chan.onmessage) chan.onmessage({ data: e.data }); };
     ws.onerror = () => { if (chan.readyState !== 'open') { clearTimeout(timer); failLan(); } };
@@ -3461,7 +3461,7 @@
   // ---- host ----
   const pingTxt = ms => ms ? Math.round(ms) + ' ms' : '';
   const rosterHtml = (names, myIdx, pings, awayArr) => names.map((n, i) =>
-    '<li style="--c:' + COLORS[i] + '"><span class="av">' + (i + 1) + '</span><span>' + esc(n) + (i === myIdx ? ' (sen)' : '') + (awayArr && awayArr[i] ? '<i class="wn">!</i>' : '') + '</span><span class="pg">' + (i === 0 && myIdx !== 0 ? 'host' + (pings && pings[i] ? ' · ' : '') : '') + pingTxt(pings && pings[i]) + '</span></li>').join('');
+    '<li style="--c:' + COLORS[i] + '"><span class="av">' + (i + 1) + '</span><span>' + esc(n) + (i === myIdx ? ' (sen)' : '') + (awayArr && awayArr[i] ? '<i class="wn">!</i>' : '') + '</span><span class="pg">' + (i === 0 && myIdx !== 0 ? 'oda sahibi' + (pings && pings[i] ? ' · ' : '') : '') + pingTxt(pings && pings[i]) + '</span></li>').join('');
   function paintHost() {
     const peers = livePeers();
     const names = [nameOf(0), ...peers.map(p => p.name)];
@@ -3742,14 +3742,14 @@
       return failLan('Bağlantı kurulamadı, kodu kontrol et');
     }
     $('#g-ansbox').classList.remove('hidden');
-    $('#g-status').textContent = 'Bu cevap kodunu host\'a gönder. Host kodu girince otomatik bağlanırsın.';
+    $('#g-status').textContent = 'Bu cevap kodunu oda sahibine gönder. Oda sahibi kodu girince otomatik bağlanırsın.';
   }
   function wireGuest(dc, open, token) {
     net.gdc = dc;
     dc.onmessage = guardMsg(onGuestMsg);
     dc.onclose = () => {
       if (!net.on || net.leaving || net.gdc !== dc) return;
-      if (net.lanIp && net.token) guestReconnect(); else leaveNet('Host ile bağlantı koptu');   // LAN: otomatik yeniden baglan
+      if (net.lanIp && net.token) guestReconnect(); else leaveNet('Oda sahibiyle bağlantı koptu');   // LAN: otomatik yeniden baglan
     };
     const hello = () => jsend(dc, Object.assign({ t: 'hello', v: buildVersion(), name: prefs.names[0] }, token ? { token } : {}));
     if (open || dc.readyState === 'open') hello(); else dc.onopen = hello;                    // WebRTC: kanal "ondatachannel"de zaten acik olabilir (open olayi gelmeyebilir)
@@ -3814,7 +3814,7 @@
       clearTimeout(net.welcomeT);
       if (isStr(m.v, 64) && m.v !== buildVersion()) { leaveNet('Uygulama sürümleri uyuşmuyor. Herkes Dokun!\'u güncellemeli.'); return; }
       net.token = isStr(m.token, 40) ? m.token : null;
-      $('#g-status').textContent = 'Bağlandı. Host maçı başlatınca oyun başlar.';
+      $('#g-status').textContent = 'Bağlandı. Oda sahibi maçı başlatınca oyun başlar.';
       wake.on(); startPing();
     }
     else if (m.t === 'pong') { if (isNum(m.t0, 0, 1e12) && isNum(m.h, 0, 1e12)) onPong(m); }
@@ -3825,7 +3825,7 @@
       $('#g-list').innerHTML = rosterHtml(m.names, m.idx, Array.isArray(m.pings) ? m.pings.map(x => isNum(x, 0, 60000) ? x : 0) : []);
     }
     else if (m.t === 'bad') { if (net.rejoinDone) net.rejoinDone(false); leaveNet(isStr(m.msg, 120) && m.msg ? m.msg : 'Bağlantı reddedildi'); }
-    else if (m.t === 'bye') { leaveNet('Host odayı kapattı'); }
+    else if (m.t === 'bye') { leaveNet('Oda sahibi odayı kapattı'); }
     else if (m.t === 'resume') {                                            // yeniden baglandik: durumu al, sonraki turdan devam et
       if (!isInt(m.idx, 0, 3)) return;
       const started = m.started === true;
