@@ -1278,10 +1278,12 @@
     return {
       play(p, pri) {
         if (!can()) return false;
+        const now = performance.now();
+        if (pri && ((now < until && pri < lastPri) || (now - lastAt < GAP[pri] && pri <= lastPri))) return false;           // erken cikis (tik yagmurunda ucuz yol)
         const a = norm(p); if (!a.length) return false;
-        const total = a.reduce((s, v) => s + v, 0), pr = pri || (total >= 60 ? 3 : 2), now = performance.now();
+        const total = a.reduce((s, v) => s + v, 0), pr = pri || (total >= 60 ? 3 : 2);
         if (now < until && pr < lastPri) return false;           // suren onemli titresimi hafif bir tik kesmesin
-        if (now - lastAt < GAP[pr]) return false;
+        if (now - lastAt < GAP[pr] && pr <= lastPri) return false;           // ayni / dusuk onemde sik titresim seyreltilir; daha onemli olay (tik'ten sonra gelen dogru / yanlis) her zaman gecer
         let ok = false;
         try { ok = navigator.vibrate(a.length === 1 ? a[0] : a); } catch (_) {}
         lastAt = now; until = now + total; lastPri = pr;
@@ -1337,6 +1339,24 @@
       if (!m.noise) { const r = mkRng(0xc0ffee), b = c.createBuffer(1, Math.floor(c.sampleRate), c.sampleRate), d = b.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = r() * 2 - 1; m.noise = b; }
       return m.noise;
     };
+    // En sik calan ses (dokunus tiki) onceden uretilmis kisa bir ornekten calinir: tek kaynak, cok ucuz (dusuk donanimda 4 oyuncu hizli dokunur).
+    // Ornek: bant gecirenle suzulmus gurultu (~1,7 kHz) + perde dusen sinus, ustel zarf, 1,5 ms giris (catirti yok).
+    const clickBuf = c => {
+      const m = cache(c);
+      if (!m.click) {
+        const sr = c.sampleRate, n = Math.floor(sr * 0.034), b = c.createBuffer(1, n, sr), d = b.getChannelData(0), r = mkRng(0x71c4);
+        const w0 = 2 * Math.PI * 1700 / sr, al = Math.sin(w0) / 2.2, a0 = 1 + al, a1 = -2 * Math.cos(w0), a2 = 1 - al;
+        let x1 = 0, x2 = 0, y1 = 0, y2 = 0, ph = 0, pk = 0;
+        for (let i = 0; i < n; i++) {
+          const x = i / n, env = Math.exp(-x * 6.5) * Math.min(1, i / (sr * 0.0015)), xn = r() * 2 - 1, yn = (al * xn - al * x2 - a1 * y1 - a2 * y2) / a0;
+          x2 = x1; x1 = xn; y2 = y1; y1 = yn; ph += 2 * Math.PI * (500 - 180 * x) / sr;
+          d[i] = env * (yn * 0.7 + Math.sin(ph) * 0.55); if (Math.abs(d[i]) > pk) pk = Math.abs(d[i]);
+        }
+        const k = 0.062 / (pk || 1); for (let i = 0; i < n; i++) d[i] *= k;           // tepe sabitlenir (cikis zincirinden sonra ~ -21 dBFS)
+        m.click = b;
+      }
+      return m.click;
+    };
     // R: bir baglama bagli cizim yardimcisi (canli ve cevrimdisi olcumde ayni tarifler calisir)
     const mkR = (c, dest, rnd, rot) => {
       const R = { c, key: 0, g: 1 };
@@ -1365,6 +1385,10 @@
         osc.onended = () => { try { osc.disconnect(); g.disconnect(); if (bq) bq.disconnect(); } catch (_) {} };
         if (o.oct) R.tone(f * 2, t, dur * 0.6, { type: 'sine', vol: (o.vol == null ? 0.2 : o.vol) * 0.22, atk });
       };
+      R.click = (t, rate) => {                                              // hazir tik ornegi (en ucuz yol)
+        const src = c.createBufferSource(); src.buffer = clickBuf(c); src.playbackRate.value = rate;
+        src.connect(dest); src.start(t); src.onended = () => { try { src.disconnect(); } catch (_) {} };
+      };
       R.pluck = (f, t, dur, vol, o) => R.tone(f, t, dur, Object.assign({ wave: 'pluck', vol, lp: [Math.min(f * 8, 9000), Math.max(f * 1.5, 400)] }, o));
       R.bell = (f, t, dur, vol) => R.tone(f, t, dur, { wave: 'glass', vol, oct: 1, atk: 0.004 });
       R.noise = (t, dur, o) => {
@@ -1390,7 +1414,7 @@
     // ---- efekt tarifleri: [oncelik, en kisa aralik ms, kaynak sayisi, uzunluk sn, cizim] ----
     // Oncelik 1 = dokunus tiki, 2 = kucuk olay, 3 = olay, 4 = onemli geri bildirim, 5 = tur / mac sesi (yuk altinda hep calinir).
     const RC = {
-      tick:    [1, 26, 2, 0.07, (R, t) => { R.noise(t, 0.022, { f0: 2300 * R.jit(0.08), q: 1.1, vol: 0.1, atk: 0.001 }); R.tone(500 * R.jit(0.05), t, 0.032, { vol: 0.03, to: 320, atk: 0.002 }); }],
+      tick:    [1, 26, 1, 0.04, (R, t) => { R.click(t, R.jit(0.06)); }],
       preview: [2, 0, 3, 0.25, (R, t) => { R.pluck(R.n(7), t, 0.12, 0.22); R.pluck(R.n(12), t + 0.05, 0.14, 0.16); }],
       count:   [3, 80, 3, 0.25, (R, t) => { R.pluck(R.n(0), t, 0.16, 0.26); R.tone(R.n(12), t, 0.09, { vol: 0.05, atk: 0.003 }); }],
       go:      [5, 200, 8, 0.7, (R, t) => { [0, 4, 7, 12].forEach((d, i) => R.pluck(R.n(d), t + i * 0.016, 0.34, 0.17)); R.pluck(R.n(19), t + 0.09, 0.3, 0.07); }],
@@ -1489,11 +1513,13 @@
       }
       last[name] = wall;
       live.push({ end: now + len, cost });
-      const R = mkR(c, sfxIn, rng, rotC); R.key = key; R.g = g;
+      const R = liveR(c); R.key = key; R.g = g;
       try { fn(R, now + 0.005, arg); } catch (e) { if (!bad[name]) { bad[name] = 1; console.error('Ses hatasi (' + name + '):', e); } return false; }       // ses hatasi oyunu asla durdurmaz
       st.played++;
       return true;
     };
+    let lrC = null, lrR = null;                                          // canli baglam icin tek cizim yardimcisi (her cagrida yeniden kurulmaz)
+    const liveR = c => { if (lrC !== c) { lrC = c; lrR = mkR(c, sfxIn, rng, rotC); } return lrR; };
     const play = (name, arg) => { const r = RC[name]; return r ? run(name, r[0], r[1], r[2], r[3], r[4], arg, r[0] >= 2) : false; };
     // Genel amacli yumusak nota (oyunlarin eski tone / blip cagrilari icin): kare / testere isteyen eski cagrilar yumusatilir
     const note = (f, d, o) => {
@@ -1608,7 +1634,8 @@
       if (hold) g.gain.linearRampToValueAtTime(vol, t + atk + hold);          // pad: seviyeyi tutar, "nefes alip verme" olmaz
       g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
       o.connect(g); g.connect(dest); o.start(t); o.stop(t + dur + 0.05);
-      o.onended = () => { try { o.disconnect(); g.disconnect(); } catch (_) {} };
+      const reg = dest._o; if (reg) reg.push(o);                                  // grubun kaynaklari: grup sonunce kalan sessiz kuyruklar hemen durdurulur
+      o.onended = () => { try { o.disconnect(); g.disconnect(); if (reg) { const i = reg.indexOf(o); if (i >= 0) reg.splice(i, 1); } } catch (_) {} };
     };
     const pad = (c, dest, f, t, dur, vol, atk, hold) => { note(c, dest, f, t, dur, 'sine', vol * 0.62, atk, hold, -6); note(c, dest, f, t, dur, 'sine', vol * 0.45, atk, hold, 6); };       // iki hafif ayarsiz sinus: genis, canli ped
     const hat = (c, dest, t, vol, off) => {
@@ -1631,6 +1658,7 @@
     // Ruh hali grubu: notalar -> (kuru + tempoya bagli yanki) -> cikis kazanci. Gecislerde eski grup sonerken yenisi acilir (kesintisiz).
     const makeGroup = (c, out, M) => {
       const inp = c.createGain(), o = c.createGain(), all = [inp, o];
+      inp._o = [];
       inp.connect(o); o.connect(out);
       if (M.echo) {
         const send = c.createGain(), dl = c.createDelay(1.5), fb = c.createGain(), lp = c.createBiquadFilter();
@@ -1640,7 +1668,7 @@
       }
       return { inp, out: o, all };
     };
-    const dispose = g => { if (!g) return; setTimeout(() => { g.all.forEach(n => { try { n.disconnect(); } catch (_) {} }); }, 3000); };      // soniklenen grup (yanki dongusu dahil) tamamen cozulur
+    const dispose = g => { if (!g) return; setTimeout(() => { g.inp._o.slice().forEach(o => { try { o.stop(); } catch (_) {} }); g.all.forEach(n => { try { n.disconnect(); } catch (_) {} }); }, 3000); };      // sonmus grup (yanki dongusu dahil) tamamen cozulur, kalan sessiz kuyruk notalari durdurulur
     const graph = () => {
       const c = audio.unlock(); if (!c) return null;
       if (!master) {
