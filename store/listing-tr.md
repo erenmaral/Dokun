@@ -13,7 +13,7 @@ Dokun! arkadaşlarla aynı ekranda oynanan, birkaç saniyede biten hızlı mini 
 • Tepki: Yeşil yanınca ilk dokunan kazanır. Sahte sarı işarete aldanma!
 • Seri Dokun: 5 saniyede en çok dokunan kazanır.
 • Tam Ortada: Kayan topu yeşil banda en yakın durdur.
-• Hedef Avı, Balon Patlat, Köstebek Avı: Hızlı ve isabetli ol.
+• Hedef Avı, Ritim, Köstebek Avı: Hızlı, isabetli ve ritminde ol.
 • Sayı Sırası, Tek Farklı, Hafıza Eşleştir: Gözün ve hafızan hızlı çalışsın.
 • Renk Tuzağı, Hızlı Matematik, Ok Yönü, Say Bakalım: Zihinsel çeviklik yarışı.
 • Işık Oyunu, Renk Dizisi, Tut ve Bırak: Zamanlama ve dikkat.

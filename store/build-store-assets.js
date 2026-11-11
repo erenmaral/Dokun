@@ -74,13 +74,16 @@ async function phoneShots(b, tag, vw, vh, dsf, list) {
   const S = {
     '01-menu': async () => { await p.screenshot({ path: out('01-menu') }); },
     '02-tur-karti': async () => {
-      await p.evaluate(() => { __dokun.setup(2); __dokun.play([__dokun.GAMES.find(g => g.name === 'Balon Patlat')]); });
+      await p.evaluate(() => { __dokun.setup(2); __dokun.play([__dokun.GAMES.find(g => g.name === 'Ritim')]); });
       await p.waitForTimeout(1100); await p.screenshot({ path: out('02-tur-karti') }); await p.evaluate(() => __dokun.quitMatch());
     },
-    '03-balon': async () => {
-      await startGame(p, 'Balon Patlat', 2); await p.waitForTimeout(1800);
-      await tapEls(p, '.zone .balloon, .zone [class*="balloon"]', 2); await p.waitForTimeout(160);
-      await p.screenshot({ path: out('03-balon') });
+    '03-ritim': async () => {
+      await startGame(p, 'Ritim', 2);
+      // ilk vurus gelince iki oyuncu da tam zamaninda dokunur: puan + geri bildirim gorunur, ikinci halka yaklasir
+      await p.waitForFunction(() => document.querySelector('.zone .rit-tg.beat'), null, { timeout: 6000, polling: 8 }).catch(() => {});
+      await tapEls(p, '.zone .rit-tg', 2);
+      await p.waitForTimeout(420);
+      await p.screenshot({ path: out('03-ritim') });
     },
     '04-hafiza-4': async () => {
       await startGame(p, 'Hafıza Eşleştir', 4); await p.waitForTimeout(900);
@@ -143,10 +146,10 @@ async function phoneShots(b, tag, vw, vh, dsf, list) {
 (async () => {
   const b = await chromium.launch();
   await featureGraphic(b);
-  const ALL = ['01-menu', '02-tur-karti', '03-balon', '04-hafiza-4', '05-tepki', '06-hedef-3', '07-kazanan', '08-oyun-sec', '09-cevrimici'];
+  const ALL = ['01-menu', '02-tur-karti', '03-ritim', '04-hafiza-4', '05-tepki', '06-hedef-3', '07-kazanan', '08-oyun-sec', '09-cevrimici'];
   await phoneShots(b, 'phone', 360, 640, 3, ALL);              // 1080x1920
-  await phoneShots(b, 'tablet7', 600, 960, 2, ['01-menu', '03-balon', '04-hafiza-4']);   // 1200x1920
-  await phoneShots(b, 'tablet10', 800, 1280, 2, ['01-menu', '03-balon', '04-hafiza-4']); // 1600x2560
+  await phoneShots(b, 'tablet7', 600, 960, 2, ['01-menu', '03-ritim', '04-hafiza-4']);   // 1200x1920
+  await phoneShots(b, 'tablet10', 800, 1280, 2, ['01-menu', '03-ritim', '04-hafiza-4']); // 1600x2560
   await b.close();
   console.log('tamam: ' + OUT);
 })();
