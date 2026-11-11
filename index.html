@@ -133,10 +133,11 @@
   @keyframes tpop { from { transform:scale(.2) rotate(-40deg); opacity:0; } 60% { opacity:1; } to { transform:scale(1) rotate(0); opacity:1; } }
   @keyframes tbob { to { transform:translateY(-3px) rotate(3deg); } }
   @keyframes tping { from { transform:scale(.8); opacity:.95; } to { transform:scale(2.1); opacity:0; } }
-  .hitfx { position:absolute; width:76px; height:76px; margin:-38px 0 0 -38px; pointer-events:none; z-index:2; animation:hitfx .4s var(--out) forwards; }
+  .hitfx { --hs:38px; position:absolute; width:calc(var(--hs) * 2); height:calc(var(--hs) * 2); margin:calc(var(--hs) * -1) 0 0 calc(var(--hs) * -1); pointer-events:none; z-index:2; animation:hitfx .4s var(--out) forwards; }
   .hitfx svg { display:block; width:100%; height:100%; }
-  .hitfx i { position:absolute; left:50%; top:50%; width:11px; height:11px; margin:-5px 0 0 -5px; border-radius:3px; background:var(--c); border:2px solid var(--ink); animation:shard .5s var(--out) forwards; }
-  @keyframes hitfx { from { transform:scale(.35) rotate(-20deg); opacity:1; } to { transform:scale(1.35) rotate(14deg); opacity:0; } }
+  .hitfx i { position:absolute; left:50%; top:50%; width:11px; height:11px; margin:-5px 0 0 -5px; border-radius:3px; background:var(--c); border:2px solid var(--ink); animation:hshard .5s var(--out) forwards; }
+  @keyframes hitfx { from { transform:scale(.35) rotate(-20deg); opacity:1; } to { transform:scale(1) rotate(14deg); opacity:0; } }
+  @keyframes hshard { from { transform:rotate(var(--a)) translateY(-6px) scale(1); opacity:1; } to { transform:rotate(var(--a)) translateY(calc(var(--hs) * -1 + 6px)) scale(.4); opacity:0; } }
   .tg-miss { position:absolute; width:26px; height:26px; margin:-13px 0 0 -13px; border-radius:50%; background:var(--paper); border:var(--ln-s) solid var(--ink); box-shadow:var(--sh-xs); pointer-events:none; z-index:4; animation:tgmiss .5s var(--out) forwards; }
   .tg-miss::before, .tg-miss::after { content:''; position:absolute; left:50%; top:50%; width:14px; height:4px; margin:-2px 0 0 -7px; border-radius:2px; background:var(--red); transform:rotate(45deg); }
   .tg-miss::after { transform:rotate(-45deg); }
@@ -555,7 +556,7 @@
   .hole { position:relative; overflow:hidden; min-width:0; min-height:0; }
   .hole .mh-b, .hole .mh-f { position:absolute; left:0; top:0; width:100%; height:100%; display:block; pointer-events:none; }
   .hole .mh-f { z-index:2; }
-  .hole .mh-m { position:absolute; left:6%; top:12%; width:88%; height:88%; z-index:1; pointer-events:none; transform:translateY(100%); transform-origin:50% 100%; visibility:hidden; }
+  .hole .mh-m { position:absolute; left:6%; top:12%; width:88%; height:88%; z-index:1; pointer-events:none; transform:scale(.9, .02); transform-origin:50% 100%; visibility:hidden; }
   .hole .mh-m svg { display:block; width:100%; height:100%; overflow:visible; }
   .hole.up .mh-m, .hole.dn .mh-m, .hole.hit .mh-m { visibility:visible; }
   .hole.up .mh-m { animation:mup .2s var(--out) both; }
@@ -569,9 +570,10 @@
   .mgrid .mk-lock { position:absolute; left:50%; top:50%; width:26%; height:26%; margin:-13% 0 0 -13%; z-index:4; pointer-events:none; opacity:0; transform:scale(.4); transition:opacity .1s; }
   .mgrid.lk::after { content:''; position:absolute; inset:0; z-index:3; border-radius:inherit; background:rgba(29,24,56,.55); pointer-events:none; }
   .mgrid.lk .mk-lock { opacity:1; animation:lockpop .35s var(--pop) forwards; }
-  @keyframes mup { 0% { transform:translateY(100%); } 62% { transform:translateY(-5%); } 100% { transform:translateY(0); } }
-  @keyframes mdown { from { transform:translateY(0); } to { transform:translateY(100%); } }
-  @keyframes mhit { 0% { transform:translateY(0) scale(1.12, .78); } 38% { transform:translateY(7%) scale(1, .88) rotate(-7deg); } 100% { transform:translateY(100%) rotate(9deg); } }
+  /* kostebek deliginin dibinden buyuyerek (alt noktadan olceklenir) cikar: oge kutusu hicbir karede hucrenin disina cikmaz; on kenar (mh-f) alt govdeyi gizler */
+  @keyframes mup { 0% { transform:scale(.88, .02); } 42% { transform:scale(.94, 1.12); } 72% { transform:scale(1.05, .95); } 100% { transform:none; } }
+  @keyframes mdown { from { transform:none; } to { transform:scale(.88, .02); } }
+  @keyframes mhit { 0% { transform:scale(1.14, .76); } 38% { transform:scale(1.04, .86); } 100% { transform:scale(.88, .02); } }
   @keyframes lockpop { from { transform:scale(.4) rotate(-20deg); } to { transform:scale(1) rotate(0); } }
   .card { font-size:30px; }
   .card .qm { font-family:var(--f-display); font-weight:700; font-size:1.25em; color:var(--paper); text-shadow:var(--ol2); line-height:1; }
@@ -1293,6 +1295,7 @@
       const a = A(i), r = a.getBoundingClientRect();
       let x = e.clientX - r.left, y = e.clientY - r.top;
       if (zones[i].classList.contains('flip')) { x = r.width - x; y = r.height - y; }
+      x = Math.min(r.width - 17, Math.max(17, x)); y = Math.min(a.clientHeight - 24, Math.max(17, y));        // isaret arena icinde kalir (kenara yakin dokunuslarda biraz iceri alinir)
       a.insertAdjacentHTML('beforeend', '<div class="tg-miss" style="left:' + x.toFixed(0) + 'px;top:' + y.toFixed(0) + 'px"></div>');
       const m = a.lastElementChild; m.addEventListener('animationend', () => m.remove());
       hdTone(210, 0.1, { vol: 0.1, slide: -70 }); hdVib(10);
@@ -1305,7 +1308,7 @@
     };
     const hit = i => {
       const a = A(i), t = a.querySelector('.tgt'), k = cnt[i], last = k + 1 >= GOAL;
-      const hf = document.createElement('div'); hf.className = 'hitfx'; hf.style.left = t.style.left; hf.style.top = t.style.top;
+      const hf = document.createElement('div'); hf.className = 'hitfx'; hf.style.left = t.style.left; hf.style.top = t.style.top; hf.style.setProperty('--hs', (sizeOf(k) / 2 + 4) + 'px');      // efekt hedefin biraz disina cikar, arena disina tasmaz
       hf.innerHTML = ico('a-burst') + [0, 1, 2, 3, 4, 5].map(j => '<i style="--a:' + (j * 60 + 20) + 'deg"></i>').join('');
       hf.addEventListener('animationend', ev => { if (ev.target === hf) hf.remove(); }); a.appendChild(hf);
       cnt[i]++; missT[i] = []; hdBump(i); pulse(i, 'fok');
