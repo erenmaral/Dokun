@@ -1858,7 +1858,11 @@
         if (vt.paused || dead[pi]) return;
         try { z.setPointerCapture(e.pointerId); } catch (_) {}
         ripple(z, e, flipped);
-        if (handler) { fx.tick(); handler(i, e); }
+        if (handler) {
+          const locked = z.dataset.s === 'out';                     // ceza kilidi / elenmis: dokunus yok sayilir; gecerli dokunus gibi tik + titresim yerine yumusak "kilitli" sesi
+          const r = handler(i, e);
+          if (locked) audio.play('lock'); else if (r !== false) fx.tick();           // handler false dondururse (ornegin Hafiza kilidi, kendi sesini calar) tik calmaz
+        }
       });
       const up = () => { if (upHandler) upHandler(i); };
       z.addEventListener('pointerup', up);
@@ -3021,7 +3025,7 @@
         if (held[i]) {                                                   // yanlis ciftten sonra kilit: dokunus yok sayilir, acik cift "bekle" diye sallanir
           held[i].forEach(x => { x.classList.remove('miss'); void x.offsetWidth; x.classList.add('miss'); });
           audio.play('lock');
-          return;
+          return false;                                                  // gecerli dokunus degil: bolge dinleyicisi tik / titresim vermez
         }
         const c = e.target.closest && e.target.closest('.card');
         if (!c || c.classList.contains('open') || c.classList.contains('done')) return;
