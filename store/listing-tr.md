@@ -9,12 +9,12 @@ Aynı telefonda 2-4 kişi ya da yakındaki telefonlarla hızlı mini oyun yarı�
 
 Dokun! arkadaşlarla aynı ekranda oynanan, birkaç saniyede biten hızlı mini oyunlardan oluşan bir parti oyunudur. Telefonu masaya koy, herkes kendi bölgesine otursun, 3-2-1 ile başla!
 
-🎮 16 MİNİ OYUN
+🎮 17 MİNİ OYUN
 • Tepki: Yeşil yanınca ilk dokunan kazanır. Sahte sarı işarete aldanma!
 • Seri Dokun: 5 saniyede en çok dokunan kazanır.
 • Tam Ortada: Kayan topu yeşil banda en yakın durdur.
 • Hedef Avı, Ritim, Köstebek Avı: Hızlı, isabetli ve ritminde ol.
-• Sayı Sırası, Tek Farklı, Hafıza Eşleştir: Gözün ve hafızan hızlı çalışsın.
+• Sayı Sırası, Kaydırmaca, Tek Farklı, Hafıza Eşleştir: Gözün, aklın ve hafızan hızlı çalışsın.
 • Renk Tuzağı, Hızlı Matematik, Ok Yönü, Say Bakalım: Zihinsel çeviklik yarışı.
 • Işık Oyunu, Renk Dizisi, Tut ve Bırak: Zamanlama ve dikkat.
 

@@ -2,7 +2,7 @@
 
 Aynı telefonu paylaşan 2-4 arkadaş için hızlı mini oyunlar. Ekran oyuncu sayısına göre bölünür, üstteki oyuncular karşıdan oynar. Çoklu dokunuş desteklenir. Tek dosya (`index.html`): yazı tipleri ve simgeler içine gömülü, internet gerekmez.
 
-16 mini oyun var. Ana menüden iki şekilde oynanır:
+17 mini oyun var. Ana menüden iki şekilde oynanır:
 - **Karışık Maç:** oyunlar rastgele sırayla ve tekrarsız oynanır (3 / 5 / 8 / 12 tur).
 - **Oyun Seç:** listeden bir oyun seçilir ve yalnızca o oyun seçilen tur sayısı kadar oynanır.
 
@@ -13,6 +13,7 @@ Her turdan önce ekranın ortasında **tur kartı** çıkar ("TUR 2 / 8" + oyunu
 - **Tam Ortada:** kayan topu yeşil banda en yakın durduran kazanır. Top herkes için aynı hızda ve zamanla hızlanır.
 - **Hedef Avı:** çıkan hedefe dokun, 6 hedefe ilk ulaşan kazanır. Hedef her isabette küçülür, yakına dokunmak yeter. Herkes aynı hedef dizisini görür (yeni hedef öncekinden uzakta çıkar), ıska küçük bir "x" ve yumuşak sesle belli olur; üst üste 3 ıska kısa süre dondurur. İsabetler pentatonik bir merdiven çıkar; üstte 15 saniyelik süre çubuğu vardır.
 - **Sayı Sırası:** 1'den 6'ya sırayla dokun, ilk bitiren kazanır.
+- **Kaydırmaca:** kolay bir kaydırmalı bulmaca. 3×3 tahtada 1'den 8'e numaralı kutuları boşluğa kaydırıp sıraya diz. Boşlukla aynı sıradaki bir kutuya dokunursan o sıra birlikte kayar, doğru yerdeki kutu yeşil olur ve köşesinde tik rozeti çıkar. Herkes aynı karışık tahtayı çözer (en fazla 6 hamlelik karıştırma, her zaman çözülebilir). İlk bitiren kazanır; süre (30 sn) dolarsa tahtayı en çok düzelten kazanır (hiç dokunmayan puan almaz). Ceza yok.
 - **Tek Farklı:** farklı yüzü bul. 3 bulmacayı (ızgara büyür, yüzler birbirine yaklaşır) ilk çözen kazanır, yanlış dokunan 1,2 sn cezalı.
 - **Renk Tuzağı:** yazının ne yazdığına değil rengine bak, aynı renkteki düğmeyi seç. Her rengin bir şekli de var (üçgen, kare, daire, baklava); şekiller yalnız düğmelerde görünür, yazının yanında ipucu yoktur (Renk körü modunda yazının yanına renkli şekil ve düğmelere desen eklenir). İlk 4 doğruya ulaşan kazanır, yanlışta kısa ceza.
 - **Hızlı Matematik:** doğru sonucu seç. Her oyuncuya aynı zorlukta ama farklı bir işlem çıkar (yandakinin ekranına bakmak işe yaramaz). Sorular zorlaşır (küçük toplama, çıkarma, iki haneli sayılar, çarpma). İlk 4 doğruya ulaşan kazanır; yanlışta 1 sn bekletilirsin, art arda yanlışta ceza 1,5 ve 2 sn'ye çıkar.
