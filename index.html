@@ -1626,7 +1626,8 @@
       a.appendChild(b);
     };
     // Dokunus: once parmagin altindaki GORUNEN en ustteki balon (govde elipsi); yoksa yakin (26 px) normal/altin balon. Bomba yalniz dogrudan isabette patlar.
-    const geo = b => { const r = b.getBoundingClientRect(), w = r.width, h = r.height; return b.dataset.bomb ? { cx: r.left + w / 2, cy: r.top + h * 0.646, rx: w * 0.42, ry: w * 0.42 } : { cx: r.left + w / 2, cy: r.top + h * 0.39, rx: w * 0.42, ry: h * 0.35 }; };
+    // govde elipsi (ekran koordinati): ust siradaki (donuk) bolgede balon ters durur, govde kutunun altina duser -> dikey oran tersine cevrilir
+    const geo = (b, fl) => { const r = b.getBoundingClientRect(), w = r.width, h = r.height, bm = !!b.dataset.bomb, f = bm ? 0.646 : 0.39; return { cx: r.left + w / 2, cy: r.top + h * (fl ? 1 - f : f), rx: w * 0.42, ry: bm ? w * 0.42 : h * 0.35 }; };
     const ell = (g, x, y, pad) => Math.hypot((x - g.cx) / (g.rx + pad), (y - g.cy) / (g.ry + pad));
     const pop = (i, b) => {
       const bomb = !!b.dataset.bomb, gold = !!b.dataset.gold, c = cmb[i], now = vt.now();
@@ -1648,12 +1649,12 @@
     };
     handler = (i, e) => {
       if (over) return;
-      const zr = zones[i].getBoundingClientRect();
+      const zr = zones[i].getBoundingClientRect(), fl = zones[i].classList.contains('flip');
       // yalniz ekranda gorunen balonlar (govde merkezi bolge icinde) patlatilabilir: henuz dogmamis ya da cikmis balon yardim yaricapiyla patlamaz
-      const list = [...zones[i].querySelectorAll('.balloon')].filter(b => { if (b.dataset.dead) return false; const g = geo(b); return g.cy > zr.top + 6 && g.cy < zr.bottom - 6; });
+      const list = [...zones[i].querySelectorAll('.balloon')].filter(b => { if (b.dataset.dead) return false; const g = geo(b, fl); return g.cy > zr.top + 6 && g.cy < zr.bottom - 6; });
       let hit = null;
-      list.forEach(b => { if (ell(geo(b), e.clientX, e.clientY, b.dataset.bomb ? 0 : 6) <= 1) hit = b; });         // DOM sirasi = ust uste siralama: sonuncu en ustte
-      if (!hit) { let bd = 9; list.forEach(b => { if (b.dataset.bomb) return; const d = ell(geo(b), e.clientX, e.clientY, 26); if (d <= 1 && d < bd) { bd = d; hit = b; } }); }
+      list.forEach(b => { if (ell(geo(b, fl), e.clientX, e.clientY, b.dataset.bomb ? 0 : 6) <= 1) hit = b; });         // DOM sirasi = ust uste siralama: sonuncu en ustte
+      if (!hit) { let bd = 9; list.forEach(b => { if (b.dataset.bomb) return; const d = ell(geo(b, fl), e.clientX, e.clientY, 26); if (d <= 1 && d < bd) { bd = d; hit = b; } }); }
       if (hit) pop(i, hit);
     };
     const unbind = hdOnResize(() => !over, fit);
