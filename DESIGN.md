@@ -1,0 +1,77 @@
+# Dokun! tasarim dili: "Cikartma / oyuncak kutusu" (Yon A)
+
+Her sey bir cikartma ya da oyuncak gibi: **duz doygun renkler, kalin murekkep dis cizgisi, sert (bulaniksiz) kaydirilmis golgeler, nokta dokusu, tombul yazi tipi, ziplayan (squash & stretch) hareket.** Tum degisiklikler `index.html` icinde (CSS + satir ici SVG + kucuk JS yamalari); oyun mantigi, zamanlayicilar, ag protokolu ve yerlesim duzeltmeleri korunmustur.
+
+## 1. Renkler (`:root`)
+| belirtec | deger | kullanim |
+|---|---|---|
+| `--ink` | `#1d1838` | TUM dis cizgiler, sert golgeler, panel metni, board zemini |
+| `--paper` | `#fff4dc` | kagit krem: paneller, fisler, kartlar, oyun ici yazi |
+| `--night` / `--night2` | `#2e2766` / `#3a3279` | bolge zemini (bekleme / oyun anlari), menu zemini |
+| `--red` `--green` `--blue` `--yellow` | `#ff5a5f` `#2fd68c` `#47a9f5` `#ffd23f` | oyuncu 1-4 renkleri (cerceve, isim fisi, hedef, ilerleme) |
+| `--purple` `--orange` | `#a56bff` `#ff9442` | yardimci renkler (hafiza karti, balon, ayarlar karosu) |
+| `--*-d` | koyu tonlar | golge/yuzey tonu (balon, oyuncu topu); `color-mix` KULLANILMIYOR (eski WebView guvenligi) |
+
+Kural: bir yuzeyde en fazla bir doygun renk + murekkep + kagit. Oyuncu rengi yalniz cerceve, isim fisi ve oyun nesnelerinde; zemin hep nötr (renk karisikligi olmaz, Renk Tuzagi okunur kalir).
+
+## 2. Yazi tipleri (dis kaynak yok, base64 gomulu, `font-display:block`)
+| aile | kullanim | dosya | bayt (woff2) |
+|---|---|---|---|
+| **DynaPuff** (degisken, 400-700) | logo, basliklar, dugmeler, fisler, rakamlar, oyun ici buyuk yazi | latin + latin-ext | 37.572 + 27.080 |
+| **Baloo 2** (600) | aciklama / ipucu / uzun metin | latin + latin-ext | 19.496 + 15.984 |
+| **Toplam** | | 4 dosya | **100.132 bayt (<= 130 KB)** |
+
+Latin altkumesi ı ö ü ç â î û x - ... noktalamasini, latin-ext altkumesi **ğ Ğ ş Ş İ** harflerini tasir (`unicode-range` ile ayri `@font-face`; fontTools ile dogrulandi: Turkce harflerin tamami iki ailede de var). Kaynak: `@fontsource-variable/dynapuff` ve `@fontsource/baloo-2` (SIL OFL). `font-synthesis:none` (sahte kalin yok). Fontlarin gercekten calistigi ekran goruntusunde dogrulandi (sistem fontuna dusme yok; "ğ ş İ" DynaPuff ile cizilir).
+
+Not: Lilita One ve Fredoka denendi ama Turkce ğ ş İ glifleri YOK; bu yuzden secilmedi.
+
+## 3. Olcekler
+- **Kose yaricapi:** `--r-s 10px` (hucre, giris, kucuk dugme) / `--r-m 16px` (dugme, kart) / `--r-l 24px` (panel, buyuk dugme, tur karti) / `--r-pill 999px` (fis, anahtar). Bolge cercevesi 22px.
+- **Cizgi:** `--ln-s 2px` (kucuk fis, sayac) / `--ln 3px` (varsayilan) / `--ln-b 4px` (panel, buyuk dugme, tur karti). Bolge cercevesi 5px oyuncu rengi + 3px murekkep ic cizgi.
+- **Bosluk:** 4 / 8 / 12 / 16 / 24 (`--s1..--s5`), eleman ici bosluklar 4-8 tabanli.
+- **Golge (yalniz kaydirma, bulaniklik YOK):** `--sh-xs 0 2px 0` fis, `--sh-s 0 3px 0` kucuk, `--sh-m 0 4px 0` varsayilan, `--sh-l 0 6px 0` panel/buyuk. Basili: `translateY(3px)` + `0 1px 0` ("cikartma basilir").
+- **Murekkep kontur metin:** `--ol2/--ol3/--ol5` (12 yonlu `text-shadow`; `paint-order`'a bagimli degil). 2px kucuk, 3px govde, 5px sayac/logo.
+- **Hareket egrileri:** `--pop cubic-bezier(.34,1.56,.64,1)` (asma, ziplama), `--out .22,.8,.3,1` (hizli oturma), `--soft .65,0,.35,1` (dongusel nefes).
+
+## 4. Bilesen kurallari
+- **Bolge:** yuvarlak kose, 5px oyuncu rengi `border` + ic murekkep cizgi, nokta dokusu (`::before`, statik), durumlar yalniz zemin rengi degisimi: `go` (acik gece) / `sig` (yesil) / `warn` (sari) / `out` (soluk mor) / `win` (altin + gunisigi) / `champ` (altin + yavasca donen gunisigi) / `lose`. Geri bildirim `::after` kaplamasinin `opacity` animasyonudur (kutu golgesi animasyonu YOK).
+- **Fisler:** isim fisi = oyuncu rengi, puan fisi = kagit; 2px cizgi, 2px golge. Dar bolgede oyun adi ustte ayri satir.
+- **Dugme:** kagit zemin, murekkep cizgi, sert golge; `.sel` sari; `.go` yesil; `.alt` sari buyuk; `.sm` kucuk. Anahtar (toggle) cikartma dugmesi: yesil/gri iz + kagit top.
+- **Paneller:** kagit krem + 4px cizgi + 6px golge; basliklar murekkep hap etiketi.
+- **Oyun Sec kartlari:** kategori rengi (refleks kirmizi, hiz turuncu, zeka mavi, dikkat yesil) simge rozeti; secili kart hafif egilir + yesil "onay" cikartmasi.
+- **Bilgi kutusu / tur karti:** kagit karti, 4px cizgi; ust satir sari "TUR n / toplam" hapi, oyun simgesi rozeti + ad. Iki yonden okunur (180 derece kopya korunur).
+- **Geri sayim:** `cdp` squash & stretch (1.8x0.5 -> 0.82x1.22 -> 1.1x0.92 -> 1) + 5px kontur.
+- **Bitis:** kazanan: donen gunisigi + kagit madalyon icinde tac + "KAZANAN"; digerleri: oyuncu rengi sira rozeti. Beraberlikte uc yildiz.
+- **Duraklatma / yeniden baglanma / toast:** duz yari saydam murekkep zemin (backdrop blur YOK), kagit cikartma kartlari.
+- **Rakip seridi (ag):** 9px murekkep iz + oyuncu rengi dolgu, baglanti kalitesi kagit hap + renkli nokta (yesil/sari/kirmizi).
+
+## 5. Simgeler ve oyun varliklari (emoji YOK)
+Tek bir satir ici SVG `<symbol>` sprite'i (`<use href="#...">`; ~29 KB): 3px murekkep cizgi, duz dolgu, kucuk kagit parlama noktasi.
+- Arayuz: `i-back i-play i-pause i-home i-redo i-check i-x i-phone` (tek renk, `currentColor`); cikartma: `i-heart i-skull i-star i-stars i-crown i-bolt i-wifi i-gear i-gamepad i-dice i-link i-flag i-team i-lock`.
+- 16 oyun simgesi `g-*` (tur karti, Oyun Sec kartlari, menu seridi).
+- **Balon Patlat:** `a-balloon` (yumurta govde, golge dilimi, parlama, dugum, ip; renk `--bc/--bd`), `a-bomb` (kizgin yuzlu bomba + titreyen kivilcim), altin balon (yildiz amblemi + kipirdayan parilti), kalin murekkep bulutlar, patlama: yildiz-patlama + 6 parca + `+1 / +3 / -1` etiketi. Balonlar bolgenin altindan dogup ustunden cikar (kesik kenar yok), yavasca sallanir.
+- **Hedef Avi:** `a-target` (oyuncu renkli halkalar, sari goz, parlama), sicrayarak belirir, hafif sallanir, isabette patlama yildizi.
+- **Hafiza Eslestir:** 8 cikartma yuz (`f-bear f-cat f-frog f-bunny f-panda f-pig f-octo f-pizza`), mor noktali kart arkasi + "?" , cevirme `scaleX` animasyonu, eslesince ziplama; genis bolgede 4x2 yerlesim (kartlar buyuk), dar bolgede 2x4.
+- **Tek Farkli:** ayni yuzler + `o-smile/wink/smirk` (zorluk artar). **Ok Yonu:** `a-arrow`. **Say Bakalim:** `a-bee a-apple a-fish i-star a-balloon-s`. **Kostebek:** `a-mole` + toprak delik, sicrayarak cikar. **Seri Dokun:** oyuncu renkli sayac rozeti, her dokunusta siçrar. **Isik Oyunu:** kalin cizgili lamba + halka dalgasi. **Renk Dizisi:** parlak ped, yanarken kagit kaplama + buyume. **Tam Ortada:** kagit iz + yesil hedef bolgesi + oyuncu rengi top.
+
+## 6. Performans kurallari (dusuk donanim, Android WebView)
+- Hic `filter`, `backdrop-filter`, `blur()`, `color-mix`, animasyonlu `box-shadow` / `background-position` YOK. Tum surekli animasyonlar `transform` / `opacity` (gecisler: renk, `transform`).
+- Nokta dokusu statik gradyan; donen gunisigi yalniz kazanan bolgede.
+- Sert golge = tek katman; basili durumda tek `transform`.
+- `hero` dugmesinin kendisi hareket etmez (Playwright ve parmak icin sabit hedef); parlama seridi ve zar alt ogelerde oynar.
+- Balon, hedef, kostebek, kart yuzleri `<use>` ile paylasilir (DOM cok hafif).
+
+## 7. Kalan oyunlar icin yapilacaklar (varsa)
+Tum 16 oyun yeni kabuga ve simgelere gecirildi. Isteyen icin ince ayar fikirleri:
+1. **Sayi Sirasi / Tek Farkli / Hizli Matematik:** hucrelere kucuk "dogru" cikartmasi (kagit yildiz) animasyonu.
+2. **Tut ve Birak / Tepki:** rakam ve sonuc yazilarina simge (kronometre) eklemek.
+3. **Renk Tuzagi:** secenek hucrelerine renk-kor modu icin desen (nokta/cizgi) ayrimi.
+4. Menude kucuk "cikartma" dekorlari (yildiz, sprey nokta) eklenebilir; simdilik temiz birakildi (floating emoji deseni kaldirildi).
+5. Gece/gunduz temasi gerekirse yalniz `--night`, `--night2`, `--paper` degistirilir.
+
+## 8. Kural ozeti (yeni bir oge eklerken)
+1. Doygun duz renk + 3px `--ink` cizgi + `--sh-m` golge.
+2. Metin: DynaPuff (baslik/dugme/rakam) ya da Baloo 2 (aciklama); oyun ici buyuk metin `--ol3` konturlu kagit.
+3. Simge: sprite'a yeni `<symbol>` ekle, emoji kullanma.
+4. Hareket: yalniz `transform/opacity`, `--pop` ile asma, basma `translateY(3px)`.
+5. Dokunma hedefi >= 34px; ust bolgeler 180 derece donuk oldugundan hicbir sey tek yone gore konumlandirilmaz.
