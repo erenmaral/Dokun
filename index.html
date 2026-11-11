@@ -79,11 +79,18 @@
   /* Takim modu: bolge cercevesi takim rengi (--bc), isim fisinin basinda A / B rozeti (data-t) */
   .head .nm[data-t]::before { content:attr(data-t); display:inline-block; box-sizing:border-box; min-width:15px; height:15px; margin:0 4px 0 -6px; padding:0 2px; border-radius:var(--r-pill);
     background:var(--bc); border:var(--ln-s) solid var(--ink); font-size:10px; line-height:11px; text-align:center; vertical-align:1px; }
+  .zone.narrow .head .nm[data-t] { font-size:11px; padding:0 5px 0 3px; }
+  .zone.narrow .head .nm[data-t]::before { min-width:13px; height:13px; margin:0 3px 0 0; padding:0 1px; font-size:9px; line-height:9px; vertical-align:0; }
   /* Yaris: puan/hedef + dolan fis; Hayatta Kal: kalp dizisi */
   .head .score small { font-size:.68em; font-weight:600; opacity:.65; margin-left:1px; }
   .head .score.race { background:linear-gradient(90deg, var(--c) var(--pg, 0%), var(--paper) var(--pg, 0%)); }
-  .head .score.hearts { display:inline-flex; align-items:center; gap:1px; padding:0 6px; }
-  .head .score.hearts svg { width:1.05em; height:1.05em; margin:0; vertical-align:0; }
+  .head .score.hearts { padding:0 6px; }
+  .head .score .hn { display:none; }
+  .head .score.hearts .hr { display:inline-flex; align-items:center; gap:1px; vertical-align:-.18em; }
+  .head .score.hearts svg { width:1.05em; height:1.05em; margin:0; vertical-align:-.18em; }
+  .zone.narrow .head .score.hearts .hr { display:none; }                /* dar bolgede kalp dizisi yerine kalp + sayi (isim fisine yer kalsin) */
+  .zone.narrow .head .score.hearts .hn { display:inline; }
+  .nb .hr { display:none; }
   .head .score.lost { animation:lostc .55s var(--pop); }
   @keyframes lostc { 0% { transform:scale(1); } 18% { transform:translateX(-5px) rotate(-8deg) scale(1.18); } 36% { transform:translateX(5px) rotate(8deg) scale(1.18); } 56% { transform:translateX(-3px) rotate(-4deg); } 100% { transform:none; } }
 
@@ -93,7 +100,7 @@
   .zone.narrow .head { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; row-gap:3px; column-gap:4px; }
   .zone.narrow .gname { grid-column:1 / -1; grid-row:1; font-size:12px; line-height:1.1; }
   .zone.narrow .head .nm { grid-row:2; justify-self:start; max-width:100%; overflow:hidden; text-overflow:ellipsis; font-size:11.5px; line-height:15px; padding:0 7px; }
-  .zone.narrow .head .score { grid-row:2; font-size:15px; line-height:16px; padding:0 6px; min-width:28px; }
+  .zone.narrow .head .score { grid-row:2; font-size:15px; line-height:16px; padding:0 5px; min-width:26px; }
   .zone.narrow .body.fill { height:calc(100% - 58px); }
   .zone.narrow .grid { --hp:118px; }
   .zone.narrow .arena .grid { --hp:146px; gap:5px; }
@@ -1128,7 +1135,7 @@
   const teamOf = i => (i < 2 ? 0 : 1);
   const teamScore = i => scores.reduce((a, s, k) => a + (teamOf(k) === teamOf(i) ? s : 0), 0);
   const hearts = i => Array.from({ length: Math.max(maxLives, lives[i]) }, (_, k) => ico(k < lives[i] ? 'i-heart' : 'i-heart-o')).join('');
-  const chip = i => modeKey === 'can' ? (dead[i] ? ico('i-skull') : hearts(i)) : modeKey === 'takim' ? teamScore(i)
+  const chip = i => modeKey === 'can' ? (dead[i] ? ico('i-skull') : '<span class="hr">' + hearts(i) + '</span><span class="hn">' + ico('i-heart') + lives[i] + '</span>') : modeKey === 'takim' ? teamScore(i)
     : modeKey === 'yaris' ? scores[i] + '<small>/' + modeVal.yaris + '</small>' : scores[i];
   let lifeSnap = [];                           // can modunda onceki tur sonu canlari (can kaybi geri bildirimi icin)
   const showScores = () => {
@@ -1781,9 +1788,9 @@
   const introMs = g => Math.min(4300, 1700 + g.hint.replace(/<[^>]*>/g, '').length * 24);
   async function roundCard(g, r, total, open, withHint, tip, gold) {
     const lbl = gold ? 'ALTIN TUR' : open ? 'TUR ' + r : 'TUR ' + r + '<small> / ' + total + '</small>';
-    const modeTxt = gold ? ico('i-star') + 'Tek oyun, kazanan maçı alır'
+    const modeTxt = gold ? ico('i-star') + 'Tek oyun, kazanan alır'
       : modeKey === 'yaris' ? ico('i-bolt') + 'İlk ' + modeVal.yaris + ' puana ulaşan kazanır'
-      : modeKey === 'can' ? ico('i-heart') + 'Turu kazanmayan can kaybeder' : '';
+      : modeKey === 'can' ? ico('i-heart') + 'Kazanmayan can kaybeder' : '';
     say('<div class="rc"><div class="rc-t">' + lbl + '</div><div class="rc-g">' + ico(g.icon, 'gi') + '<span>' + g.name + '</span></div>' + (withHint ? '<div class="rc-h">' + g.hint + '</div>' : '') +
       (modeTxt ? '<div class="rc-m">' + modeTxt + '</div>' : '') + (tip ? '<div class="rc-tip">' + tip + '</div>' : '') + '</div>', null, true, 'round');
     await sleep((withHint ? introMs(g) : 1500) + (tip ? 700 : 0));
