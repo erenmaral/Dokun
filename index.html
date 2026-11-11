@@ -296,18 +296,87 @@
   .swarm svg.sw { width:1.3em; height:1.3em; display:inline-block; vertical-align:middle; }
   .zone.narrow .swarm svg.sw { width:1.05em; height:1.05em; }
 
-  .lamp { width:min(60%, 38vmin); aspect-ratio:1; border-radius:50%; margin:0 auto; border:6px solid var(--ink); position:relative;
-    background:#5d5699; box-shadow:var(--sh-l); transition:background-color .05s; }
-  .lamp::before { content:''; position:absolute; left:17%; top:13%; width:34%; height:20%; border-radius:50%; background:rgba(255,244,220,.28); transform:rotate(-32deg); }
-  .lamp.g { background:var(--green); } .lamp.r { background:var(--red); }
-  .lamp.g::before, .lamp.r::before { background:rgba(255,244,220,.8); }
-  .lamp.g::after, .lamp.r::after { content:''; position:absolute; inset:-6px; border-radius:50%; border:5px solid var(--paper); animation:ring .5s var(--out) forwards; }
+  /* ---------- Isik Oyunu: lamba (yesil = yuvarlak + onay, kirmizi = sekizgen + carpi), mesaj satiri, puan ---------- */
+  .lt { --hp:182px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:clamp(3px, .8dvh, 8px); }
+  .zone.narrow .lt { --hp:200px; padding-bottom:10px; }                          /* dar bolgede alt etiket satirina deymesin */
+  .lamp { --lp:clamp(66px, calc(50dvh - var(--hp)), min(84%, 270px)); position:relative; width:var(--lp); aspect-ratio:1; flex:none; min-height:0; }
+  body.net .lamp { --lp:clamp(66px, calc(100dvh - var(--hp) - 48px), min(84%, 300px)); }
+  .lamp svg.lp { position:absolute; left:0; top:0; display:block; width:100%; height:100%; overflow:visible; }       /* svg kendi (150px) boyuyla kutuyu buyutmesin */
+  .lamp.g svg.lp { animation:lpop .22s var(--pop); }
+  .lamp.r svg.lp { animation:lwob .42s var(--out); }
+  .lamp.g::after { content:''; position:absolute; inset:6%; border-radius:50%; border:5px solid var(--paper); pointer-events:none; animation:ring .5s var(--out) forwards; }
+  .lt.lk .lamp svg.lp { opacity:.45; }
+  .lt-msg { font-family:var(--f-display); font-weight:700; font-size:clamp(20px, 3.6dvh, 36px); line-height:1.1; min-height:1.15em; max-width:100%; white-space:nowrap;
+    color:var(--paper); text-shadow:var(--ol3); letter-spacing:.02em; }
+  .zone.narrow .lt-msg { font-size:clamp(17px, 3.1dvh, 24px); text-shadow:var(--ol2); }
+  .lt-msg.dim { opacity:.72; }
+  .lt-msg.bad { color:var(--red); }
+  .lt-msg.ok { color:var(--yellow); }
+  .lt-msg.pp { animation:lpop .22s var(--pop); }
+  .lt .lt-score { margin:0; padding:0 12px; font-size:15px; line-height:21px; border-radius:var(--r-pill); background:var(--paper); color:var(--ink);
+    border:var(--ln-s) solid var(--ink); box-shadow:var(--sh-xs); text-shadow:none; font-weight:600; }
+  .lt .lt-score b { font-weight:700; }
+  .zone.narrow .lt .lt-score { padding:0 9px; font-size:13px; line-height:16px; }
+  .lt .lt-score.bump { animation:bump .4s var(--pop); }
+  .lt-fx { position:absolute; left:50%; top:30%; width:88px; height:88px; margin:-44px 0 0 -44px; display:flex; align-items:center; justify-content:center; pointer-events:none; z-index:5; animation:ltfx .85s var(--out) forwards; }
+  .lt-fx svg { position:absolute; inset:0; width:100%; height:100%; }
+  .lt-fx b { position:relative; font-size:30px; font-weight:700; color:var(--ink); text-shadow:none; }
+  .lt-fx.neg b { color:var(--red); text-shadow:var(--ol3); font-size:34px; }
   @keyframes ring { from { transform:scale(1); opacity:.9; } to { transform:scale(1.4); opacity:0; } }
+  @keyframes lpop { from { transform:scale(.72); } 55% { transform:scale(1.1); } to { transform:none; } }
+  @keyframes lwob { 0% { transform:scale(.8); } 30% { transform:scale(1.06) rotate(-6deg); } 55% { transform:rotate(5deg); } 80% { transform:rotate(-2deg); } 100% { transform:none; } }
+  @keyframes ltfx { 0% { transform:translateY(0) scale(.4) rotate(-14deg); opacity:0; } 18% { transform:translateY(-8px) scale(1.15) rotate(4deg); opacity:1; } 38% { transform:translateY(-12px) scale(1) rotate(0); opacity:1; } 100% { transform:translateY(-52px); opacity:0; } }
+  #board.p3 .zone:nth-child(3) .lt { --hp:200px; }
+  #board.p3 .zone:nth-child(3) .lamp { --lp:clamp(66px, calc(50dvh - var(--hp)), calc(.84 * ((100vw - 16px) / 2 - 32px))); }                /* 3 oyuncu: alttaki bolgenin lambasi ustlerle ayni boyda */
+  body.cb { --lt-cb:1; }                                                       /* renk koru modu: lamba desenleri (nokta / cizgi) gorunur */
 
-  .pad { transition:transform .12s var(--pop); }
-  .pad::after { content:''; position:absolute; inset:0; border-radius:inherit; background:var(--paper); opacity:0; transition:opacity .08s; }
-  .pad.lit { transform:scale(1.08); z-index:1; }
-  .pad.lit::after { opacity:.62; }
+  /* ---------- Renk Dizisi: 4 ped (renk + sekil + ses), adim seridi, tekrar kilidi, kalan sure cubugu ---------- */
+  .sm { --hp:128px; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  .zone.narrow .sm { --hp:146px; }
+  .sgrid { display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); grid-template-rows:repeat(2, minmax(0,1fr)); gap:8px; width:100%; aspect-ratio:1; margin:0 auto;
+    max-width:min(100%, calc(50dvh - var(--hp))); }
+  .zone.narrow .sgrid { gap:5px; }
+  #board.p3 .zone:nth-child(3) .sm { --hp:146px; }
+  #board.p3 .zone:nth-child(3) .sgrid { gap:5px; max-width:min(100%, calc(50dvh - var(--hp)), calc((100vw - 16px) / 2 - 32px)); }        /* 3 oyuncu: alttaki bolgenin pedleri ustlerle ayni boyda */
+  body.net .sgrid { max-width:min(100%, 360px, calc(100dvh - var(--hp) - 48px), calc(100vw - 72px)); }       /* duraklat sekmelerinin altina girmesin */
+  .pad { --pd:var(--red-d); position:relative; display:flex; align-items:center; justify-content:center; min-width:0; min-height:0;
+    background:radial-gradient(ellipse 14% 9% at 24% 20%, rgba(255,244,220,.7) 0 97%, transparent 100%), var(--pc);
+    border:var(--ln) solid var(--ink); border-radius:var(--r-m); box-shadow:var(--sh-m), inset 0 -10px 0 var(--pd); transition:transform .12s var(--pop), opacity .15s; }
+  .zone.narrow .pad { box-shadow:var(--sh-s), inset 0 -8px 0 var(--pd); }
+  .pad[data-k="0"] { --pc:var(--red); --pd:var(--red-d); --pat:repeating-linear-gradient(45deg, rgba(29,24,56,.26) 0 5px, transparent 5px 12px); }
+  .pad[data-k="1"] { --pc:var(--green); --pd:var(--green-d); --pat:radial-gradient(rgba(29,24,56,.3) 2.6px, transparent 3.2px) 0 0 / 14px 14px; }
+  .pad[data-k="2"] { --pc:var(--blue); --pd:var(--blue-d); --pat:linear-gradient(rgba(29,24,56,.24) 2.5px, transparent 2.5px) 0 0 / 14px 14px, linear-gradient(90deg, rgba(29,24,56,.24) 2.5px, transparent 2.5px) 0 0 / 14px 14px; }
+  .pad[data-k="3"] { --pc:var(--yellow); --pd:var(--yellow-d); --pat:repeating-linear-gradient(0deg, rgba(29,24,56,.24) 0 4px, transparent 4px 10px); }
+  .pad::after { content:''; position:absolute; inset:0; border-radius:inherit; background:var(--paper); opacity:0; transition:opacity .08s; pointer-events:none; }
+  .pad.lit { transform:scale(1.07); z-index:1; box-shadow:0 0 0 4px var(--paper), 0 0 0 7px var(--ink), inset 0 -10px 0 var(--pd); }
+  .zone.narrow .pad.lit { box-shadow:0 0 0 3px var(--paper), 0 0 0 5px var(--ink), inset 0 -8px 0 var(--pd); }
+  .pad.lit::after { opacity:.24; }
+  .sm.watch .pad:not(.lit), .sm.lk .pad:not(.lit) { opacity:.6; }
+  .psh { position:relative; width:46%; height:46%; display:block; pointer-events:none; transition:opacity .1s; }
+  .px { position:absolute; left:16%; top:16%; width:68%; height:68%; display:block; opacity:0; transform:scale(.4); pointer-events:none; z-index:2; transition:opacity .08s, transform .2s var(--pop); }
+  .pad.bad { animation:pbad .4s var(--out); }
+  .pad.bad .px { opacity:1; transform:none; }
+  .pad.bad .psh { opacity:.3; }
+  @keyframes pbad { 0% { transform:scale(1.05); } 25% { transform:rotate(-5deg); } 50% { transform:rotate(4deg); } 75% { transform:rotate(-2deg); } 100% { transform:none; } }
+  body.cb .pad::before { content:''; position:absolute; inset:0; border-radius:inherit; background:var(--pat); pointer-events:none; }
+  body.cb .psh { width:58%; height:58%; }
+  .sm-top { position:absolute; top:0; left:0; right:0; height:22px; display:flex; align-items:center; justify-content:center; z-index:3; pointer-events:none; }
+  .sm-top.nd { animation:lpop .25s var(--pop); }
+  .sm-slots { display:flex; gap:5px; }
+  .sm-slots i { position:relative; width:20px; height:20px; border-radius:50%; background:rgba(29,24,56,.5); border:var(--ln-s) solid var(--ink); box-shadow:0 0 0 1.5px rgba(255,244,220,.3); transition:transform .12s var(--pop); }
+  .zone.narrow .sm-slots i { width:18px; height:18px; }
+  .sm-slots i.w { background:var(--paper); transform:scale(1.22); }
+  .sm-slots i.f { background:var(--sc); box-shadow:none; animation:lpop .2s var(--pop); }
+  .sm-slots i.f svg { position:absolute; left:14%; top:14%; width:72%; height:72%; display:block; }
+  .sm-lbl { display:none; font-size:14px; line-height:15px; padding:1px 11px; border-radius:var(--r-pill); background:var(--paper); color:var(--ink);
+    border:var(--ln-s) solid var(--ink); box-shadow:var(--sh-xs); white-space:nowrap; text-shadow:none; }
+  .sm.lk .sm-slots { display:none; }
+  .sm.lk .sm-lbl { display:block; }
+  .sm-bar { position:absolute; top:23px; left:12%; right:12%; height:4px; border-radius:2px; background:var(--ink); overflow:hidden; opacity:0; transition:opacity .25s; pointer-events:none; z-index:3; }
+  .sm-bar b { display:block; width:100%; height:100%; background:var(--yellow); border-radius:2px; transform-origin:0 50%; }
+  .sm-bar.on { opacity:1; }
+  .sm-bar.on b { animation:smt var(--tl) linear forwards; }
+  @keyframes smt { to { transform:scaleX(0); } }
 
   /* balon: balonlar arenanin icinde (yandan kirpilmaz) dogar; alt/ust kenari bolge cercevesi gizler. Boyut --bw ile arena genisligine gore ayarlanir */
   .balloons { --bw:64px; }                                                    /* kirpma yok: balonlar arena icinde dogar; alt/ust kenarda bolge cercevesi kirpar */
@@ -851,6 +920,14 @@
 <symbol id="g-mat" viewBox="0 0 48 48"><g stroke="#1d1838" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" ><rect x="5" y="5" width="38" height="38" rx="10" fill="#fff4dc"/><path d="M17 16v12M11 22h12" fill="none" stroke="#2279cf" stroke-width="5"/><path d="M27 33h10" fill="none" stroke="#ff5a5f" stroke-width="5"/><path d="M28 14l8 8M36 14l-8 8" fill="none" stroke="#14a768" stroke-width="4"/></g></symbol>
 <symbol id="g-isik" viewBox="0 0 48 48"><g stroke="#1d1838" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" ><rect x="13" y="3" width="22" height="42" rx="9" fill="#6b63a8"/><circle cx="24" cy="13" r="5.500" fill="#ff5a5f" stroke-width="2.500"/><circle cx="24" cy="24" r="5.500" fill="#ffd23f" stroke-width="2.500"/><circle cx="24" cy="35" r="5.500" fill="#2fd68c" stroke-width="2.500"/></g></symbol>
 <symbol id="g-dizi" viewBox="0 0 48 48"><g stroke="#1d1838" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" ><path d="M24 5a19 19 0 0 1 19 19H24Z" fill="#47a9f5"/><path d="M43 24a19 19 0 0 1-19 19V24Z" fill="#ffd23f"/><path d="M24 43A19 19 0 0 1 5 24h19Z" fill="#2fd68c"/><path d="M5 24A19 19 0 0 1 24 5v19Z" fill="#ff5a5f"/><circle cx="24" cy="24" r="5" fill="#fff4dc"/></g></symbol>
+<symbol id="l-off" viewBox="0 0 100 100"><g stroke="#1d1838" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"><circle cx="50" cy="53" r="43" fill="#1d1838"/><circle cx="50" cy="47" r="43" fill="#5d5699"/><ellipse cx="31" cy="27" rx="11" ry="6.2" transform="rotate(-32 31 27)" fill="#fff4dc" fill-opacity=".28" stroke="none"/></g></symbol>
+<symbol id="l-go" viewBox="0 0 100 100"><g stroke="#1d1838" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"><circle cx="50" cy="53" r="43" fill="#1d1838"/><circle cx="50" cy="47" r="43" fill="#2fd68c"/><g stroke="none" fill="#1d1838" fill-opacity=".24" style="opacity:var(--lt-cb,0)"><circle cx="46" cy="16" r="3.4"/><circle cx="62" cy="16" r="3.4"/><circle cx="22" cy="32" r="3.4"/><circle cx="38" cy="32" r="3.4"/><circle cx="54" cy="32" r="3.4"/><circle cx="70" cy="32" r="3.4"/><circle cx="30" cy="48" r="3.4"/><circle cx="46" cy="48" r="3.4"/><circle cx="62" cy="48" r="3.4"/><circle cx="78" cy="48" r="3.4"/><circle cx="22" cy="64" r="3.4"/><circle cx="38" cy="64" r="3.4"/><circle cx="54" cy="64" r="3.4"/><circle cx="70" cy="64" r="3.4"/><circle cx="46" cy="80" r="3.4"/><circle cx="62" cy="80" r="3.4"/></g><ellipse cx="31" cy="27" rx="11" ry="6.2" transform="rotate(-32 31 27)" fill="#fff4dc" fill-opacity=".8" stroke="none"/><path d="M27 49l16 16 31-35" fill="none" stroke-width="18"/><path d="M27 49l16 16 31-35" fill="none" stroke="#fff4dc" stroke-width="8.5"/></g></symbol>
+<symbol id="l-stop" viewBox="0 0 100 100"><defs><clipPath id="lt-oc"><path d="M91.6 64.2L67.2 88.6L32.8 88.6L8.4 64.2L8.4 29.8L32.8 5.4L67.2 5.4L91.6 29.8Z"/></clipPath></defs><g stroke="#1d1838" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"><path d="M91.6 64.2L67.2 88.6L32.8 88.6L8.4 64.2L8.4 29.8L32.8 5.4L67.2 5.4L91.6 29.8Z" transform="translate(0 6)" fill="#1d1838"/><path d="M91.6 64.2L67.2 88.6L32.8 88.6L8.4 64.2L8.4 29.8L32.8 5.4L67.2 5.4L91.6 29.8Z" fill="#ff5a5f"/><g clip-path="url(#lt-oc)" fill="none" stroke="#1d1838" stroke-opacity=".26" stroke-width="6" style="opacity:var(--lt-cb,0)"><path d="M-10 40L40 -10M-10 70L70 -10M-10 100L100 -10M20 110L110 20M50 110L110 50M80 110L110 80"/></g><ellipse cx="29" cy="25" rx="10" ry="5.6" transform="rotate(-32 29 25)" fill="#fff4dc" fill-opacity=".8" stroke="none"/><path d="M34 31l32 32M66 31L34 63" fill="none" stroke-width="18"/><path d="M34 31l32 32M66 31L34 63" fill="none" stroke="#fff4dc" stroke-width="8.5"/></g></symbol>
+<symbol id="p-tri" viewBox="0 0 48 48"><path d="M24 8 41 38H7Z" fill="#fff4dc" stroke="#1d1838" stroke-width="4" stroke-linejoin="round"/></symbol>
+<symbol id="p-circ" viewBox="0 0 48 48"><circle cx="24" cy="24" r="16" fill="#fff4dc" stroke="#1d1838" stroke-width="4"/></symbol>
+<symbol id="p-sq" viewBox="0 0 48 48"><rect x="9" y="9" width="30" height="30" rx="6" fill="#fff4dc" stroke="#1d1838" stroke-width="4" stroke-linejoin="round"/></symbol>
+<symbol id="p-dia" viewBox="0 0 48 48"><path d="M24 5 43 24 24 43 5 24Z" fill="#fff4dc" stroke="#1d1838" stroke-width="4" stroke-linejoin="round"/></symbol>
+<symbol id="p-x" viewBox="0 0 48 48"><path d="M13 13l22 22M35 13L13 35" fill="none" stroke="#1d1838" stroke-width="13" stroke-linecap="round"/><path d="M13 13l22 22M35 13L13 35" fill="none" stroke="#fff4dc" stroke-width="6" stroke-linecap="round"/></symbol>
 <symbol id="g-balon" viewBox="0 0 48 48"><svg x="9" y="0" width="30" height="46" viewBox="0 0 64 96"><use href="#a-balloon"/></svg></symbol>
 <symbol id="g-tut" viewBox="0 0 48 48"><g stroke="#1d1838" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" ><rect x="20" y="3" width="8" height="7" rx="2" fill="#ff9442"/><circle cx="24" cy="27" r="17" fill="#fff4dc"/><path d="M24 27V15a12 12 0 0 1 10.400 6Z" fill="#ff5a5f" stroke-width="2"/><path d="M24 27V16" fill="none" stroke-width="3.500"/><path d="M38 9l3 3" fill="none" stroke-width="4"/></g></symbol>
 <symbol id="g-kost" viewBox="0 0 48 48"><g stroke="#1d1838" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" ><path d="M3 43a21 7 0 0 1 42 0Z" fill="#6e4a33"/><path d="M10 41a14 17 0 0 1 28 0Z" fill="#b07a52"/><ellipse cx="24" cy="29" rx="4.500" ry="3.500" fill="#ff8fa3" stroke-width="2.500"/><circle cx="17" cy="24" r="2" fill="#1d1838" stroke="none"/><circle cx="31" cy="24" r="2" fill="#1d1838" stroke="none"/></g></symbol>
@@ -2056,79 +2133,175 @@
   });
 
 
+  // ---------- Oyuna ozel kisa notalar (Isik Oyunu lamba sesleri, Renk Dizisi ped notalari); ses ayari kapaliysa calmaz ----------
+  const gTone = (f, d, o = {}) => {
+    if (!prefs.sfx) return;
+    const c = fx.unlock(); if (!c) return;
+    const { type = 'triangle', vol = 0.16, at = 0, slide = 0 } = o, t = c.currentTime + at, osc = c.createOscillator(), g = c.createGain();
+    osc.type = type; osc.frequency.setValueAtTime(f, t);
+    if (slide) osc.frequency.exponentialRampToValueAtTime(Math.max(30, f + slide), t + d);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.012); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+    osc.connect(g); g.connect(c.destination); osc.start(t); osc.stop(t + d + 0.02);
+  };
+
+  // Isik Oyunu. Puan: yesilde hizli (<= 0,4 sn) basis +2, yavas +1; kirmizida basmak -2; lamba yokken (erken) basmak -1.
+  // Her ceza oyuncuyu 0,7 sn kilitler (o surede dokunus sayilmaz); lamba sonduktan hemen sonraki "gec" basis cezasizdir.
+  // Boylece renge bakmadan surekli basmak kar etmez: dogru ama biraz yavas oynayan, kor basani gecer.
   async function lights() {
-    const ROUNDS = 12, sc = Array(N).fill(0), tapped = Array(N).fill(false);
-    let on = null, shownAt = 0;                          // on: null | 'g' | 'r'
-    zones.forEach((_, i) => body(i, '<div class="lamp"></div><div class="sub">Puan: 0</div>'));
+    const ROUNDS = 12, GREENS = 7, FAST = 400, LATE = 300, LOCK = 700;
+    const zs = zones, sc = Array(N).fill(0), tapped = Array(N).fill(false), lockTo = Array(N).fill(0);
+    // Lamba plani tek yerde ve giristen bagimsiz uretilir: tum bolgeler (ve ag modunda tohumlu Math.random ile tum telefonlar) AYNI diziyi gorur.
+    // 7 yesil + 5 kirmizi (sans farki yok), ilk lamba yesil, ayni renkten ust uste en fazla 3 (kirmizi en fazla 2).
+    const col = []; let gl = GREENS, rl = ROUNDS - GREENS, run = 0;
+    for (let k = 0; k < ROUNDS; k++) {
+      let c;
+      if (k === 0 || rl === 0) c = 'g';
+      else if (gl === 0) c = 'r';
+      else if (col[k - 1] === 'r' && run >= 2) c = 'g';
+      else if (col[k - 1] === 'g' && run >= 3) c = 'r';
+      else c = Math.random() < gl / (gl + rl) ? 'g' : 'r';
+      if (c === 'g') gl--; else rl--;
+      run = k && col[k - 1] === c ? run + 1 : 1;
+      col.push(c);
+    }
+    const gap = col.map((_, k) => (k ? 420 : 800) + Math.random() * 600);
+    const dur = k => Math.max(500, 700 - k * 18);                      // lamba giderek kisa yanar
+    zs.forEach((_, i) => {
+      arena(i, '<div class="arena lt"><div class="cnt">0/' + ROUNDS + '</div><div class="lamp"><svg class="lp" aria-hidden="true"><use href="#l-off"/></svg></div>' +
+        '<div class="lt-msg dim">BEKLE…</div><div class="sub lt-score">Puan: <b>0</b></div></div>');
+    });
+    const els = zs.map(z => ({ root: z.querySelector('.lt'), lamp: z.querySelector('.lamp'), use: z.querySelector('.lamp use'), cnt: z.querySelector('.cnt'), msg: z.querySelector('.lt-msg'), score: z.querySelector('.lt-score') }));
+    let on = null, shownAt = 0, over = false, offAt = 0, graceTo = vt.now() + 350;       // graceTo: geri sayimdan kalan dokunuslar sayilmaz
+    const paintLamp = s => els.forEach(e => { e.lamp.className = 'lamp' + (s ? ' ' + s : ''); e.use.setAttribute('href', s === 'g' ? '#l-go' : s === 'r' ? '#l-stop' : '#l-off'); });
+    const msg = (i, t, cls) => { const m = els[i].msg; m.textContent = t; m.className = 'lt-msg'; void m.offsetWidth; m.className = 'lt-msg pp ' + (cls || ''); };
+    const prompt = i => msg(i, on === 'g' ? 'BAS!' : on === 'r' ? 'BASMA!' : 'BEKLE…', on ? '' : 'dim');
+    const add = (i, pts) => {
+      sc[i] += pts; const s = els[i].score; s.innerHTML = 'Puan: <b>' + sc[i] + '</b>';
+      s.classList.remove('bump'); void s.offsetWidth; s.classList.add('bump'); report(i, sc[i], 0);
+    };
+    const pop = (i, txt, neg) => {                                      // kayan +2 / -2 cikartmasi (bolge donukse birlikte doner)
+      const d = document.createElement('div'); d.className = 'lt-fx' + (neg ? ' neg' : '');
+      d.innerHTML = (neg ? '' : ico('a-burst')) + '<b>' + txt + '</b>';
+      d.addEventListener('animationend', () => d.remove()); els[i].root.appendChild(d);
+    };
+    const lock = (i, ms) => {
+      lockTo[i] = vt.now() + ms; setS(i, 'out'); els[i].root.classList.add('lk');
+      vt.timeout(() => { if (over) return; setS(i, ''); els[i].root.classList.remove('lk'); prompt(i); }, ms);
+    };
     handler = i => {
-      if (!on || tapped[i]) return;
-      tapped[i] = true;
-      if (on === 'g') { sc[i] += vt.now() - shownAt < 450 ? 2 : 1; right(i); }   // yesilde hizli basan 2 puan
-      else { sc[i]--; wrong(i); }
-      zones[i].querySelector('.sub').textContent = 'Puan: ' + sc[i]; report(i, sc[i], 0);
+      if (over) return;
+      const t = vt.now();
+      if (t < lockTo[i] || t < graceTo) return;
+      if (on) {
+        if (tapped[i]) return;
+        tapped[i] = true;
+        if (on === 'g') {
+          const fast = t - shownAt <= FAST;
+          add(i, fast ? 2 : 1); right(i); msg(i, fast ? 'HIZLI!' : 'İYİ!', 'ok'); pop(i, fast ? '+2' : '+1');
+        } else { add(i, -2); wrong(i); msg(i, 'TUZAK −2', 'bad'); pop(i, '−2', true); lock(i, LOCK); }
+      } else if (t - offAt < LATE) msg(i, 'GEÇ!', 'dim');             // lamba az once sondu: ceza yok, yalniz bilgi
+      else { add(i, -1); wrong(i); msg(i, 'ERKEN −1', 'bad'); pop(i, '−1', true); lock(i, LOCK); }
     };
     for (let k = 0; k < ROUNDS; k++) {
-      await sleep(450 + Math.random() * 700);
+      await sleep(gap[k]);
       tapped.fill(false);
-      on = Math.random() < 0.65 ? 'g' : 'r'; shownAt = vt.now();
-      zones.forEach(z => { z.querySelector('.lamp').className = 'lamp ' + on; });
-      await sleep(Math.max(480, 700 - k * 18));          // isik giderek kisa yanar
-      on = null;
-      zones.forEach(z => { z.querySelector('.lamp').className = 'lamp'; });
+      on = col[k]; shownAt = vt.now();
+      paintLamp(on);
+      els.forEach((e, i) => { e.cnt.textContent = (k + 1) + '/' + ROUNDS; if (shownAt >= lockTo[i]) prompt(i); });
+      if (on === 'g') { gTone(784, 0.09, { vol: 0.11 }); gTone(1175, 0.13, { at: 0.07, vol: 0.11 }); }
+      else gTone(196, 0.22, { type: 'square', vol: 0.05, slide: -30 });
+      await sleep(dur(k));
+      on = null; offAt = vt.now();
+      paintLamp(null);
+      els.forEach((e, i) => { if (offAt >= lockTo[i]) msg(i, k === ROUNDS - 1 ? 'BİTTİ!' : 'BEKLE…', 'dim'); });
     }
-    handler = null;
+    await sleep(LATE + 60);                                             // son lambaya gec kalan dokunus da "Gec!" gostersin
+    over = true; handler = null;
+    zs.forEach((_, i) => { setS(i, ''); els[i].root.classList.remove('lk'); });
     lastScores = sc.slice();
     return topScorers(sc);
   }
 
 
+  // Renk Dizisi. 4 ped renk + sekil + notayla ayrilir (renk korleri icin). Dizi tum bolgelerde ayni; yanlis basan kendi pedlerinde dizinin
+  // yeniden gosterilmesini bekler (kilit). Kimse bitirmezse 20 sn sonra turun en iyi ilerlemesi (yanlis basista sifirlanmaz) sayilir.
   async function simon() {
-    const COL = ['#ff5a5f', '#2fd68c', '#47a9f5', '#ffd23f'], LEN = 5;
+    const LEN = 5, FLASH = 520, GAP = 230, TIN = 20000, TBAR = 8000;
+    const SHAPE = ['p-tri', 'p-circ', 'p-sq', 'p-dia'], NOTE = [523.25, 659.25, 783.99, 1046.5], CV = ['var(--red)', 'var(--green)', 'var(--blue)', 'var(--yellow)'];
+    const zs = zones;
+    // Dizi tek yerde ve giristen bagimsiz uretilir (Math.random yalniz burada): tum bolgeler ve (ag modunda) tum telefonlar AYNI diziyi gorur.
     const seq = Array.from({ length: LEN }, () => Math.floor(Math.random() * 4));
-    const prog = Array(N).fill(0), lock = Array(N).fill(false), fin = [], T0 = vt.now();
-    let winner = -1;
-    zones.forEach((_, i) => {
-      arena(i, '<div class="grid" style="--ar:1;grid-template-columns:repeat(2,1fr)">' +
-        COL.map((c, k) => '<div class="cell pad" data-k="' + k + '" style="background:' + c + '"></div>').join('') + '</div>');
+    for (let j = 2; j < LEN; j++) if (seq[j] === seq[j - 1] && seq[j] === seq[j - 2]) seq[j] = (seq[j] + 1) % 4;      // ayni ped 3 kez ust uste gelmesin
+    while (new Set(seq).size < 3) { const miss = [0, 1, 2, 3].find(k => !seq.includes(k)); seq[seq.findIndex((v, j) => seq.indexOf(v) !== j)] = miss; }   // en az 3 farkli ped
+    const prog = Array(N).fill(0), best = Array(N).fill(0), lock = Array(N).fill(false), fin = [], T0 = vt.now();
+    let winner = -1, over = false, input = false, tmo = 0, tbar = 0, resolve = null;
+    const done = new Promise(r => { resolve = r; });
+    zs.forEach((_, i) => {
+      arena(i, '<div class="arena sm watch"><div class="sm-top"><div class="sm-slots">' + '<i></i>'.repeat(LEN) + '</div><div class="sm-lbl">TEKRAR İZLE</div></div>' +
+        '<i class="sm-bar" style="--tl:' + TBAR + 'ms"><b></b></i><div class="sgrid">' +
+        SHAPE.map((s, k) => '<div class="pad" data-k="' + k + '">' + ico(s, 'psh') + ico('p-x', 'px') + '</div>').join('') + '</div></div>');
       setS(i, 'go');
     });
-    const pad = (i, k) => zones[i] && zones[i].querySelector('.pad[data-k="' + k + '"]');
+    const pads = zs.map(z => [0, 1, 2, 3].map(k => z.querySelector('.pad[data-k="' + k + '"]')));
+    const slots = zs.map(z => [...z.querySelectorAll('.sm-slots i')]);
+    const sm = i => zs[i].querySelector('.sm');
+    const noteSnd = k => { gTone(NOTE[k], 0.34, { vol: 0.17 }); gTone(NOTE[k] * 2, 0.2, { type: 'sine', vol: 0.035 }); };
+    const setLk = (i, v) => { sm(i).classList.toggle('lk', v); setS(i, v ? 'out' : 'go'); };
+    const nudge = i => { const t = zs[i].querySelector('.sm-top'); t.classList.remove('nd'); void t.offsetWidth; t.classList.add('nd'); };
+    const tapFx = (pd, bad) => {                                        // dokunulan ped kisa yanar (yanlissa carpi ve sarsinti)
+      if (pd._tm) vt.clear(pd._tm);
+      pd.classList.add('lit');
+      if (bad) { pd.classList.remove('bad'); void pd.offsetWidth; pd.classList.add('bad'); }
+      pd._tm = vt.timeout(() => { pd.classList.remove('lit', 'bad'); pd._tm = 0; }, bad ? 420 : 150);
+    };
+    const fill = (i, j, k) => { const s = slots[i][j]; s.style.setProperty('--sc', CV[k]); s.classList.add('f'); s.innerHTML = ico(SHAPE[k]); };
+    const clear = i => slots[i].forEach(s => { s.classList.remove('f', 'w'); s.innerHTML = ''; });
+    const finish = () => {
+      if (over) return; over = true; handler = null; vt.clear(tmo); vt.clear(tbar);
+      zs.forEach((z, i) => { setS(i, 'go'); sm(i).classList.remove('lk', 'watch'); z.querySelector('.sm-bar').classList.remove('on'); });
+      resolve();
+    };
+    // Yanlis basan oyuncuya dizi, ilk gosterimle AYNI tempoda ve yalnizca kendi pedlerinde yeniden gosterilir (unutan takilip kalmaz); bu surede dokunamaz.
+    const replay = async i => {
+      lock[i] = true; setLk(i, true); await sleep(500);
+      for (const k of seq) {
+        if (over) return;
+        pads[i][k].classList.add('lit'); noteSnd(k); await sleep(FLASH); pads[i][k].classList.remove('lit'); await sleep(GAP);
+      }
+      if (over) return;
+      lock[i] = false; setLk(i, false);
+    };
+    handler = (i, e) => {
+      if (over) return;
+      if (!input || lock[i]) { nudge(i); return; }                      // izleme / kilit sirasinda dokunus: yalniz kucuk bir uyari
+      const pd = e.target.closest && e.target.closest('.pad'); if (!pd) return;
+      const k = +pd.dataset.k;
+      if (k === seq[prog[i]]) {
+        tapFx(pd, false); noteSnd(k); fill(i, prog[i], k);
+        prog[i]++; if (prog[i] > best[i]) best[i] = prog[i];
+        report(i, prog[i], LEN);
+        if (prog[i] >= LEN) { fin[i] = vt.now() - T0; winner = i; right(i); if (net.on) say('Bitirdin!', 'Rakipler bekleniyor…'); finish(); }
+      } else {
+        prog[i] = 0; report(i, 0, LEN); tapFx(pd, true); wrong(i); clear(i); replay(i);
+      }
+    };
     say('İzle!');
     await sleep(700);
-    for (const k of seq) {
-      zones.forEach((_, i) => pad(i, k).classList.add('lit')); fx.tick();
-      await sleep(550);
-      zones.forEach((_, i) => pad(i, k).classList.remove('lit'));
-      await sleep(250);
+    for (let j = 0; j < LEN; j++) {
+      const k = seq[j];
+      zs.forEach((_, i) => { pads[i][k].classList.add('lit'); slots[i][j].classList.add('w'); });
+      noteSnd(k);
+      await sleep(FLASH);
+      zs.forEach((_, i) => { pads[i][k].classList.remove('lit'); slots[i][j].classList.remove('w'); });
+      await sleep(GAP);
     }
-    say('Sıra sende!');
-    // Yanlis basan oyuncuya dizi, yalnizca kendi pedlerinde yeniden gosterilir (unutan takilip kalmaz)
-    const replay = async i => {
-      lock[i] = true; setS(i, 'out'); await sleep(600);
-      for (const k of seq) {
-        if (winner >= 0) break;
-        const el = pad(i, k); if (!el) return;
-        el.classList.add('lit'); await sleep(450); el.classList.remove('lit'); await sleep(200);
-      }
-      lock[i] = false; if (winner < 0) setS(i, 'go');
-    };
-    await new Promise(res => {
-      handler = (i, e) => {
-        if (winner >= 0 || lock[i]) return;
-        const pd = e.target.closest('.pad'); if (!pd) return;
-        pd.classList.add('lit'); vt.timeout(() => pd.classList.remove('lit'), 120);
-        if (+pd.dataset.k === seq[prog[i]]) {
-          right(i); prog[i]++; report(i, prog[i], LEN);
-          if (prog[i] >= LEN) { fin[i] = vt.now() - T0; winner = i; res(); }
-        } else {
-          prog[i] = 0; report(i, 0, LEN); wrong(i); replay(i);
-        }
-      };
-      vt.timeout(res, 24000);              // kimse bitiremezse tur uzamasin (toplam ~30 sn)
-    });
-    handler = null;
-    lastScores = prog.map((v, i) => fin[i] != null ? RACE - fin[i] : v);
-    return winner >= 0 ? [winner] : topScorers(prog);
+    zs.forEach((_, i) => sm(i).classList.remove('watch'));
+    input = true; say('Sıra sende!');
+    tmo = vt.timeout(finish, TIN);                                      // kimse bitiremezse tur uzamasin
+    tbar = vt.timeout(() => zs.forEach(z => z.querySelector('.sm-bar').classList.add('on')), TIN - TBAR);       // son 8 sn: kalan sure cubugu
+    await done;
+    lastScores = best.map((v, i) => fin[i] != null ? RACE - fin[i] : v);
+    return winner >= 0 ? [winner] : topScorers(best);
   }
 
 
@@ -2404,8 +2577,8 @@
     { icon: 'g-tek', name: 'Tek Farklı', hint: 'Farklı olanı bul. 3 bulmacayı ilk çözen kazanır, bulmacalar zorlaşır. Yanlış dokunana ceza var.', run: odd },
     { icon: 'g-renk', name: 'Renk Tuzağı', hint: 'Yazının ne yazdığına değil RENGİNE bak! Doğru rengi seç, ilk 4 doğruya ulaşan kazanır.', run: stroop },
     { icon: 'g-mat', name: 'Hızlı Matematik', hint: 'Doğru sonucu seç, sorular zorlaşır. İlk 4 doğruya ulaşan kazanır, yanlışta 1 sn ceza.', run: math },
-    { icon: 'g-isik', name: 'Işık Oyunu', hint: 'Yeşilde dokun (hızlı basarsan 2 puan), kırmızıda DOKUNMA! Yanlış dokunuş puan düşürür.', run: lights },
-    { icon: 'g-dizi', name: 'Renk Dizisi', hint: 'Yanıp sönen 5 rengi aynı sırayla tekrarla. Yanlış basarsan dizi sana yeniden gösterilir. İlk bitiren kazanır.', run: simon },
+    { icon: 'g-isik', name: 'Işık Oyunu', hint: 'Yeşilde BAS (hızlı basarsan 2 puan), kırmızıda BASMA! Yanlış ya da erken basış puan düşürür.', run: lights },
+    { icon: 'g-dizi', name: 'Renk Dizisi', hint: 'Yanıp sönen 5 pedi aynı sırayla tekrarla. Yanlış basarsan dizi yeniden gösterilir. İlk bitiren kazanır.', run: simon },
     { icon: 'g-balon', name: 'Balon Patlat', hint: '10 saniyede en çok balonu patlat. Balona yakın dokunman yeter. ' + ico('i-star', 'inl') + ' altın balon 3 puan; ' + ico('a-bomb-s', 'inl') + ' bomba 1 puan götürür, ona tam dokunma!', run: balloons },
     { icon: 'g-tut', name: 'Tut ve Bırak', hint: "Basılı tut, tam 3 saniye dolunca bırak. Sayaç yalnız ilk 1 sn görünür. 3,00'a en yakın olan kazanır.", run: hold },
     { icon: 'g-kost', name: 'Köstebek Avı', hint: 'Deliklerden çıkan köstebeğe dokun, 10 saniyede en çok vuran kazanır. Altın köstebek 3 puan; dikenli kirpiye dokunma. Boş deliğe basarsan kısa süre donarsın.', run: moles },
