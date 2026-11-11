@@ -3471,11 +3471,20 @@
   }
   // Tek tur (ag modu): intro + geri sayim + oyun (ortak tohum), bu telefonun sonuc sayisini dondurur
   // startAt: host saatiyle turun baslayacagi an (herkes ayni anda baslasin diye); misafir kendi saatine cevirir
+  // Calisan turun numarasi (0 = yok). Eski tur bitmeden yeni "round" gelirse (uygulama arka plandaydi, cok yavas cihaz) eski tur birakilir:
+  // iki tur ayni bolgeyi, zamanlayicilari ve Math.random'u birbirine karistirmasin.
+  function abortNetRound() {
+    vt.clearAll(); handler = null; upHandler = null; reportHook = null; liveRun = null; restoreRandom(); net.waiting = false; net.busy = 0;
+  }
   async function netRound(g, seed, r, total, open, intro, startAt, hostSent) {
+    net.busy = r;
+    try { return await netRoundRun(g, seed, r, total, open, intro, startAt, hostSent); } finally { if (net.busy === r) net.busy = 0; }
+  }
+  async function netRoundRun(g, seed, r, total, open, intro, startAt, hostSent) {
     if (startAt != null && !window.__dokunNoSync) {
       // saat farki henuz olculmediyse host'un mesaji gonderdigi andaki 'kalan sure' kullanilir (en kotu ihtimalle eski davranis, asla erken baslamaz)
       const d = net.role === 'host' ? startAt - nowP() : (net.off == null ? startAt - (hostSent || startAt) : (startAt - net.off) - nowP());
-      if (d > 0) await sleep(d);
+      if (d > 0) await sleep(Math.min(d, 4000));                  // normalde <= ~1,3 sn; bozuk saat tahmini oyuncuyu sonsuza kadar bekletmesin
     }
     net.round = r; net.prog = []; net.done = []; net.waiting = false;
     if (!music.active || r === 1) music.start(moodOf(g)); else music.setMood(moodOf(g));
@@ -3693,6 +3702,7 @@
     else if (m.t === 'round') {
       if (!net.matchStarted || !(isInt(m.r, 1, 60) && isInt(m.total, 1, 60) && isInt(m.gi, 0, GAMES.length - 1) && isInt(m.seed, -2147483648, 2147483647) &&
         typeof m.open === 'boolean' && typeof m.intro === 'boolean' && isNum(m.at, 0, 1e12) && isNum(m.h, 0, 1e12))) return;
+      if (net.busy) abortNetRound();                                        // onceki tur hala suruyorsa birakilir
       (async () => {
         let v = null;                                                       // tur hata verirse host'u 70 sn bekletmemek icin "puan yok" bildirilir
         try { v = await netRound(GAMES[m.gi], m.seed, m.r, m.total, m.open, m.intro, m.at, m.h); } catch (e) { console.error(e); }
@@ -3732,7 +3742,7 @@
     }
     const prev = net.prev;
     Object.assign(net, { on: false, role: null, names: null, myIdx: 0, peers: [], gdc: null, gws: null, gpc: null, pending: null, prev: null, lan: null, matchStarted: false,
-      rtt: 0, off: null, samples: [], lastPong: 0, weak: false, token: null, lanIp: null, reconnecting: false, round: 0, prog: [], done: [], away: [], waiting: false, waitSec: null, welcomeT: null });
+      rtt: 0, off: null, samples: [], lastPong: 0, weak: false, token: null, lanIp: null, reconnecting: false, round: 0, prog: [], done: [], away: [], waiting: false, waitSec: null, welcomeT: null, busy: 0 });
     document.body.classList.remove('net', 'guest');
     quitMatch();                                       // zamanlayicilar, muzik ve ekranlar sifirlanir, ana menuye donulur
     if (prev) { N = prev.N; modeKey = prev.modeKey; Object.assign(modeVal, prev.modeVal); renderModeUI(); }       // host'un mod / deger secimi yerel ayari kalici degistirmesin
