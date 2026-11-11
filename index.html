@@ -284,6 +284,7 @@
   .setlist { width:100%; display:flex; flex-direction:column; gap:10px; text-align:left; }
   .setrow { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:8px 12px; border-radius:var(--r-s); background:rgba(29,24,56,.07); font-weight:700; font-size:15px; }
   .setrow button { font-size:15px; padding:7px 14px; min-width:76px; }
+  .setrow small { display:block; font-weight:600; font-size:12px; opacity:.7; line-height:1.25; margin-top:1px; }
   #names { display:flex; flex-direction:column; gap:10px; }
   .nrow { display:flex; align-items:center; gap:10px; }
   .nrow i { width:20px; height:34px; border-radius:8px; background:var(--c); flex:none; border:var(--ln) solid var(--ink); }
@@ -657,6 +658,10 @@
       <div class="row seg" id="vol-row"><button data-v="1">Düşük</button><button data-v="2">Orta</button><button data-v="3">Yüksek</button></div></div>
   </div>
   <div class="csec">
+    <div class="sh">Görünüm</div>
+    <div class="setrow"><span>Renk körü modu <small>renklere simge ve desen ekler</small></span><button class="tog" data-k="cb"></button></div>
+  </div>
+  <div class="csec">
     <div class="sh">Cihaz</div>
     <div class="setrow"><span>Ekran açık kalsın</span><button class="tog" data-k="wake"></button></div>
   </div>
@@ -777,9 +782,11 @@
   const esc = t => String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
   // ---------- Ayarlar ----------
-  const prefs = { sfx: true, vib: true, music: true, menuMusic: true, vol: 2, wake: true, names: ['', '', '', ''] };
+  const prefs = { sfx: true, vib: true, music: true, menuMusic: true, vol: 2, wake: true, cb: false, names: ['', '', '', ''] };
   try { Object.assign(prefs, JSON.parse(localStorage.getItem('dokun-ayar') || '{}')); } catch (_) {}
   prefs.names = [0, 1, 2, 3].map(i => String((prefs.names || [])[i] || '').slice(0, 10));
+  const applyCb = () => document.body.classList.toggle('cb', !!prefs.cb);       // renk koru modu: renkle ayrilan ogelere sekil/simge/desen eklenir (CSS: body.cb ...)
+  applyCb();
   const savePrefs = () => { try { localStorage.setItem('dokun-ayar', JSON.stringify(prefs)); } catch (_) {} };
   const nameOf = i => prefs.names[i] || ('Oyuncu ' + (i + 1));
 
@@ -1022,6 +1029,8 @@
   });
   const arena = (i, html) => { const b = zones[i].querySelector('.body'); b.classList.add('fill'); b.innerHTML = html; };
   const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  // Paylasilan icerik: yerel modda tum bolgeler AYNI k. ogeyi (soru, balon, dizi...) gorur; oge ilk istendiginde uretilir (dizin sirasi = uretim sirasi, ag modunda seed'li Math.random ile telefonlar arasi ayni kalir).
+  const shared = gen => { const memo = []; return k => (k in memo) ? memo[k] : (memo[k] = gen(k)); };
   let lastScores = [];                       // son oynanan oyunun bolge basina sonuc sayisi (buyuk = iyi); ag modunda kullanilir
   const RACE = 1e6;                          // yaris oyunlarinda: bitirme suresi ne kadar kisaysa sonuc o kadar yuksek
   const topScorers = arr => { const m = Math.max(...arr); return m > 0 ? arr.map((v, i) => v === m ? i : -1).filter(i => i >= 0) : []; };
@@ -1904,6 +1913,7 @@
   settings.querySelectorAll('.tog').forEach(b => b.addEventListener('click', () => {
     prefs[b.dataset.k] = !prefs[b.dataset.k]; savePrefs(); paintSettings();
     if (b.dataset.k === 'sfx' || b.dataset.k === 'vib') fx.preview();
+    if (b.dataset.k === 'cb') applyCb();
     if (b.dataset.k === 'music' || b.dataset.k === 'menuMusic') { if (!prefs.music) music.stop(); else if (!playing) music.home(); }
   }));
   $('#vol-row').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; prefs.vol = +b.dataset.v; savePrefs(); paintSettings(); music.volume(); });
@@ -2430,7 +2440,7 @@
   // test icin disariya ac
   document.addEventListener('contextmenu', e => { if (!/INPUT|TEXTAREA/.test(e.target.tagName)) e.preventDefault(); });
   window.__dokun = { get scores() { return scores; }, get zones() { return zones; }, get N() { return N; }, GAMES, resetZones, fx, say, finish: finale, burst, setS,
-    backGuard, get dead() { return dead; }, vt, music, prefs, pauseGame, resumeGame, quitMatch, play, nameOf, net, leaveNet, get scoresAll() { return scores; }, get lastScores() { return lastScores; },
+    backGuard, get dead() { return dead; }, vt, music, prefs, shared, pauseGame, resumeGame, quitMatch, play, nameOf, net, leaveNet, get scoresAll() { return scores; }, get lastScores() { return lastScores; },
     setup(n) { N = n; scores = Array(N).fill(0); lives = Array(N).fill(3); dead = Array(N).fill(false); elim = Array(N).fill(Infinity); build(); showScreen(null); } };
 })();
 </script>
