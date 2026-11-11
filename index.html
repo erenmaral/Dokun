@@ -514,7 +514,7 @@
      .pz bolgenin bos alanini kaplar (ust bosluktan .head'in ustune; konum ve boyutu pzFit verir): ustte sure cubugu + sayac, altta izgara.
      Izgaranin sutun sayisi ve hucre boyutu bolgeye gore secilir (hucre >= 34 px). Yalniz transform / opacity animasyonu. */
   .pz { position:absolute; left:0; right:0; display:flex; flex-direction:column; align-items:center; gap:5px; }
-  .pz-hd { display:flex; align-items:center; gap:6px; width:100%; flex:none; padding:0 2px; }
+  .pz-hd { display:flex; align-items:center; gap:6px; width:100%; flex:none; padding:0 10px; }                  /* kenar duraklat sekmelerinin (30 px) altinda kalmasin */
   .pz .cnt { position:relative; top:auto; left:auto; transform:none; flex:none; }
   .zone.narrow .pz .cnt { font-size:12px; line-height:13px; padding:0 7px; }
   .pz .cnt.bump { animation:pzbump .4s var(--pop); }
@@ -1294,7 +1294,8 @@
     root.style.top = (top - bd.offsetTop) + 'px';
     root.style.height = Math.max(60, hd.offsetTop - 6 - top) + 'px';
     const box = root.querySelector('.pz-box'), g = root.querySelector('.pz-grid'), gap = narrow ? 4 : 8;
-    const W = box.clientWidth, H = box.clientHeight - (narrow ? 3 : 4);                                                    // alt golge payi
+    const net = document.body.classList.contains('net');
+    const W = box.clientWidth - (net ? 20 : 0), H = box.clientHeight - (narrow ? 3 : 4);                                  // ag modunda izgara kenar duraklat sekmelerinin altina girmesin; alt golge payi
     if (W < 20 || H < 20) return;
     const b = pzBest(+root.dataset.n, W, H, gap, 132, +root.dataset.minc, +root.dataset.maxc);
     g.style.setProperty('--cell', b.cell + 'px'); g.style.setProperty('--gap', gap + 'px');
