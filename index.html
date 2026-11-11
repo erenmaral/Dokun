@@ -1252,8 +1252,12 @@
     await sleep(750);
   };
   const hdClean = (...sel) => zones.forEach(z => { const a = z.querySelector('.arena'); if (a) sel.forEach(s => a.querySelectorAll(s).forEach(n => n.remove())); });
-  // arena yeniden boyutlanirsa (ekran donmesi vb.) cagrilir; oyun bittiyse ya da mac kapandiysa kendini siler
-  const hdOnResize = (alive, fn) => { const h = () => { if (!alive() || !zones.length || !zones[0].querySelector('.arena')) { window.removeEventListener('resize', h); return; } fn(); }; window.addEventListener('resize', h); return () => window.removeEventListener('resize', h); };
+  // arena yeniden boyutlanirsa (ekran donmesi vb.) cagrilir; oyun bittiyse ya da bu oyunun arenasi DOM'dan kalktiysa (mac kapandi) kendini siler
+  const hdOnResize = (alive, fn) => {
+    const a0 = zones[0] && zones[0].querySelector('.arena');
+    const h = () => { if (!alive() || !a0 || !a0.isConnected) { window.removeEventListener('resize', h); return; } fn(); };
+    window.addEventListener('resize', h); return () => window.removeEventListener('resize', h);
+  };
 
   async function targets() {
     const GOAL = 6, LIMIT = 15000, TOP = 30, cnt = Array(N).fill(0), fin = [], T0 = vt.now();
