@@ -3315,7 +3315,7 @@
     const win = vals.map((v, i) => v === max ? i : -1).filter(i => i >= 0);
     const tie = team ? new Set(win.map(teamOf)).size > 1 : win.length > 1;       // takimda beraberlik: iki takimin puani esit
     const rank = vals.map(v => 1 + (team ? new Set(vals.filter(x => x > v)).size : vals.filter(x => x > v).length));
-    const subOf = i => modeKey === 'can' ? (dead[i] ? 'Elendi' : lives[i] + ' can') : modeKey === 'takim' ? 'Takım ' + 'AB'[teamOf(i)] + ' · ' + teamScore(i) + ' puan' : scores[i] + ' puan';
+    const subOf = i => modeKey === 'can' ? (dead[i] ? (win.includes(i) ? 'Birlikte elendi' : 'Elendi') : lives[i] + ' can') : modeKey === 'takim' ? 'Takım ' + 'AB'[teamOf(i)] + ' · ' + teamScore(i) + ' puan' : scores[i] + ' puan';
     zones.forEach((z, k) => {
       const i = +z.dataset.p;
       z.querySelector('.body').classList.remove('fill'); z.classList.remove('sky');
@@ -3589,8 +3589,9 @@
     const b = e.target.closest('button'); if (!b) return;
     const a = b.dataset.a;
     if (a === 'golden') { goldenRound(); return; }
+    if (net.on && a === 'again') { startNetMatch(); return; }       // cubugu netEnter gizler; kimse kalmadiysa (baslayamazsa) cubuk acik kalir, oda sahibi Menu'ye basabilir
     endbar.classList.add('hidden');
-    if (net.on) { if (a === 'again') startNetMatch(); else leaveNet(); return; }
+    if (net.on) { leaveNet(); return; }
     if (a === 'again') play(lastPool); else quitMatch();
   });
 
