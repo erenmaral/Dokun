@@ -185,7 +185,7 @@
   .pad.lit::after { opacity:.62; }
 
   /* balon: balonlar arenanin icinde (yandan kirpilmaz) dogar; alt/ust kenari bolge cercevesi gizler. Boyut --bw ile arena genisligine gore ayarlanir */
-  .balloons { --bw:64px; }
+  .balloons { --bw:64px; }                                                    /* kirpma yok: balonlar arena icinde dogar; alt/ust kenarda bolge cercevesi kirpar */
   .balloon { position:absolute; bottom:calc(var(--bw) * -1.5 - 70px); width:var(--bw); height:calc(var(--bw) * 1.5); margin-left:calc(var(--bw) / -2); animation:rise 4s linear forwards; }
   .balloon .bb { position:absolute; inset:0; transform-origin:50% 88%; animation:sway 1.3s ease-in-out infinite alternate; }
   .balloon .bb svg { display:block; width:100%; height:100%; overflow:visible; }
@@ -540,9 +540,9 @@
   /* balon: gokyuzu ve bulutlar */
   .zone.sky, .zone.sky[data-s="go"] { --ground:#5bbcf6; --dot:rgba(255,255,255,.32); }
   .zone.sky[data-s="win"] { --ground:var(--yellow); --dot:rgba(255,244,220,.09); }              /* tur sonu: kazanan bolge diger oyunlardaki gibi altin olur (sky zemini ezmez) */
-  .cloud { position:absolute; left:0; width:96px; height:54px; margin-left:-110px; animation:cloud 18s linear infinite; pointer-events:none; opacity:.95; }
+  .cloud { position:absolute; left:0; width:calc(var(--bw, 64px) * var(--cm, 1.5)); height:calc(var(--bw, 64px) * var(--cm, 1.5) * .56); animation:cloud 18s linear infinite; pointer-events:none; opacity:0; }
   .cloud svg { display:block; width:100%; height:100%; }
-  @keyframes cloud { to { transform:translateX(calc(var(--aw, 300px) + 220px)); } }          /* arena genisligine gore: cerceve disindan girer, cerceve disina cikar */
+  @keyframes cloud { 0% { transform:translateX(0); opacity:0; } 14% { opacity:.95; } 86% { opacity:.95; } 100% { transform:translateX(calc(var(--aw, 300px) - 100%)); opacity:0; } }      /* arena icinde sure gider; kenarlarda solar (kesik kenar yok) */
 
   /* oyun ogeleri */
   /* kostebek: toprak tarla + delikten cikan kostebek (--ms: tarla kenari, arena boyuna gore JS ayarlar; hucreler en az 34 px) */
@@ -1568,14 +1568,14 @@
     const cmb = Array.from({ length: N }, () => ({ t: -1e9, n: 0 })), tms = new Set();       // cmb: bolge basina ard arda patlatma (ses perdesi yukselir)
     let over = false, chain = 0;
     const later = (fn, ms) => { const id = vt.timeout(() => { tms.delete(id); fn(); }, ms); tms.add(id); return id; };
-    const bwOf = a => Math.round(Math.max(46, Math.min(64, a.clientWidth * 0.4)));           // dar bolgede balon kuculur
+    const bwOf = a => Math.round(Math.max(44, Math.min(64, a.clientWidth * 0.34)));          // dar serit (3-4 oyuncu) balonlari kuculur: ust uste binme azalir
     const fit = () => zones.forEach(z => { const a = z.querySelector('.arena'); if (!a) return; a.style.setProperty('--bw', bwOf(a) + 'px'); a.style.setProperty('--aw', a.clientWidth + 'px'); });
     const cl = ico('a-cloud');
     zones.forEach((z, i) => {
       z.classList.add('sky');
       arena(i, '<div class="arena balloons">' + hdTimeBar(DUR) + '<div class="cnt">0</div>' +
         '<div class="cloud" style="top:12%;animation-duration:24s">' + cl + '</div>' +
-        '<div class="cloud" style="top:44%;width:70px;height:40px;animation-duration:30s;animation-delay:-11s">' + cl + '</div>' +
+        '<div class="cloud" style="top:44%;--cm:1.1;animation-duration:30s;animation-delay:-11s">' + cl + '</div>' +
         '<div class="cloud" style="top:72%;animation-duration:27s;animation-delay:-18s">' + cl + '</div></div>');
       setS(i, 'go');
     });
@@ -1593,7 +1593,7 @@
       const col = kind === 'bomb' ? ['#4a4570', '#383359'] : kind === 'gold' ? ['#ffb703', '#d98a00'] : BC[s.ci];
       const b = document.createElement('div'), bb = document.createElement('div');
       b.className = 'balloon' + (kind === 'gold' ? ' gold' : ''); bb.className = 'bb'; b.appendChild(bb);
-      b.style.left = (bw / 2 + 8 + s.x * Math.max(1, W - bw - 16)).toFixed(1) + 'px';          // balon her zaman tamamen arena icinde kalir
+      b.style.left = (bw / 2 + 12 + s.x * Math.max(1, W - bw - 24)).toFixed(1) + 'px';          // balon (sallanma payi dahil) her zaman tamamen arena icinde kalir
       b.style.setProperty('--bc', col[0]); b.style.setProperty('--bd', col[1]);
       b.style.setProperty('--rise', -path + 'px');                                              // bolgenin altindan dogup ustunden cikar
       b.style.animationDuration = (dur * Math.min(1, (H + 140) / 436) * path / (H + 140)).toFixed(2) + 's';      // kisa arenada hiz (px/sn) ayni kalir: balonlar birbirine yigilmaz
