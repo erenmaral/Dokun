@@ -552,8 +552,9 @@
   .hole { position:relative; overflow:hidden; min-width:0; min-height:0; }
   .hole .mh-b, .hole .mh-f { position:absolute; left:0; top:0; width:100%; height:100%; display:block; pointer-events:none; }
   .hole .mh-f { z-index:2; }
-  .hole .mh-m { position:absolute; left:6%; top:10%; width:88%; height:88%; z-index:1; pointer-events:none; transform:translateY(78%); }
+  .hole .mh-m { position:absolute; left:6%; top:10%; width:88%; height:88%; z-index:1; pointer-events:none; transform:translateY(100%); visibility:hidden; }
   .hole .mh-m svg { display:block; width:100%; height:100%; overflow:visible; }
+  .hole.up .mh-m, .hole.dn .mh-m, .hole.hit .mh-m { visibility:visible; }
   .hole.up .mh-m { animation:mup .2s var(--out) both; }
   .hole.dn .mh-m { animation:mdown .16s ease-in both; }
   .hole.hit .mh-m { animation:mhit .32s var(--out) both; }
@@ -565,9 +566,9 @@
   .mgrid .mk-lock { position:absolute; left:50%; top:50%; width:34%; height:34%; margin:-17% 0 0 -17%; z-index:4; pointer-events:none; opacity:0; transform:scale(.4); transition:opacity .1s; }
   .mgrid.lk::after { content:''; position:absolute; inset:0; z-index:3; border-radius:inherit; background:rgba(29,24,56,.55); pointer-events:none; }
   .mgrid.lk .mk-lock { opacity:1; animation:lockpop .35s var(--pop) forwards; }
-  @keyframes mup { 0% { transform:translateY(78%); } 62% { transform:translateY(-7%); } 100% { transform:translateY(0); } }
-  @keyframes mdown { from { transform:translateY(0); } to { transform:translateY(78%); } }
-  @keyframes mhit { 0% { transform:translateY(0) scale(1.12, .78); } 38% { transform:translateY(7%) scale(1, .88) rotate(-7deg); } 100% { transform:translateY(78%) rotate(9deg); } }
+  @keyframes mup { 0% { transform:translateY(100%); } 62% { transform:translateY(-7%); } 100% { transform:translateY(0); } }
+  @keyframes mdown { from { transform:translateY(0); } to { transform:translateY(100%); } }
+  @keyframes mhit { 0% { transform:translateY(0) scale(1.12, .78); } 38% { transform:translateY(7%) scale(1, .88) rotate(-7deg); } 100% { transform:translateY(100%) rotate(9deg); } }
   @keyframes lockpop { from { transform:scale(.4) rotate(-20deg); } to { transform:scale(1) rotate(0); } }
   .card { font-size:30px; }
   .card .qm { font-family:var(--f-display); font-weight:700; font-size:1.25em; color:var(--paper); text-shadow:var(--ol2); line-height:1; }
@@ -639,7 +640,7 @@
 <symbol id="a-mole" viewBox="0 0 48 48"><g stroke="#1d1838" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" ><ellipse cx="9" cy="30" rx="4" ry="3.500" fill="#ff8fa3" stroke-width="2.500"/><ellipse cx="39" cy="30" rx="4" ry="3.500" fill="#ff8fa3" stroke-width="2.500"/><path d="M6 44C5 27 13 12 24 12s19 15 18 32Z" style="fill:var(--mf,#b07a52)"/><ellipse cx="24" cy="31" rx="9.500" ry="7" style="fill:var(--mb,#e0b48a)" stroke-width="2.500"/><ellipse cx="24" cy="27" rx="5" ry="3.600" fill="#ff8fa3" stroke-width="2.500"/><circle cx="17" cy="20" r="2.800" fill="#1d1838" stroke="none"/><circle cx="31" cy="20" r="2.800" fill="#1d1838" stroke="none"/><circle cx="16" cy="19" r="1" fill="#fff4dc" stroke="none"/><circle cx="30" cy="19" r="1" fill="#fff4dc" stroke="none"/><path d="M21 34q3 2.500 6 0" fill="none" stroke-width="2.200"/><ellipse cx="12" cy="41.500" rx="5.500" ry="3.800" style="fill:var(--mb,#e0b48a)" stroke-width="2.500"/><ellipse cx="36" cy="41.500" rx="5.500" ry="3.800" style="fill:var(--mb,#e0b48a)" stroke-width="2.500"/><g style="display:var(--crown,none)"><path d="M15 16L14 7L19.500 11.500L24 4L28.500 11.500L34 7L33 16Z" fill="#ffd23f" stroke-width="2.500"/></g></g></symbol>
 <symbol id="m-hog" viewBox="0 0 48 48"><g stroke="#1d1838" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" ><path d="M4 44L4 31L8 27L6 19L13 20L14 11L20 15L24 7L28 15L34 11L35 20L42 19L40 27L44 31L44 44Z" fill="#7b44d6"/><path d="M11 44C10 35 16 29 24 29s14 6 13 15Z" fill="#fff4dc" stroke-width="2.500"/><circle cx="19" cy="36" r="2.400" fill="#1d1838" stroke="none"/><circle cx="29" cy="36" r="2.400" fill="#1d1838" stroke="none"/><path d="M15.500 31.500l6.500 2.500M32.500 31.500l-6.500 2.500" fill="none" stroke-width="2.600"/><ellipse cx="24" cy="40.500" rx="2.600" ry="2" fill="#1d1838" stroke="none"/><path d="M12 22l1.500-3M30 19l1.500-4" fill="none" stroke="#fff4dc" stroke-width="2.200"/></g></symbol>
 <symbol id="m-hole-b" viewBox="0 0 64 64"><ellipse cx="32" cy="44" rx="26" ry="11" fill="#3a2317" stroke="#1d1838" stroke-width="3.500"/><ellipse cx="32" cy="42" rx="19" ry="5.500" fill="#52331f"/></symbol>
-<symbol id="m-hole-f" viewBox="0 0 64 64"><path d="M-4 44H6A26 11 0 0 0 58 44H68V68H-4Z" style="fill:var(--dirt,#9b6a45)"/><path d="M6 44A26 11 0 0 0 58 44" fill="none" stroke="#1d1838" stroke-width="3.500" stroke-linecap="round"/><path d="M13 52.500Q21 57 28 57.500" fill="none" stroke="#b98558" stroke-width="2.500" stroke-linecap="round"/></symbol>
+<symbol id="m-hole-f" viewBox="0 0 64 64"><path d="M-4 44H6A26 11 0 0 0 58 44H68V68H-4Z" style="fill:var(--dirt,#9b6a45)"/><path d="M6 44A26 11 0 0 0 58 44" fill="none" stroke="#1d1838" stroke-width="3.500" stroke-linecap="round"/><path d="M9 50A26 11 0 0 0 55 50" fill="none" stroke="#b98558" stroke-width="2.500" stroke-linecap="round"/></symbol>
 <symbol id="a-arrow" viewBox="0 0 48 48"><path d="M24 5 41 24H30v19H18V24H7Z" style="fill:var(--ac,#ffd23f)" stroke="#1d1838" stroke-width="3.500" stroke-linejoin="round"/><path d="M17 20l7-8" fill="none" stroke="#fff4dc" stroke-width="3" stroke-linecap="round"/></symbol>
 <symbol id="f-bear" viewBox="0 0 48 48"><g stroke="#1d1838" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" ><circle cx="10" cy="14" r="6.500" fill="#b9764a"/><circle cx="38" cy="14" r="6.500" fill="#b9764a"/><circle cx="10" cy="14" r="2.500" fill="#f0b48a" stroke="none"/><circle cx="38" cy="14" r="2.500" fill="#f0b48a" stroke="none"/><ellipse cx="24" cy="27" rx="17" ry="16" fill="#c98557"/><ellipse cx="24" cy="33" rx="8" ry="6" fill="#f6d2a8" stroke-width="2.500"/><ellipse cx="24" cy="30.500" rx="3.500" ry="2.500" fill="#1d1838" stroke="none"/><circle cx="16.500" cy="24" r="2.300" fill="#1d1838" stroke="none"/><circle cx="31.500" cy="24" r="2.300" fill="#1d1838" stroke="none"/><path d="M24 33v2.500M21 36q3 2.500 6 0" fill="none" stroke-width="2"/></g></symbol>
 <symbol id="f-cat" viewBox="0 0 48 48"><g stroke="#1d1838" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" ><path d="M7 24 8 5l13 8Z" fill="#ff9442"/><path d="M41 24 40 5 27 13Z" fill="#ff9442"/><path d="M11 17l.500-7 6 4Z" fill="#ffb3c1" stroke="none"/><path d="M37 17l-.500-7-6 4Z" fill="#ffb3c1" stroke="none"/><ellipse cx="24" cy="28" rx="18" ry="15" fill="#ff9442"/><path d="M24 14v5M19 15l1 4M29 15l-1 4" fill="none" stroke-width="2.200"/><ellipse cx="16.500" cy="26" rx="2.500" ry="3.200" fill="#1d1838" stroke="none"/><ellipse cx="31.500" cy="26" rx="2.500" ry="3.200" fill="#1d1838" stroke="none"/><circle cx="17.200" cy="24.800" r="1" fill="#fff4dc" stroke="none"/><circle cx="32.200" cy="24.800" r="1" fill="#fff4dc" stroke="none"/><path d="M21.500 31h5L24 34Z" fill="#ff6b8a" stroke-width="2"/><path d="M24 34v2q-3 2.500-6 .500M24 36q3 2.500 6 .500" fill="none" stroke-width="2"/><path d="M3 29h8M4 35l7-3M45 29h-8M44 35l-7-3" fill="none" stroke-width="2"/></g></symbol>
@@ -1567,7 +1568,7 @@
     const cmb = Array.from({ length: N }, () => ({ t: -1e9, n: 0 })), tms = new Set();       // cmb: bolge basina ard arda patlatma (ses perdesi yukselir)
     let over = false, chain = 0;
     const later = (fn, ms) => { const id = vt.timeout(() => { tms.delete(id); fn(); }, ms); tms.add(id); return id; };
-    const bwOf = a => Math.round(Math.max(46, Math.min(64, a.clientWidth * 0.43)));          // dar bolgede balon kuculur
+    const bwOf = a => Math.round(Math.max(46, Math.min(64, a.clientWidth * 0.4)));           // dar bolgede balon kuculur
     const fit = () => zones.forEach(z => { const a = z.querySelector('.arena'); if (!a) return; a.style.setProperty('--bw', bwOf(a) + 'px'); a.style.setProperty('--aw', a.clientWidth + 'px'); });
     const cl = ico('a-cloud');
     zones.forEach((z, i) => {
@@ -1580,8 +1581,11 @@
     });
     fit();
     // Paylasilan balon dizisi: k. balon tum bolgelere AYNI (tur, renk, yatay konum orani, sure); tek uretici, dizin sirasiyla
-    const spec = shared(k => ({ roll: Math.random(), x: Math.random(), ci: Math.floor(Math.random() * BC.length), d: Math.random(), ph: Math.random() }));
-    const gapOf = k => k < 3 ? 300 : Math.round(640 - 240 * Math.min(1, (k - 3) / 16));       // balonlar arasi sure (ms): oyun ilerledikce sikilasir
+    const spec = shared(k => {
+      const roll = Math.random(), r = Math.random(), ci = Math.floor(Math.random() * BC.length), d = Math.random(), ph = Math.random();
+      return { roll, x: ((k > 0 ? spec(k - 1).x : 0.5) + 0.3 + 0.4 * r) % 1, ci, d, ph };      // yatay konum bir oncekinden en az %30 uzakta (ust uste binme azalir)
+    });
+    const gapOf = k => k < 3 ? 440 : Math.round(620 - 200 * Math.min(1, (k - 3) / 16));       // balonlar arasi sure (ms): oyun ilerledikce sikilasir
     const T = [0]; while (T[T.length - 1] <= STOP) T.push(T[T.length - 1] + gapOf(T.length - 1));
     const addBalloon = (z, kind, s, dur) => {
       const a = z.querySelector('.arena'); if (!a) return;
@@ -1592,7 +1596,7 @@
       b.style.left = (bw / 2 + 8 + s.x * Math.max(1, W - bw - 16)).toFixed(1) + 'px';          // balon her zaman tamamen arena icinde kalir
       b.style.setProperty('--bc', col[0]); b.style.setProperty('--bd', col[1]);
       b.style.setProperty('--rise', -path + 'px');                                              // bolgenin altindan dogup ustunden cikar
-      b.style.animationDuration = (dur * path / (H + 140)).toFixed(2) + 's';
+      b.style.animationDuration = (dur * Math.min(1, (H + 140) / 436) * path / (H + 140)).toFixed(2) + 's';      // kisa arenada hiz (px/sn) ayni kalir: balonlar birbirine yigilmaz
       bb.style.animationDelay = (-s.ph * 1.3).toFixed(2) + 's';
       bb.innerHTML = ico(kind === 'bomb' ? 'a-bomb' : 'a-balloon');
       if (kind === 'bomb') b.dataset.bomb = 1;
