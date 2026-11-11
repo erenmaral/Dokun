@@ -10,6 +10,7 @@ Dokun! kişisel veri toplamaz/paylaşmaz. Formu şöyle doldur:
 
 ## Diğer "Uygulama içeriği" beyanları
 - **Reklamlar:** Uygulama reklam içermiyor → Hayır
+- **Reklam kimliği (Advertising ID) kullanımı:** Uygulama reklam kimliğini kullanmıyor → Hayır (Android 13+ için Play Console bunu ayrıca sorar)
 - **Uygulama erişimi:** Tüm özellikler giriş yapmadan kullanılabilir → "Tüm işlevler özel erişim gerektirmeden kullanılabilir"
 - **İçerik derecelendirme (IARC) anketi:** Kategori "Oyun". Şiddet, korku, cinsel içerik, kumar, uyuşturucu, küfür, kullanıcı etkileşimi/paylaşımı (yalnızca yerel ağda aynı odadaki oyuncular, sohbet yok), konum paylaşımı, dijital satın alma → hepsi **Hayır**. Beklenen sonuç: PEGI 3 / Herkes.
 - **Hedef kitle:** "13 yaş ve üzeri" gruplarını seç (çocuklara yönelik değil → Aile Politikası ek koşulları gerekmez). Çocuklara yönelik seçilirse reklamsız/veri toplamayan yapı yine uyumludur ama ek form adımları çıkar.
