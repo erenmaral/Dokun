@@ -118,13 +118,125 @@
     background:var(--paper); color:var(--ink); border:var(--ln-s) solid var(--ink); box-shadow:var(--sh-xs); white-space:nowrap; pointer-events:none; text-shadow:none; }
 
   /* ---------- Oyun ogeleri ---------- */
-  .track { position:relative; width:86%; height:46px; margin:0 auto; background:var(--paper); border:var(--ln-b) solid var(--ink); border-radius:23px; box-shadow:var(--sh-m); text-shadow:none; }
+  .track { position:relative; width:86%; margin:0 auto; background:var(--paper); border:var(--ln-b) solid var(--ink); border-radius:var(--r-pill); box-shadow:var(--sh-m); text-shadow:none; }
   .track::before { content:''; position:absolute; left:43%; width:14%; top:0; bottom:0; background:var(--green); border:3px solid var(--ink); border-top:0; border-bottom:0; }
   .track .mid { position:absolute; left:50%; top:-8px; bottom:-8px; width:6px; margin-left:-3px; background:var(--ink); border-radius:3px; }
-  .track .mk { position:absolute; top:1px; width:32px; height:32px; margin-left:-16px; left:18px; border-radius:50%;
+  .track .mk { position:absolute; border-radius:50%;
     background:var(--c); border:var(--ln) solid var(--ink); box-shadow:inset -5px -5px 0 var(--cd, rgba(0,0,0,.25)); }
-  .track .mk::after { content:''; position:absolute; left:5px; top:4px; width:9px; height:6px; border-radius:50%; background:var(--paper); transform:rotate(-30deg); }
-  .pct { font-size:clamp(18px,5vmin,30px); margin-top:14px; font-weight:700; }
+  .track .mk::after { content:''; position:absolute; left:15%; top:12%; width:28%; height:19%; border-radius:50%; background:var(--paper); transform:rotate(-30deg); }
+  /* ================= Refleks oyunlari (Tepki / Seri Dokun / Tam Ortada / Tut ve Birak) ================= */
+  /* --- ortak: simge + yazi yigini --- */
+  .rt, .hd, .sp { display:flex; flex-direction:column; align-items:center; line-height:1.05; }
+  .rt { gap:clamp(3px, 1.1vmin, 8px); }
+  .rt-ic { position:relative; width:clamp(60px, 27vmin, 200px); height:clamp(60px, 27vmin, 200px); flex:none; animation:rtpop .3s var(--pop); }
+  .rt-ic svg { position:absolute; inset:0; width:100%; height:100%; display:block; overflow:visible; }
+  .rt-ic svg.bo { inset:19%; width:62%; height:62%; }
+  .rt-tx { font-size:clamp(24px, 9vmin, 76px); font-weight:700; line-height:1.05; text-wrap:balance; }
+  .rt-sub { font-family:var(--f-body); font-size:clamp(15px, 4.4vmin, 32px); font-weight:600; line-height:1.1; text-shadow:var(--ol2); }
+  .rt-tag { font-family:var(--f-display); font-size:clamp(16px, 4.8vmin, 34px); font-weight:700; background:var(--paper); color:var(--ink); text-shadow:none;
+    border:var(--ln-s) solid var(--ink); border-radius:var(--r-pill); padding:1px 12px 2px; box-shadow:var(--sh-xs); }
+  .rt-ms, .hd-big { display:flex; align-items:baseline; justify-content:center; gap:.2em; font-size:clamp(22px, 8vmin, 60px); font-weight:700; line-height:1; text-shadow:var(--ol3); animation:rtpop .3s var(--pop); }
+  .rt-ms b, .hd-big b { font-size:1.75em; font-weight:700; }
+  @keyframes rtpop { from { transform:scale(.45) rotate(-10deg); opacity:0; } to { transform:none; opacity:1; } }
+  @keyframes rtwob { from { transform:rotate(-8deg); } to { transform:rotate(8deg); } }
+  @keyframes rtthrob { to { transform:scale(1.12); } }
+  /* Tepki durumlari: kronometre (bekle) / uyari ucgeni (sahte isaret) / yildiz patlamasi + simsek (dokun) / kirmizi carpi (elendi) */
+  .rt-wait .rt-ic svg { animation:rtwob 1.1s ease-in-out infinite alternate; }
+  .rt-warn .rt-ic svg { animation:rtthrob .65s ease-in-out infinite alternate; }
+  .rt-go .rt-ic svg.bu { animation:spin 7s linear infinite; }
+  .rt-go .rt-ic svg.bo { animation:rtthrob .32s ease-in-out infinite alternate; }
+  .rt-out .rt-ic { border-radius:50%; background:var(--red); border:var(--ln-b) solid var(--ink); box-shadow:var(--sh-m); color:var(--paper); }
+  .rt-out .rt-ic svg { inset:19%; width:62%; height:62%; }
+  .rt-res .rt-ic { width:clamp(50px, 20vmin, 150px); height:clamp(50px, 20vmin, 150px); }
+  .rt-lose { gap:clamp(4px, 1.4vmin, 9px); }
+  .zone.narrow .rt-tx { font-size:clamp(20px, 6.8vmin, 30px); }
+  .zone.narrow .rt-ic { width:clamp(50px, 22vmin, 96px); height:clamp(50px, 22vmin, 96px); }
+  .zone.narrow .rt-res .rt-ic { width:clamp(40px, 16vmin, 64px); height:clamp(40px, 16vmin, 64px); }
+  .zone.narrow .rt-ms, .zone.narrow .hd-big { font-size:clamp(17px, 5.6vmin, 28px); }
+  .zone.narrow .rt-sub { font-size:clamp(12px, 3.6vmin, 15px); }
+  .zone.narrow .rt-tag { font-size:clamp(13px, 3.9vmin, 17px); }
+  /* renk koru: yazi her zaman kagit plakada, sahte isaret taramali */
+  body.cb .rt-tx { background:var(--paper); color:var(--ink); text-shadow:none; border:var(--ln) solid var(--ink); border-radius:var(--r-m); padding:2px 12px 3px; box-shadow:var(--sh-s); }
+  body.cb .rt-warn .rt-tx { background:repeating-linear-gradient(135deg, var(--paper) 0 9px, #ffd9a0 9px 18px); }
+  body.cb .rt-go .rt-tx::before { content:''; display:inline-block; width:.62em; height:.62em; margin-right:.3em; background:var(--ink); clip-path:polygon(0 0, 100% 50%, 0 100%); }
+
+  /* --- Seri Dokun --- */
+  .sp { gap:clamp(8px, 2.4vmin, 16px); width:100%; }
+  .sp-time { position:relative; width:72%; height:clamp(14px, 2.4vmin, 22px); flex:none; border-radius:var(--r-pill); background:var(--ink); border:var(--ln-s) solid var(--ink); box-shadow:var(--sh-xs), 0 0 0 2px rgba(255,244,220,.35); overflow:hidden; }
+  .sp-time i { position:absolute; inset:0; background:var(--yellow); border-radius:var(--r-pill); transform-origin:0 50%; transition:transform .1s linear; }
+  .sp-time.low i { background:var(--red); }
+  .sp-time.low { animation:spshake .34s linear infinite; }
+  @keyframes spshake { 25% { transform:translateX(-2px); } 75% { transform:translateX(2px); } }
+  body.cb .sp-time.low i { background:repeating-linear-gradient(135deg, var(--red) 0 7px, var(--paper) 7px 14px); }
+  .spw { position:relative; flex:none; margin-top:6px; transition:transform .18s var(--pop); }
+  .spw.fin { transform:scale(1.1); }
+  .sp-crown { position:absolute; right:-8%; top:-21%; width:44%; height:44%; transform:rotate(16deg) scale(0); transition:transform .2s var(--pop); pointer-events:none; }
+  .spw.lead .sp-crown { transform:rotate(16deg) scale(1); }
+  .sp-rate { font-family:var(--f-display); font-size:clamp(13px, 3.8vmin, 26px); font-weight:700; background:var(--paper); color:var(--ink); text-shadow:none;
+    border:var(--ln-s) solid var(--ink); border-radius:var(--r-pill); padding:1px 12px 2px; box-shadow:var(--sh-xs); white-space:nowrap; animation:rtpop .3s var(--pop); }
+  .zone.narrow .sp-rate { font-size:clamp(11px, 3.4vmin, 14px); padding:1px 8px 2px; }
+  .zone.narrow .sp-time { width:80%; }
+
+  /* --- Tam Ortada --- */
+  .tr-time { position:relative; width:72%; height:clamp(9px, 1.8vmin, 14px); margin:0 auto clamp(8px, 2vmin, 14px); border-radius:var(--r-pill); background:var(--ink); border:2px solid var(--ink); box-shadow:0 0 0 2px rgba(255,244,220,.35); overflow:hidden; transition:opacity .2s; }
+  .tr-time i { position:absolute; inset:0; border-radius:var(--r-pill); background:var(--yellow); transform-origin:0 50%; }
+  .tr-time.low i { background:var(--red); }
+  .tr-time.low { animation:spshake .34s linear infinite; }
+  .tr-time.off { opacity:.3; }
+  body.cb .tr-time.low i { background:repeating-linear-gradient(135deg, var(--red) 0 7px, var(--paper) 7px 14px); }
+  .tr-cap { font-size:clamp(17px, 4.8vmin, 38px); font-weight:700; line-height:1.1; margin-bottom:clamp(12px, 3.4vmin, 22px); }
+  .zone.narrow .tr-cap { font-size:clamp(13px, 4vmin, 18px); margin-bottom:12px; }
+  .track { --bd:32px; --mr:19px; height:46px; }
+  .zone:not(.narrow) .track { --bd:clamp(32px, 8.6vmin, 62px); --mr:calc(var(--bd) / 2 + 3px); height:clamp(46px, 11vmin, 84px); }
+  .track::before { left:calc(50% - (100% - 2 * var(--mr)) * .07); width:calc((100% - 2 * var(--mr)) * .14); }       /* yesil bant: >= %86 (tam ortadan +-%7 yolculuk) */
+  .track::after { content:''; position:absolute; left:calc(50% - (100% - 2 * var(--mr)) * .02); width:calc((100% - 2 * var(--mr)) * .04); top:0; bottom:0; background:var(--yellow); border:2px solid var(--ink); border-top:0; border-bottom:0; }   /* altin bant: >= %96 */
+  .track .tstar { position:absolute; left:50%; top:calc(var(--bd) * -.8); width:calc(var(--bd) * .8); height:calc(var(--bd) * .8); margin-left:calc(var(--bd) * -.4); z-index:2; overflow:visible; }
+  .track .mk { top:50%; width:var(--bd); height:var(--bd); margin:calc(var(--bd) / -2) 0 0 calc(var(--bd) / -2); z-index:3; }
+  .track .mk.stop { animation:trstop .34s var(--pop); }
+  .trfx { position:absolute; top:50%; width:calc(var(--bd) * 2.2); height:calc(var(--bd) * 2.2); margin:calc(var(--bd) * -1.1) 0 0 calc(var(--bd) * -1.1); z-index:4; pointer-events:none; animation:trburst .5s var(--out) forwards; }
+  .trfx svg { display:block; width:100%; height:100%; }
+  @keyframes trburst { from { transform:scale(.4) rotate(-20deg); opacity:1; } to { transform:scale(1.3) rotate(12deg); opacity:0; } }
+  @keyframes trstop { 0% { transform:scale(1.5,.7); } 55% { transform:scale(.85,1.2); } 100% { transform:none; } }
+  .pct { min-height:clamp(52px, 11vmin, 100px); display:flex; flex-direction:column; align-items:center; gap:2px; line-height:1.05; }
+  .pct b { font-size:clamp(24px, 7vmin, 56px); font-weight:700; text-shadow:var(--ol3); animation:rtpop .3s var(--pop); }
+  .pct small { font-family:var(--f-display); font-size:clamp(13px, 3.4vmin, 26px); font-weight:600; text-shadow:var(--ol2); }
+  .zone.narrow .pct { min-height:44px; }
+  .zone.narrow .pct b { font-size:clamp(19px, 6vmin, 26px); }
+  .zone.narrow .pct small { font-size:clamp(11px, 3.2vmin, 14px); }
+  body.cb .track::before { background:repeating-linear-gradient(135deg, var(--green) 0 5px, var(--paper) 5px 9px); }
+  body.cb .track::after { background:radial-gradient(var(--ink) 1.2px, transparent 1.6px) 0 0 / 6px 6px, var(--yellow); }
+
+  /* --- Tut ve Birak --- */
+  .hd { gap:clamp(6px, 1.8vmin, 14px); overflow:clip; }       /* donen kesikli halkanin (gorunmez) kose kutulari govdeden tasmasin */
+  .hd-btn { position:relative; width:clamp(84px, 30vmin, 200px); height:clamp(84px, 30vmin, 200px); margin:14px 0 clamp(8px, 2.4vmin, 20px); border-radius:50%; background:var(--c); border:var(--ln-b) solid var(--ink); box-shadow:var(--sh-l);
+    display:flex; align-items:center; justify-content:center; color:var(--ink); text-shadow:none; transition:transform .12s var(--out); }
+  .hd-btn::before { content:''; position:absolute; inset:-12px; border-radius:50%; border:3px dashed var(--paper); opacity:.5; }
+  .hd-btn::after { content:''; position:absolute; left:14%; top:12%; width:30%; height:18%; border-radius:50%; background:var(--paper); opacity:.85; transform:rotate(-32deg); }
+  .hd-ic { width:56%; height:56%; display:block; overflow:visible; }
+  .hd.on .hd-btn { transform:translateY(5px); box-shadow:0 1px 0 var(--ink); }
+  .hd.on .hd-btn::before { opacity:1; animation:spin 9s linear infinite; }
+  .hd-num { position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; justify-content:center; line-height:.95; font-weight:700; }
+  .hd-num b { font-size:clamp(26px, 8.6vmin, 70px); font-weight:700; transition:opacity .28s linear; }
+  .hd-num small { font-size:clamp(11px, 3vmin, 17px); font-weight:600; opacity:.75; }
+  .hd-num.fade b { opacity:.12; }
+  .hd-num.hid small { display:none; }
+  .hd-btn.q::after { opacity:.5; }
+  .hd-tx { font-size:clamp(20px, 6.4vmin, 54px); font-weight:700; line-height:1.05; text-wrap:balance; }
+  .hd-sub { font-family:var(--f-body); font-size:clamp(13px, 3.6vmin, 26px); font-weight:600; line-height:1.1; text-shadow:var(--ol2); }
+  .hd-diff { font-family:var(--f-display); font-size:clamp(14px, 4vmin, 30px); font-weight:700; background:var(--paper); color:var(--ink); text-shadow:none; border:var(--ln-s) solid var(--ink);
+    border-radius:var(--r-pill); padding:1px 12px 2px; box-shadow:var(--sh-xs); white-space:nowrap; }
+  .hd-diff.ok { background:var(--green); }
+  .hd-diff.bad { background:var(--red); color:var(--ink); }
+  .hd-rule { position:relative; width:min(86%, 320px); height:clamp(12px, 1.8vmin, 18px); margin-top:clamp(4px, 1.4vmin, 10px); border-radius:var(--r-pill); background:var(--paper); border:var(--ln-s) solid var(--ink); box-shadow:var(--sh-xs); }
+  .hd-rule i { position:absolute; top:50%; }
+  .hd-rule .tg { width:4px; height:22px; margin:-11px 0 0 -2px; background:var(--ink); border-radius:2px; }
+  .hd-rule .mk { width:16px; height:16px; margin:-8px 0 0 -8px; border-radius:50%; background:var(--c); border:var(--ln-s) solid var(--ink); }
+  .zone.narrow .hd-btn { width:clamp(70px, 26vmin, 104px); height:clamp(70px, 26vmin, 104px); margin:14px 0 12px; }
+  .zone.narrow .hd-tx { font-size:clamp(17px, 5.6vmin, 24px); }
+  .zone.narrow .hd-sub { font-size:clamp(11px, 3.4vmin, 14px); }
+  .zone.narrow .hd-diff { font-size:clamp(12px, 3.6vmin, 15px); padding:1px 8px 2px; }
+  .zone.narrow .hd-num b { font-size:clamp(22px, 7vmin, 32px); }
+  body.cb .hd-btn::before { border-style:solid; border-width:4px; }
 
   .tgt { position:absolute; width:56px; height:56px; margin:-28px 0 0 -28px; animation:tpop .24s var(--pop); }
   .tgt svg { display:block; width:100%; height:100%; overflow:visible; animation:tbob 1.1s ease-in-out infinite alternate; }
@@ -144,9 +256,7 @@
   .cell:active { transform:translateY(3px); box-shadow:var(--sh-0); }
   .cell.done { opacity:.3; transform:translateY(3px); box-shadow:var(--sh-0); }
   .cell svg.of { width:78%; height:78%; display:block; }
-  .zone .body > svg.bolt { width:1.1em; height:1.1em; display:block; margin:0 auto -.1em; }
   .quiz .q .sub.rev { color:var(--red); }
-  .zone .body .bolt + .sub { font-size:clamp(24px, 8vmin, 44px); margin-top:2px; text-shadow:var(--ol3); }
 
   .quiz { width:100%; height:100%; padding-top:24px; position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:clamp(8px, 1.8dvh, 14px); }
   .quiz .q { font-size:clamp(22px, 5.4dvh, 46px); font-weight:700; }
@@ -490,11 +600,12 @@
   .body.shake { animation:shake .3s var(--out); }
   @keyframes shake { 20% { transform:translateX(-7px); } 45% { transform:translateX(7px); } 70% { transform:translateX(-4px); } }
   .cell.badc { background:#ffb3b6; }
-  .spc { display:flex; align-items:center; justify-content:center; width:clamp(72px, 22vmin, 118px); height:clamp(72px, 22vmin, 118px); margin:0 auto; border-radius:50%;
-    background:var(--c); border:var(--ln-b) solid var(--ink); box-shadow:var(--sh-m); font-size:clamp(34px, 11vmin, 62px); font-weight:700; line-height:1; text-shadow:var(--ol3); }
+  .spc { display:flex; align-items:center; justify-content:center; width:clamp(72px, 26vmin, 200px); height:clamp(72px, 26vmin, 200px); margin:0 auto; border-radius:50%;
+    background:var(--c); border:var(--ln-b) solid var(--ink); box-shadow:var(--sh-m); font-size:clamp(34px, 12vmin, 96px); font-weight:700; line-height:1; text-shadow:var(--ol3); }
+  .zone.narrow .spc { width:clamp(64px, 24vmin, 96px); height:clamp(64px, 24vmin, 96px); font-size:clamp(30px, 10vmin, 44px); }
   .spc.tap { animation:tapb .2s var(--pop); }
   @keyframes tapb { 0% { transform:scale(1.22,.86); } 60% { transform:scale(.94,1.08); } 100% { transform:none; } }
-  .spbar { width:70%; height:16px; border-radius:var(--r-pill); background:var(--ink); border:3px solid var(--ink); margin:12px auto 0; overflow:hidden; box-shadow:0 0 0 2px rgba(255,244,220,.35); }
+  .spbar { width:72%; height:clamp(16px, 2.6vmin, 24px); flex:none; border-radius:var(--r-pill); background:var(--ink); border:3px solid var(--ink); margin:0; overflow:hidden; box-shadow:0 0 0 2px rgba(255,244,220,.35); }
   .spbar i { display:block; height:100%; width:0; background:var(--c); border-radius:var(--r-pill); transition:width .1s; }
   .ptab.arming { background:var(--yellow); }
 
@@ -670,6 +781,9 @@
 <symbol id="o-smirk" viewBox="0 0 48 48"><g stroke="#1d1838" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" ><circle cx="24" cy="24" r="19" fill="#ffd23f"/><ellipse cx="17" cy="20" rx="2.500" ry="3.500" fill="#1d1838" stroke="none"/><ellipse cx="31" cy="20" rx="2.500" ry="3.500" fill="#1d1838" stroke="none"/><path d="M14 30q11 9 20-3" fill="none" stroke-width="3.500"/><path d="M10 15a16 16 0 0 1 6-6" fill="none" stroke="#fff4dc" stroke-width="3"/></g></symbol></defs></svg>
 <div id="board"></div>
 <div id="hud" class="hidden"></div>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+<symbol id="rf-warn" viewBox="0 0 48 48"><path d="M24 9 41 37H7Z" fill="#1d1838" stroke="#1d1838" stroke-width="9" stroke-linejoin="round"/><path d="M24 9 41 37H7Z" fill="#ff9442" stroke="#ff9442" stroke-width="3" stroke-linejoin="round"/><path d="M24 19v9" fill="none" stroke="#1d1838" stroke-width="4.500" stroke-linecap="round"/><circle cx="24" cy="33" r="2.400" fill="#1d1838"/><path d="M14.500 33.500 19 25.500" fill="none" stroke="#fff4dc" stroke-width="2.600" stroke-linecap="round"/></symbol>
+</defs></svg>
 <div id="rotate"><svg class="ic" aria-hidden="true"><use href="#i-phone"/></svg><span>Telefonu dikey tut</span></div>
 
 <div id="menu" class="screen"><div class="inner home">
@@ -1189,117 +1303,228 @@
   let reportHook = null;                                              // ag modunda rakiplere canli ilerleme gonderir
   const report = (i, v, m) => { if (reportHook) reportHook(i, v, m); };
 
+  // ======================= REFLEKS OYUNLARI: ortak yardimcilar =======================
+  // Donanim zamani: PointerEvent.timeStamp (performance.now() tabani) sanal saate (vt) cevrilir; isleyici gecikmesi (ripple, ses, kare) sonuca karismaz.
+  const evT = e => { const lat = e && e.timeStamp > 0 ? performance.now() - e.timeStamp : 0; return vt.now() - (lat > 0 && lat < 400 ? lat : 0); };
+  const blip = (freq, dur, o = {}) => {                       // kisa sentez sesi (fx.tone disariya acik degil); ayarlardan kapatilabilir
+    if (!prefs.sfx) return; const c = fx.unlock(); if (!c) return;
+    const { type = 'sine', vol = 0.16, at = 0, slide = 0 } = o, t = c.currentTime + at, osc = c.createOscillator(), g = c.createGain();
+    osc.type = type; osc.frequency.setValueAtTime(freq, t); if (slide) osc.frequency.exponentialRampToValueAtTime(Math.max(30, freq + slide), t + dur);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    osc.connect(g); g.connect(c.destination); osc.start(t); osc.stop(t + dur + 0.02);
+  };
+  const buzz = pat => { if (prefs.vib && navigator.vibrate) { try { navigator.vibrate(pat); } catch (_) {} } };
+  const dec1 = v => v.toFixed(1).replace('.', ',');           // Turkce ondalik ayraci
+  const dec2 = v => v.toFixed(2).replace('.', ',');
+  // Parmak izleyici: bolge basina basili pointer'lar. Geri sayimda basilip tutulan parmak oyun baslayinca bilinir; ikinci parmak ve iptal ayirt edilir.
+  const touches = (() => {
+    const map = new WeakMap(), subs = new Set();
+    const zoneOf = t => (t && t.closest) ? t.closest('.zone') : null;
+    const drop = (e, z) => {
+      const s = z && map.get(z);
+      if (s && s.delete(e.pointerId)) return z;
+      let found = null;
+      zones.some(zz => { const m = map.get(zz); if (m && m.delete(e.pointerId)) { found = zz; return true; } return false; });
+      return found;
+    };
+    document.addEventListener('pointerdown', e => { const z = zoneOf(e.target); if (!z) return; let s = map.get(z); if (!s) map.set(z, s = new Map()); s.set(e.pointerId, { t: performance.now(), real: e.isTrusted }); }, true);
+    // Gercek parmak: tarayicinin pointer yakalamasi (kabuk basista yakalar, parmak kalkinca / iptalde otomatik birakilir) dogruluk kaynagidir; kayip pointerup eski kaydi canli tutamaz.
+    // Sentetik olay (test): yakalama olmaz, kayit kisa omurlu sayilir.
+    const alive = (z, id, o, now) => o.real ? (z.hasPointerCapture ? z.hasPointerCapture(id) : now - o.t < 20000) : now - o.t < 2500;
+    const up = e => { const z = drop(e, zoneOf(e.target)); subs.forEach(f => f(e, z)); };
+    document.addEventListener('pointerup', up, true); document.addEventListener('pointercancel', up, true);
+    const clear = () => zones.forEach(z => map.delete(z));
+    document.addEventListener('visibilitychange', () => { if (document.hidden) clear(); });
+    window.addEventListener('blur', clear);
+    return {
+      n: z => { const s = map.get(z); if (!s) return 0; const now = performance.now(); s.forEach((o, id) => { if (!alive(z, id, o, now)) s.delete(id); }); return s.size; },
+      on: f => { subs.add(f); return () => subs.delete(f); },
+    };
+  })();
+
+  // ---------- Tepki ----------
+  // Dokunus zamani donanim zaman damgasindan alinir. Ilk gecerli dokunustan sonra kisa bir toplama penceresi acilir: bu surede gelen dokunuslar
+  // donanim zamanina gore siralanir, ~8 ms icindekiler berabere sayilir. Kazanan belli olduktan sonra gec basana da kendi suresi ve farki gosterilir.
+  const RT_ICON = {
+    wait: ['rt-wait', '<svg><use href="#g-tut"/></svg>'],
+    warn: ['rt-warn', '<svg><use href="#rf-warn"/></svg>'],
+    go:   ['rt-go', '<svg class="bu"><use href="#a-burst"/></svg><svg class="bo"><use href="#i-bolt"/></svg>'],
+    out:  ['rt-out', '<svg><use href="#i-x"/></svg>'],
+  };
+  let rtRecord = Infinity;                                        // oturum rekoru (ms): bu sayfa acikken en hizli tepki
+  const rtBox = (k, tx) => '<div class="rt ' + RT_ICON[k][0] + '"><div class="rt-ic">' + RT_ICON[k][1] + '</div><div class="rt-tx">' + tx + '</div></div>';
   async function reaction() {
-    const out = new Set(), rt = [];
-    let go = false, winner = -1, done = false, goAt = 0, fake = false;
+    const TIE = 8, WIN = 55, LATE = 450;                          // ms: beraberlik esigi, toplama penceresi, gec basana ek sure
+    const out = new Set(), rt = [];                               // rt[i]: gecerli dokunusun tepki suresi (ms)
+    let go = false, goAt = 0, fake = false, fakeEnd = -1, done = false, decided = false, settled = false, winners = [], best = 0;
+    const prevRec = rtRecord;
     const live = () => zones.filter((_, i) => aliveZ(i)).length;
-    zones.forEach((_, i) => body(i, 'Hazır…'));
+    zones.forEach((_, i) => body(i, rtBox('wait', 'Hazır…')));
+    // rastgele degerler hep ayni sirada ve basta cekilir (ag modunda tohumlu: telefonlar arasi ayni kalir)
+    const decoy = Math.random() < 0.4, wait1 = 1500 + Math.random() * 2500, fakeLen = 550 + Math.random() * 450, wait2 = 700 + Math.random() * 1300;
+    const msBox = v => '<div class="rt-ms"><b>' + Math.round(v) + '</b> ms</div>';
+    zones.forEach(z => { delete z.dataset.rh; });
+    const put = (i, s, html) => { setS(i, s); if (zones[i].dataset.rh !== html) { zones[i].dataset.rh = html; body(i, html); } };      // yalniz degisen bolge yeniden cizilir
+    const paintAll = () => zones.forEach((_, i) => {
+      if (out.has(i) || !aliveZ(i)) return;
+      if (rt[i] == null) { put(i, '', '<div class="rt rt-lose"><div class="rt-tag">Geç kaldın</div></div>'); return; }
+      if (winners.includes(i)) { put(i, 'sig', '<div class="rt rt-res"><div class="rt-ic"><svg class="bu"><use href="#a-burst"/></svg><svg class="bo"><use href="#i-bolt"/></svg></div>' + msBox(rt[i]) + '<div class="rt-sub">' + (winners.length > 1 ? 'Berabere!' : (prevRec < Infinity && best < prevRec) ? 'Yeni rekor!' : 'En hızlı!') + '</div></div>'); return; }
+      put(i, '', '<div class="rt rt-lose"><div class="rt-tag">Geç kaldın</div>' + msBox(rt[i]) + '<div class="rt-sub">+' + Math.round(rt[i] - best) + ' ms geride</div></div>');
+    });
+    const decide = () => {                                        // donanim zamanina gore kazanan(lar)
+      const v = rt.filter(x => x != null);
+      best = Math.min(...v);
+      winners = zones.map((_, i) => i).filter(i => rt[i] != null && rt[i] <= best + TIE);
+      paintAll();
+    };
     await new Promise(res => {
-      const finish = () => { done = true; res(); };
-      handler = i => {
-        if (done || out.has(i)) return;
-        if (!go) {                                    // erken ya da sahte isarette dokundu: bu turdan elendi
-          out.add(i); setS(i, 'out'); body(i, fake ? 'Tuzağa düştün!' : 'Erken!'); wrong(i);
-          if (out.size >= live()) finish();
+      let fin = false;
+      const finish = () => { if (fin) return; fin = true; done = true; res(); };
+      const everyone = () => zones.every((_, i) => !aliveZ(i) || out.has(i) || rt[i] != null);
+      const settle = () => { settled = true; decide(); if (zones.length < 2 || everyone()) finish(); else vt.timeout(finish, LATE); };
+      handler = (i, e) => {
+        if (done || out.has(i) || rt[i] != null) return;
+        const t = evT(e);
+        if (!go || t < goAt) {                                    // erken ya da sahte isarette dokundu: bu turdan elendi
+          const trap = fake || t < fakeEnd;
+          out.add(i); setS(i, 'out'); body(i, rtBox('out', trap ? 'Tuzağa düştün!' : 'Erken!')); wrong(i);
+          if (out.size >= live() && !decided) finish();
+          else if (settled && everyone()) finish();
           return;
         }
-        rt[i] = vt.now() - goAt; winner = i; report(i, 1, 1); finish();
+        rt[i] = Math.max(0, t - goAt); report(i, 1, 1);
+        if (!decided) { decided = true; if (everyone()) settle(); else vt.timeout(settle, WIN); }      // herkes dokundu / elendi ise beklemeye gerek yok
+        else if (settled) { decide(); if (everyone()) vt.timeout(finish, 120); }
       };
       const fire = () => {
         go = true; goAt = vt.now(); fake = false;
-        zones.forEach((_, i) => { if (!out.has(i)) { setS(i, 'sig'); body(i, 'DOKUN!'); } });
+        zones.forEach((_, i) => { if (!out.has(i)) { setS(i, 'sig'); body(i, rtBox('go', 'DOKUN!')); } });
         fx.go();
-        vt.timeout(() => { if (!done) finish(); }, 3000);
+        vt.timeout(() => { if (!decided) finish(); }, 3000);
       };
-      const decoy = Math.random() < 0.4;
       vt.timeout(() => {
         if (done) return;
         if (!decoy) return fire();
-        fake = true;                                  // sahte isaret: sari yanip soner, dokunan elenir
-        zones.forEach((_, i) => { if (!out.has(i)) { setS(i, 'warn'); body(i, 'Bekle…'); } });
-        fx.tick();
+        fake = true;                                              // sahte isaret: sari yanip soner, dokunan elenir
+        zones.forEach((_, i) => { if (!out.has(i)) { setS(i, 'warn'); body(i, rtBox('warn', 'Bekle…')); } });
+        blip(300, 0.1, { type: 'square', vol: 0.07 }); blip(300, 0.1, { type: 'square', vol: 0.07, at: 0.16 }); buzz([18, 50, 18]);
         vt.timeout(() => {
           if (done) return;
-          fake = false;
-          zones.forEach((_, i) => { if (!out.has(i)) { setS(i, ''); body(i, 'Hazır…'); } });
-          vt.timeout(() => { if (!done) fire(); }, 700 + Math.random() * 1300);
-        }, 750);
-      }, 1500 + Math.random() * 2500);
+          fake = false; fakeEnd = vt.now();
+          zones.forEach((_, i) => { if (!out.has(i)) { setS(i, ''); body(i, rtBox('wait', 'Hazır…')); } });
+          vt.timeout(() => { if (!done) fire(); }, wait2);
+        }, fakeLen);
+      }, wait1);
     });
     handler = null;
-    zones.forEach((_, i) => { if (i !== winner && !out.has(i)) setS(i, ''); });          // gec kalan yesil kalmasin (kazanmis gibi gorunmesin)
-    zones.forEach((_, i) => { if (rt[i] != null) body(i, ico('i-bolt', 'bolt') + '<div class="sub">' + Math.round(rt[i]) + ' ms</div>'); else if (!out.has(i)) body(i, 'Geç kaldın'); });
-    lastScores = zones.map((_, i) => out.has(i) ? -1e9 : rt[i] != null ? 5000 - rt[i] : -5000);
-    return winner >= 0 ? [winner] : [];
+    if (!decided) zones.forEach((_, i) => { if (!out.has(i) && aliveZ(i)) { setS(i, ''); body(i, '<div class="rt rt-lose"><div class="rt-tag">Süre doldu</div></div>'); } });
+    if (decided) rtRecord = Math.min(rtRecord, best);
+    lastScores = zones.map((_, i) => out.has(i) ? -1e9 : rt[i] != null ? 5000 - Math.round(rt[i]) : -5000);
+    return decided ? winners.slice() : [];
   }
 
 
+  // ---------- Seri Dokun ----------
+  // 5 sn tam olarak sayilir (donanim zamani), ayni anda basilan birden cok parmak tek vurus sayilir, her bolgede sure cubugu ve "onde" taci vardir.
   async function spam() {
-    const c = Array(N).fill(0);
-    zones.forEach((_, i) => body(i, 'Hazır…'));
-    await sleep(1200);
-    zones.forEach((_, i) => { setS(i, 'go'); body(i, '<div class="spc">0</div><div class="spbar"><i></i></div>'); });
+    const DUR = 5000, n = zones.length, c = Array(n).fill(0), lastT = Array(n).fill(-1e9), lastId = Array(n).fill(null), zs = zones;
+    zones.forEach((_, i) => body(i, '<div class="rt rt-wait"><div class="rt-ic"><svg><use href="#g-seri"/></svg></div><div class="rt-tx">Hazır…</div></div>'));
+    await sleep(1000);
+    zones.forEach((_, i) => {
+      setS(i, 'go');
+      body(i, '<div class="sp"><div class="sp-time"><i></i></div><div class="spw"><div class="spc">0</div><svg class="sp-crown"><use href="#i-crown"/></svg></div><div class="spbar"><i></i></div></div>');
+    });
     fx.go();
-    const paint = () => {                              // sayi ve rakiplere gore ilerleme cubugu
+    const T0 = vt.now(), end = T0 + DUR;
+    const paint = () => {                              // sayi, rakiplere gore ilerleme cubugu ve "onde" taci
       const mx = Math.max(1, ...c);
-      zones.forEach((z, i) => { const n = z.querySelector('.spc'); if (!n) return; if (n.textContent !== String(c[i])) { n.textContent = c[i]; n.classList.remove('tap'); void n.offsetWidth; n.classList.add('tap'); } z.querySelector('.spbar i').style.width = (c[i] / mx * 100) + '%'; });
+      zs.forEach((z, i) => {
+        const nEl = z.querySelector('.spc'); if (!nEl) return;
+        if (nEl.textContent !== String(c[i])) { nEl.textContent = c[i]; nEl.classList.remove('tap'); void nEl.offsetWidth; nEl.classList.add('tap'); }
+        z.querySelector('.spbar i').style.width = (c[i] / mx * 100) + '%';
+        z.querySelector('.spw').classList.toggle('lead', c[i] > 0 && c[i] === mx);
+      });
     };
-    handler = i => { c[i]++; paint(); report(i, c[i], 0); };
-    const end = vt.now() + 5000;
+    handler = (i, e) => {
+      const t = evT(e); if (t > end) return;                                         // sure doldu: gec gelen dokunus sayilmaz
+      if (t - lastT[i] < 45 && e.pointerId !== lastId[i]) return;                    // ayni anda basilan baska parmak: tek vurus
+      lastT[i] = t; lastId[i] = e.pointerId;
+      c[i]++; paint(); report(i, c[i], 0);
+      const rp = zs[i].querySelectorAll('.rip'); for (let k = 0; k < rp.length - 12; k++) rp[k].remove();      // hizli dokunusta ripple birikmesin
+    };
     let shown = -1;
     while (vt.now() < end) {
-      const sec = Math.ceil((end - vt.now()) / 1000);
-      if (sec !== shown) { shown = sec; say('Çılgınca dokun!', sec + ' sn'); }
-      await sleep(100);
+      const left = Math.max(0, end - vt.now()), sec = Math.ceil(left / 1000);
+      if (sec !== shown) { shown = sec; say('Çılgınca dokun!', sec + ' sn'); if (sec <= 3 && sec >= 1 && left < DUR - 500) fx.count(); }
+      zs.forEach(z => { const tm = z.querySelector('.sp-time'); if (tm) { tm.firstChild.style.transform = 'scaleX(' + (left / DUR).toFixed(3) + ')'; tm.classList.toggle('low', left <= 1500); } });
+      await sleep(Math.min(100, Math.max(1, left)));
     }
     handler = null;
+    zs.forEach(z => { const tm = z.querySelector('.sp-time'); if (tm) { tm.firstChild.style.transform = 'scaleX(0)'; tm.classList.add('low'); } z.querySelectorAll('.spw').forEach(w => w.classList.add('fin')); });
+    say('DUR!', null, true); blip(190, 0.38, { type: 'sawtooth', vol: 0.14, slide: -70 }); buzz(110);
     lastScores = c.slice();
     const max = Math.max(...c);
+    zs.forEach((z, i) => { const b = z.querySelector('.spbar'); if (b) b.outerHTML = '<div class="sp-rate">' + dec1(c[i] / (DUR / 1000)) + ' dokunuş/sn</div>'; });
+    await sleep(600);                                  // "DUR!": son sayilar bir an donuk kalir
     return max > 0 ? c.map((v, i) => v === max ? i : -1).filter(i => i >= 0) : [];
   }
 
-
+  // ---------- Tam Ortada ----------
+  // Dokunus, oyuncunun SON GORDUGU karede (cizilen konumda) sayilir: isaretci dokunus aninda ziplamaz, ayni karede dokunanlar tam ayni konumu alir.
+  // Yuzde 0,1 hassasiyetle gosterilir ve ayni gosterilen deger beraberliktir. Parkur genisligi tum bolgelerde esitlenir (3 oyuncuda alt bolge de kisa parkur).
+  const stopRate = pct => pct >= 99 ? 'Tam isabet!' : pct >= 96 ? 'Mükemmel!' : pct >= 86 ? 'Harika!' : pct >= 60 ? 'Fena değil' : 'Uzak kaldı';
   async function stopbar() {
-    zones.forEach((_, i) => {
+    const zs = zones, n = zs.length, LIMIT = 6000;                                  // en cok 6 sn
+    zs.forEach((_, i) => {
       setS(i, 'go');
-      body(i, '<div class="track"><div class="mid"></div><div class="mk"></div></div><div class="pct">&nbsp;</div>');
+      body(i, '<div class="tr-time"><i></i></div><div class="tr-cap">Ortada durdur!</div><div class="track"><i class="mid"></i><svg class="tstar"><use href="#i-star"/></svg><div class="mk"></div></div><div class="pct"></div>');
     });
+    const tws = zs.map(z => z.querySelector('.body').clientWidth);                         // tum parkurlar en dar bolgeninki kadar
+    const okW = tws.filter(v => v > 0);
+    if (okW.length) { const tw = Math.round(Math.min(...okW) * 0.86); zs.forEach(z => { z.querySelector('.track').style.width = tw + 'px'; }); }
     const sp = 0.8 + Math.random() * 0.5, ph = Math.random() * 2;            // herkes icin ayni hiz ve baslangic: adil
     const posAt = t => { const x = (t / 1000 * (sp + 0.1 * t / 1000) + ph) % 2; return x < 1 ? x : 2 - x; };   // zamanla hizlanir
-    const pos = Array(N).fill(null), zs = zones;
+    const pos = Array(n).fill(null);
     const t0 = vt.now();
+    let drawn = 0;                                                            // son cizilen karenin zamani
     const mk = i => zs[i].querySelector('.mk');
-    const mkLeft = p => 'calc(18px + (100% - 36px) * ' + p + ')';
+    const mkLeft = p => 'calc(var(--mr) + (100% - 2 * var(--mr)) * ' + p + ')';
     await new Promise(res => {
       let raf;
       const finish = () => { cancelAnimationFrame(raf); res(); };
       const allIn = () => zs.every((_, i) => pos[i] !== null || !aliveZ(i));
       handler = i => {
         if (pos[i] !== null) return;
-        pos[i] = posAt(vt.now() - t0); report(i, 1, 1);
-        mk(i).style.left = mkLeft(pos[i]);
+        pos[i] = posAt(drawn); report(i, 1, 1);                              // oyuncunun gordugu konum
+        const pc = (1 - Math.abs(pos[i] - 0.5) * 2) * 100, q = Math.round(pc * 10) / 10;
+        mk(i).style.left = mkLeft(pos[i]); mk(i).classList.add('stop');
+        zs[i].querySelector('.pct').innerHTML = '<b>' + (q >= 100 ? '%100' : '%' + dec1(q)) + '</b><small>' + stopRate(q) + '</small>';
+        if (q < 96) blip(240 + q * 2.4, 0.11, { type: 'triangle', vol: 0.11 });          // isabet ne kadar iyiyse ses o kadar tiz
+        if (q >= 96) { right(i); const fxEl = document.createElement('div'); fxEl.className = 'trfx'; fxEl.style.left = mkLeft(pos[i]); fxEl.innerHTML = ico('a-burst'); fxEl.addEventListener('animationend', () => fxEl.remove()); zs[i].querySelector('.track').appendChild(fxEl); }
         if (allIn()) vt.timeout(finish, 300);
       };
       const tick = () => {
         if (zones !== zs) return;                    // mac yarida birakildi / yeni mac kuruldu: eski dongu durur
         const t = vt.now() - t0, pp = posAt(t);
-        zs.forEach((_, i) => { if (pos[i] === null) mk(i).style.left = mkLeft(pp); });
-        if (t > 6000) { finish(); return; }
+        drawn = t;
+        const lf = Math.max(0, 1 - t / LIMIT);
+        zs.forEach((z, i) => {
+          if (pos[i] === null) mk(i).style.left = mkLeft(pp);
+          const tm = z.querySelector('.tr-time'); if (tm) { tm.firstChild.style.transform = 'scaleX(' + lf.toFixed(3) + ')'; tm.classList.toggle('low', lf < 0.25 && pos[i] === null); tm.classList.toggle('off', pos[i] !== null); }
+        });
+        if (t > LIMIT) { finish(); return; }
         raf = requestAnimationFrame(tick);
       };
-      say('Topu ortadaki çizgide durdur!');
       tick();
     });
     handler = null;
     const dist = pos.map(p => p === null ? 1 : Math.abs(p - 0.5));
-    zones.forEach((z, i) => {
-      z.querySelector('.pct').textContent = pos[i] === null ? 'Durdurmadı' : '%' + Math.round((1 - dist[i] * 2) * 100);
-    });
-    lastScores = dist.map(d => 1 - d);
-    const best = Math.min(...dist);
-    return best < 1 ? [dist.indexOf(best)] : [];
+    const q = dist.map(d => d >= 1 ? -1 : Math.round((1 - d * 2) * 1000));  // binde bir: gosterilen hassasiyet
+    zs.forEach((z, i) => { if (pos[i] === null && aliveZ(i)) z.querySelector('.pct').innerHTML = '<b>—</b><small>Durdurmadı</small>'; });
+    lastScores = q.map(v => v < 0 ? 0 : 1 + v / 1000);
+    const top = Math.max(...q);
+    return top >= 0 ? q.map((v, i) => v === top ? i : -1).filter(i => i >= 0) : [];
   }
-
 
   async function targets() {
     const GOAL = 6, cnt = Array(N).fill(0), fin = [], T0 = vt.now();
@@ -1400,34 +1625,92 @@
   }
 
 
+  // ---------- Tut ve Birak ----------
+  // Her bolge icin: basilan parmak takip edilir (geri sayimda basilip tutulan parmak dahil), ikinci parmagin kalkisi / sistem iptali tutmayi bitirmez,
+  // duraklatmada kalkan parmak yeniden basis ister, 1 sn'den kisa tutus gecersiz sayilir. Sonuc santisaniye hassasiyetinde (gosterilen = karsilastirilan).
   async function hold() {
-    const TARGET = 3000, st = Array(N).fill(null), en = Array(N).fill(null);
-    zones.forEach((_, i) => body(i, 'Basılı tut<div class="sub">3 sn dolunca bırak</div>'));
+    const TARGET = 3000, MINHOLD = 1000, MAXHOLD = 4500, ENTRY = 4000, SHOW = 1000;
+    const n = zones.length, st = Array(n).fill(null), en = Array(n).fill(null), hs = Array(n).fill(null);   // st: basis, en: birakis, hs: santisaniye
+    const over = Array(n).fill(false), no = Array(n).fill(false), lifted = Array(n).fill(false);
+    const T0 = vt.now(), zs = zones, ent = Array(n).fill(T0 + ENTRY);                    // ent[i]: basmaya baslama son ani
+    const idle = (i, tx, sub) => {                                // basili degil: buyuk dugme + yonerge
+      setS(i, '');
+      body(i, '<div class="hd"><div class="hd-btn"><svg class="hd-ic"><use href="#g-tut"/></svg></div><div class="hd-tx">' + tx + '</div><div class="hd-sub">' + sub + '</div></div>');
+    };
+    const holding = i => {                                        // basili: sayac ilk 1 sn gorunur, sonra '?'
+      setS(i, 'go');
+      body(i, '<div class="hd on"><div class="hd-btn"><div class="hd-num"><b>0,0</b><small>sn</small></div></div><div class="hd-tx">Tut…</div><div class="hd-sub">3 sn dolunca bırak</div></div>');
+    };
+    const paintNum = (i, t) => {
+      const el = zs[i].querySelector('.hd-num'); if (!el) return;
+      const q = zs[i].querySelector('.hd-btn'), hid = t >= SHOW;
+      const v = hid ? '?' : dec1(Math.floor(t / 100) / 10);
+      const b = el.querySelector('b'); if (b && b.textContent !== v) b.textContent = v;
+      el.classList.toggle('hid', hid); el.classList.toggle('fade', !hid && t >= SHOW - 300);
+      if (q) q.classList.toggle('q', hid);
+    };
+    const resultBox = i => {                                      // 'X,XX sn' + hedefe fark + cetvel
+      const cs = hs[i], d = cs - TARGET / 10, ad = Math.abs(d);
+      const diff = ad === 0 ? 'Tam 3,00!' : dec2(ad / 100) + ' sn ' + (d < 0 ? 'erken' : 'geç');
+      const pos = Math.min(100, cs * 10 / MAXHOLD * 100);
+      return '<div class="hd hd-res"><div class="hd-big"><b>' + dec2(cs / 100) + '</b><small>sn</small></div><div class="hd-diff' + (ad <= 10 ? ' ok' : '') + '">' + diff + '</div>' +
+        '<div class="hd-rule"><i class="tg" style="left:' + (TARGET / MAXHOLD * 100).toFixed(1) + '%"></i><i class="mk" style="left:' + pos.toFixed(1) + '%"></i></div></div>';
+    };
+    const press = (i, t) => { st[i] = t; en[i] = null; hs[i] = null; lifted[i] = false; holding(i); };
+    const reset = (i, tx, sub, ext) => { st[i] = null; en[i] = null; hs[i] = null; lifted[i] = false; if (ext) ent[i] = Math.max(ent[i], vt.now() + ext); idle(i, tx, sub); };   // ext: oyuncunun kusuru olmayan iptalde ek sure
+    zones.forEach((_, i) => idle(i, 'Basılı tut', '3 sn dolunca bırak'));
     await new Promise(res => {
-      let timer, grace = null;
-      const done = () => { vt.clear(timer); res(); };
-      const allIn = () => zones.every((_, i) => !aliveZ(i) || en[i] !== null);
-      handler = i => { if (st[i] === null) { st[i] = vt.now(); setS(i, 'go'); } };
-      upHandler = i => {
-        if (st[i] === null || en[i] !== null) return;
-        en[i] = vt.now(); setS(i, ''); body(i, 'Bıraktın'); report(i, 1, 1);
-        if (allIn()) vt.timeout(done, 300);
-        else if (grace === null) grace = vt.timeout(done, 3500);   // ilk birakistan sonra digerlerine 3,5 sn: basmayan herkesi bekletmez
+      let fin = false, tm = null, last = null;
+      const done = () => { if (fin) return; fin = true; vt.clear(tm); vt.clear(last); unsub(); res(); };
+      const allIn = () => zs.every((_, i) => !aliveZ(i) || en[i] !== null || no[i]);
+      const check = () => { if (allIn() && last === null) last = vt.timeout(done, 300); };
+      const tooLong = i => {                                    // cok uzun tutuldu: bu oyuncunun turu biter (gecersiz, kazanamaz)
+        over[i] = true; en[i] = st[i] + MAXHOLD; setS(i, ''); wrong(i);
+        body(i, '<div class="hd hd-res"><div class="hd-big"><b>4,5+</b><small>sn</small></div><div class="hd-diff bad">Çok uzun!</div></div>'); check();
       };
-      timer = vt.interval(() => {
+      const release = (i, e) => {
+        const t = evT(e), held = t - st[i];
+        if (held < MINHOLD) { wrong(i); reset(i, 'Çok kısa!', 'Tekrar bas'); return; }
+        if (held >= MAXHOLD) { tooLong(i); return; }
+        en[i] = t; hs[i] = Math.round((en[i] - st[i]) / 10);
+        setS(i, ''); body(i, resultBox(i)); report(i, 1, 1);
+        const ae = Math.abs(hs[i] - TARGET / 10);
+        if (ae <= 15) right(i); else blip(300 - Math.min(ae, 120) * 0.8, 0.14, { type: 'triangle', vol: 0.1 });
+        if (ae <= 5) { burst(zs[i], 16); blip(1175, 0.16, { at: 0.1, vol: 0.12 }); buzz([30, 40, 60]); }                          // 3,00'a +-0,05 sn: kutlama
+        check();
+      };
+      handler = (i, e) => { if (st[i] === null && en[i] === null && !no[i]) press(i, evT(e)); };
+      const unsub = touches.on((e, z) => {
+        if (zones !== zs) { unsub(); return; }                    // mac yarida birakildi: eski abonelik kendini temizler
+        const i = zs.indexOf(z);
+        if (i < 0 || st[i] === null || en[i] !== null || over[i]) return;
+        if (touches.n(z) > 0) return;                             // baska parmak hala basili: ikinci parmagin kalkisi tutmayi bitirmez
+        if (vt.paused) { lifted[i] = true; return; }              // duraklatmada kalkti: devamda yeniden basmali
+        if (e.type === 'pointercancel') { reset(i, 'Tekrar bas', 'Parmağını yeniden bas', 2500); return; }
+        release(i, e);
+      });
+      zones.forEach((z, i) => { if (aliveZ(i) && touches.n(z) > 0) press(i, T0); });      // geri sayimda basili kalan parmak: sayac oyun baslayinca
+      tm = vt.interval(() => {
         const now = vt.now();
-        zones.forEach((_, i) => {
-          if (st[i] !== null && en[i] === null) { const t = now - st[i]; body(i, t < 1000 ? (t / 1000).toFixed(1) + ' sn' : '?'); }
+        zs.forEach((z, i) => {
+          if (!aliveZ(i)) return;
+          if (st[i] !== null && en[i] === null) {
+            if (lifted[i]) { if (touches.n(z) > 0) press(i, now); else reset(i, 'Tekrar bas', 'Parmağını yeniden bas', 2500); return; }
+            const t = now - st[i];
+            if (t >= MAXHOLD && !over[i]) { tooLong(i); return; }
+            paintNum(i, t);
+          } else if (st[i] === null && en[i] === null && !no[i] && now >= ent[i]) {      // hic basmadi
+            no[i] = true; setS(i, ''); body(i, '<div class="hd hd-res"><div class="hd-big"><b>—</b></div><div class="hd-diff">Basmadın</div></div>'); check();
+          }
         });
       }, 50);
-      vt.timeout(done, 9000);
+      vt.timeout(done, 20000);                                  // guvenlik agi: normalde herkesin kendi suresi tur sonunu belirler
     });
     handler = null; upHandler = null;
-    const err = en.map((e, i) => e === null ? Infinity : Math.abs((e - st[i]) - TARGET));
-    zones.forEach((_, i) => body(i, en[i] === null ? '—' : ((en[i] - st[i]) / 1000).toFixed(2) + ' sn'));
-    lastScores = err.map(e => isFinite(e) ? 1e5 - e : -1e9);
+    const err = hs.map(v => v === null ? Infinity : Math.abs(v - TARGET / 10));
+    lastScores = err.map(e => isFinite(e) ? 1e5 - e * 10 : -1e9);
     const best = Math.min(...err);
-    return isFinite(best) ? [err.indexOf(best)] : [];
+    return isFinite(best) ? err.map((e, i) => e === best ? i : -1).filter(i => i >= 0) : [];
   }
 
   // ----- Ortak: soru-cevap oyunu (ilk 'goal' dogruya ulasan kazanir; yanlista 1 sn ceza) -----
@@ -1732,7 +2015,7 @@
     { icon: 'g-isik', name: 'Işık Oyunu', hint: 'Yeşilde dokun (hızlı basarsan 2 puan), kırmızıda DOKUNMA! Yanlış dokunuş puan düşürür.', run: lights },
     { icon: 'g-dizi', name: 'Renk Dizisi', hint: 'Yanıp sönen 5 rengi aynı sırayla tekrarla. Yanlış basarsan dizi sana yeniden gösterilir. İlk bitiren kazanır.', run: simon },
     { icon: 'g-balon', name: 'Balon Patlat', hint: '10 saniyede en çok balonu patlat. Balona yakın bir yere dokunman yeter. ' + ico('i-star', 'inl') + ' altın balon 3 puan, ' + ico('a-bomb-s', 'inl') + ' bomba 1 puan götürür.', run: balloons },
-    { icon: 'g-tut', name: 'Tut ve Bırak', hint: "Basılı tut, 3 saniye dolunca bırak. İlk 1 sn sayaç görünür, sonra gizlenir!", run: hold },
+    { icon: 'g-tut', name: 'Tut ve Bırak', hint: "Basılı tut, tam 3 saniye dolunca bırak. Sayaç yalnız ilk 1 sn görünür. 3,00'a en yakın olan kazanır.", run: hold },
     { icon: 'g-kost', name: 'Köstebek Avı', hint: 'Deliklerden çıkan köstebeğe dokun. 10 saniyede en çok vuran kazanır.', run: moles },
     { icon: 'g-ok', name: 'Ok Yönü', hint: 'Okun yönünü seç. "TERSİNE" yazıyorsa karşı yönü seç! İlk 5 doğruya ulaşan kazanır.', run: arrows },
     { icon: 'g-hafiza', name: 'Hafıza Eşleştir', hint: 'Kartları çevirip 4 çifti ilk bulan kazanır.', run: memory },
