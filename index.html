@@ -1245,6 +1245,7 @@
   const hdVib = p => { if (prefs.vib && navigator.vibrate) { try { navigator.vibrate(p); } catch (_) {} } };
   const hdTimeBar = ms => '<div class="hd-time" style="--T:' + ms + 'ms"><i></i></div>';           // arenaya konur; CSS animasyonu sureyle bosalir (duraklatinca donar)
   const hdLow = ms => vt.timeout(() => zones.forEach(z => { const t = z.querySelector('.hd-time'); if (t) t.classList.add('low'); }), Math.max(0, ms - 3000));   // son 3 sn: kirmizi + nabiz
+  const hdLater = tms => (fn, ms) => { const id = vt.timeout(() => { tms.delete(id); fn(); }, ms); tms.add(id); return id; };      // oyun ici kisa zamanlayicilar: tur bitince topluca temizlenir (bekleyen zamanlayici kalmaz)
   const hdBump = i => { const c = zones[i] && zones[i].querySelector('.cnt'); if (!c) return; c.classList.remove('bump'); void c.offsetWidth; c.classList.add('bump'); };
   const hdTimeUp = async () => {                                    // her bolgede kendi yonunde "SURE DOLDU" levhasi + kisa bekleme
     zones.forEach(z => { const a = z.querySelector('.arena'); if (a) a.insertAdjacentHTML('beforeend', '<div class="hd-end"><span>SÜRE DOLDU!</span></div>'); });
@@ -1265,7 +1266,7 @@
     const NOTE = [523.25, 587.33, 659.25, 783.99, 880, 1046.5];                // isabetler pentatonik merdiveni tirmanir (kac hedef kaldi duyulur)
     let winner = -1, over = false, settle = null;
     const lockT = Array(N).fill(0), missT = Array.from({ length: N }, () => []), tms = new Set();         // ust uste iska korumasi: 0,7 sn icinde 3 iska -> 0,45 sn donma (her yere basarak kazanilmaz)
-    const later = (fn, ms) => { const id = vt.timeout(() => { tms.delete(id); fn(); }, ms); tms.add(id); return id; };
+    const later = hdLater(tms);
     // Paylasilan hedef dizisi: k. hedef TUM bolgelerde ayni (alan orani olarak), onceki hedeften en az ~1.2 hedef capi uzakta.
     // Aday sayisi ve uzaklik olcusu (80x130 birimlik varsayilan alan) cihazdan bagimsiz sabit: ag modunda her telefon seed'li Math.random ile ayni diziyi uretir.
     const seq = shared(k => {
@@ -1583,7 +1584,7 @@
     const BC = [['#ff5a5f', '#d93a45'], ['#2fd68c', '#14a768'], ['#47a9f5', '#2279cf'], ['#a56bff', '#7b44d6'], ['#ff9442', '#d96a1c'], ['#ff7eb6', '#d9468a']];
     const cmb = Array.from({ length: N }, () => ({ t: -1e9, n: 0 })), tms = new Set();       // cmb: bolge basina ard arda patlatma (ses perdesi yukselir)
     let over = false, chain = 0;
-    const later = (fn, ms) => { const id = vt.timeout(() => { tms.delete(id); fn(); }, ms); tms.add(id); return id; };
+    const later = hdLater(tms);
     // balon genisligi: dar serit (3-4 oyuncu) balonlari kuculur (ust uste binme azalir); TUM bolgelerde ayni (en dar bolgeye gore): 3 oyunculu duzende alttaki genis bolge daha buyuk balon gormez
     const bwOf = () => Math.round(Math.max(44, Math.min(64, Math.min(...zones.map(z => z.querySelector('.arena').clientWidth)) * 0.34)));
     const fit = () => zones.forEach(z => { const a = z.querySelector('.arena'); if (!a) return; a.style.setProperty('--bw', bwOf() + 'px'); a.style.setProperty('--aw', a.clientWidth + 'px'); });
@@ -1644,7 +1645,9 @@
     };
     handler = (i, e) => {
       if (over) return;
-      const list = [...zones[i].querySelectorAll('.balloon')].filter(b => !b.dataset.dead);
+      const zr = zones[i].getBoundingClientRect();
+      // yalniz ekranda gorunen balonlar (govde merkezi bolge icinde) patlatilabilir: henuz dogmamis ya da cikmis balon yardim yaricapiyla patlamaz
+      const list = [...zones[i].querySelectorAll('.balloon')].filter(b => { if (b.dataset.dead) return false; const g = geo(b); return g.cy > zr.top + 6 && g.cy < zr.bottom - 6; });
       let hit = null;
       list.forEach(b => { if (ell(geo(b), e.clientX, e.clientY, b.dataset.bomb ? 0 : 6) <= 1) hit = b; });         // DOM sirasi = ust uste siralama: sonuncu en ustte
       if (!hit) { let bd = 9; list.forEach(b => { if (b.dataset.bomb) return; const d = ell(geo(b), e.clientX, e.clientY, 26); if (d <= 1 && d < bd) { bd = d; hit = b; } }); }
@@ -1681,7 +1684,7 @@
     const sc = Array(N).fill(0), DUR = 10000, STOP = DUR - 600, LOCK = 450, GRACE = 320;
     const lockT = Array(N).fill(0), tms = new Set();
     let over = false, chain = 0;
-    const later = (fn, ms) => { const id = vt.timeout(() => { tms.delete(id); fn(); }, ms); tms.add(id); return id; };
+    const later = hdLater(tms);
     const holeHtml = h => '<div class="hole" data-h="' + h + '"><svg class="mh-b" aria-hidden="true"><use href="#m-hole-b"/></svg><div class="mh-m"></div><svg class="mh-f" aria-hidden="true"><use href="#m-hole-f"/></svg></div>';
     zones.forEach((_, i) => {
       arena(i, '<div class="arena">' + hdTimeBar(DUR) + '<div class="cnt">0</div><div class="mgrid">' + Array.from({ length: 9 }, (_, h) => holeHtml(h)).join('') +
