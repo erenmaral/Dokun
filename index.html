@@ -141,6 +141,9 @@
   .tg-miss::before, .tg-miss::after { content:''; position:absolute; left:50%; top:50%; width:14px; height:4px; margin:-2px 0 0 -7px; border-radius:2px; background:var(--red); transform:rotate(45deg); }
   .tg-miss::after { transform:rotate(-45deg); }
   @keyframes tgmiss { 0% { transform:scale(.3); opacity:0; } 22% { transform:scale(1.15); opacity:1; } 100% { transform:translateY(-12px) scale(.95); opacity:0; } }
+  .tg-lock { position:absolute; left:0; right:0; top:28px; bottom:0; z-index:2; border-radius:var(--r-m); background:rgba(29,24,56,.55); display:flex; align-items:center; justify-content:center; pointer-events:none; animation:tglk .46s linear forwards; }
+  .tg-lock svg { width:min(44px, 40%); height:auto; aspect-ratio:1; display:block; animation:lockpop .35s var(--pop) both; }
+  @keyframes tglk { 0%, 80% { opacity:1; } 100% { opacity:0; } }
 
   .grid { display:grid; gap:8px; width:100%; margin:0 auto; align-content:center; height:100%;
     max-width:min(100%, calc((50dvh - var(--hp, 100px)) * var(--ar, 1))); }
@@ -1257,6 +1260,8 @@
     const sizeOf = k => Math.max(44, 68 - k * 5);                              // hedef her isabette kuculur
     const NOTE = [523.25, 587.33, 659.25, 783.99, 880, 1046.5];                // isabetler pentatonik merdiveni tirmanir (kac hedef kaldi duyulur)
     let winner = -1, over = false, settle = null;
+    const lockT = Array(N).fill(0), missT = Array.from({ length: N }, () => []), tms = new Set();         // ust uste iska korumasi: 0,7 sn icinde 3 iska -> 0,45 sn donma (her yere basarak kazanilmaz)
+    const later = (fn, ms) => { const id = vt.timeout(() => { tms.delete(id); fn(); }, ms); tms.add(id); return id; };
     // Paylasilan hedef dizisi: k. hedef TUM bolgelerde ayni (alan orani olarak), onceki hedeften en az ~1.2 hedef capi uzakta.
     // Aday sayisi ve uzaklik olcusu (80x130 birimlik varsayilan alan) cihazdan bagimsiz sabit: ag modunda her telefon seed'li Math.random ile ayni diziyi uretir.
     const seq = shared(k => {
@@ -1286,13 +1291,19 @@
       a.insertAdjacentHTML('beforeend', '<div class="tg-miss" style="left:' + x.toFixed(0) + 'px;top:' + y.toFixed(0) + 'px"></div>');
       const m = a.lastElementChild; m.addEventListener('animationend', () => m.remove());
       hdTone(210, 0.1, { vol: 0.1, slide: -70 }); hdVib(10);
+      const now = vt.now(), ts = missT[i].filter(t => now - t < 700); ts.push(now); missT[i] = ts;
+      if (ts.length >= 3) {                                                    // arka arkaya 3 iska: kisa donma
+        missT[i] = []; lockT[i] = now + 450; pulse(i, 'fbad'); hdTone(150, 0.14, { type: 'square', vol: 0.09, slide: -40 }); hdVib(30);
+        a.insertAdjacentHTML('beforeend', '<div class="tg-lock">' + ico('i-lock') + '</div>');
+        const lk = a.lastElementChild; later(() => lk.remove(), 470);
+      }
     };
     const hit = i => {
       const a = A(i), t = a.querySelector('.tgt'), k = cnt[i], last = k + 1 >= GOAL;
       const hf = document.createElement('div'); hf.className = 'hitfx'; hf.style.left = t.style.left; hf.style.top = t.style.top;
       hf.innerHTML = ico('a-burst') + [0, 1, 2, 3, 4, 5].map(j => '<i style="--a:' + (j * 60 + 20) + 'deg"></i>').join('');
       hf.addEventListener('animationend', ev => { if (ev.target === hf) hf.remove(); }); a.appendChild(hf);
-      cnt[i]++; hdBump(i); pulse(i, 'fok');
+      cnt[i]++; missT[i] = []; hdBump(i); pulse(i, 'fok');
       a.querySelector('.cnt').textContent = cnt[i] + '/' + GOAL;
       hdTone(NOTE[Math.min(k, 5)], last ? 0.32 : 0.14, { type: 'triangle', vol: 0.2 }); hdTone(NOTE[Math.min(k, 5)] * 2, 0.1, { vol: 0.06, at: 0.02 });
       hdVib(last ? [25, 30, 60] : 14);
@@ -1309,7 +1320,7 @@
     await new Promise(res => {
       settle = res;
       handler = (i, e) => {
-        if (over) return;
+        if (over || vt.now() < lockT[i]) return;
         const t = A(i).querySelector('.tgt'); if (!t) return;
         const r = t.getBoundingClientRect();
         if (Math.hypot(e.clientX - (r.left + r.width / 2), e.clientY - (r.top + r.height / 2)) > sizeOf(cnt[i]) / 2 + 24) miss(i, e);      // hedefe yakin dokunus yeterli
@@ -1319,7 +1330,8 @@
     });
     over = true; handler = null; vt.clear(lim); vt.clear(low); unbind();
     if (winner < 0) await hdTimeUp();
-    hdClean('.tgt', '.hd-time', '.hd-end');
+    tms.forEach(id => vt.clear(id)); tms.clear();
+    hdClean('.tgt', '.hd-time', '.hd-end', '.tg-lock');
     lastScores = cnt.map((c, i) => fin[i] != null ? RACE - fin[i] : c);
     return winner >= 0 ? [winner] : topScorers(cnt);
   }
@@ -1823,7 +1835,7 @@
     { icon: 'g-tepki', name: 'Tepki', hint: 'Yeşil olunca ilk dokunan kazanır. Sarı sahte işarettir, erken ya da sarıda dokunan elenir!', run: reaction },
     { icon: 'g-seri', name: 'Seri Dokun', hint: '5 saniyede en çok dokunan kazanır.', run: spam },
     { icon: 'g-orta', name: 'Tam Ortada', hint: 'Top ortaya en yakın durursa kazanırsın.', run: stopbar },
-    { icon: 'g-hedef', name: 'Hedef Avı', hint: 'Çıkan daireye dokun, her seferinde küçülür. 6 hedefe ilk ulaşan kazanır.', run: targets },
+    { icon: 'g-hedef', name: 'Hedef Avı', hint: 'Çıkan daireye dokun, her seferinde küçülür. 6 hedefe ilk ulaşan kazanır. Üst üste ıskalarsan kısa süre donarsın.', run: targets },
     { icon: 'g-sayi', name: 'Sayı Sırası', hint: "1'den 6'ya sırayla dokun. İlk bitiren kazanır.", run: numbers },
     { icon: 'g-tek', name: 'Tek Farklı', hint: 'Farklı olanı bul. 3 bulmacayı ilk çözen kazanır, bulmacalar zorlaşır. Yanlış dokunana ceza var.', run: odd },
     { icon: 'g-renk', name: 'Renk Tuzağı', hint: 'Yazının ne yazdığına değil RENGİNE bak! Doğru rengi seç, ilk 4 doğruya ulaşan kazanır.', run: stroop },
