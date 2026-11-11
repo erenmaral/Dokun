@@ -84,3 +84,37 @@ Gorsel dilin sesteki karsiligi: **yuvarlak, tatli, yumusak.** Hepsi Web Audio il
 - **Seviye hiyerarsisi (tepe):** dokunus tiki ~ -21 dBFS, kucuk olaylar (iska, cevirme, uyari) ~ -12..-14, ana geri bildirim (dogru / yanlis / pop / nota) ~ -9..-6, tur / mac sesleri (go, kazanma, fanfar, bomba) ~ -5..-2. Muzik (Orta) ~ -28 dBFS rms; tum seviyeler `OfflineAudioContext` ile olculur (`audio.render`, `music.render`, `music.renderMix`).
 - **Tekrarda varyasyon:** sik calan sesler her seferinde kucuk perde sapmasi ve donen varyantlar kullanir (kendi sabit uretecimizle; `Math.random` KULLANILMAZ).
 - **Yeni ses eklerken:** `RC` tablosuna tarif yaz (`[oncelik, en kisa aralik ms, kaynak sayisi, uzunluk sn, cizim]`), oyundan `audio.play('ad', arg)` ile cagir; ham `createOscillator` / `navigator.vibrate` yazma (`audio.note` / `haptic.play` kullan). Titresim her zaman `haptic.play(desen, oncelik)`.
+
+## 10. Buyuk ekran, erisilebilirlik ve uyumluluk (QA1 notlari)
+**Ekran boyutlari (denetlenen 10 boyut):** 320x568, 360x640, 360x800, 390x780, 412x915, 430x932, 600x960, 768x1024, 1024x768 (yatay tablet), 844x390 (yatay telefon). Ek olarak 1024x600 / 960x540 (7 inc yatay tablet) ve 1280x800 taranir.
+- **Yon:** "Telefonu dikey tut" katmani (`#rotate`) yalnizca dar telefon yataynda cikar (`orientation:landscape` + `max-height:520px` + `min-width:560px`). Android 16 buyuk ekranlarda yon kilidini yok sayar: tablet yatayinda oyun oynanir; kisa yatay tabletlerde (<= 660 px yukseklik) vmin tabanli boyutlar `dvh` ile sinirlanir.
+- **Bolge `narrow` esigi 300 px** (600 px genisliginde 4 oyuncuda etiket satirlari tek satira sigmiyordu). Dar bolgede oyun adi ustte ayri satirdir.
+- **Duraklat sekmeleri** (ekran kenarlarinda dikey ortada) icerigi kapatmasin diye kenara degen bolgeler `data-tab="l|r|l r"` ile (bolgenin kendi yonunde) `--tl` / `--tr` payi alir; sure cubugu / sayac satirlari bu payi padding olarak kullanir.
+- **Genis ekran (>= 600 x 600):** baslik fisleri, tur karti, duraklat ve bitis dugmeleri bir kademe buyur; Oyun Sec 3 (>= 700 px) / 4 (>= 1000 px) sutun; dikey tablette (>= 900 px yukseklik) ana menu / ayarlar / cevrimici `zoom:1.2`; yatay genis ekranda ana menunun iki yanina magaza grafigindeki cikartma karolari (balon, hedef, domuz, kostebek) konur.
+- **Kategori etiketleri** (Oyun Sec): dar ekranda 3 + 2 izgara (hicbiri kesilmez), >= 440 px tek satir.
+- Toast ve bilgi kutusu `width:max-content` (ortalama icin kullanilan `left:50%` kutuyu %50 genislige sikistirip yaziyi erken kiriyordu).
+
+**Erisilebilirlik**
+- **Kontrast (WCAG 2.1):** yazi / zemin orani olculur (`qa` ciktisi: menu, ayarlar, oyun ici etiketler, tur karti, cipler, bitis, rehber). Kagit zemindeki ikincil etiketler (`.plbl`, `.gcard .tg`) `opacity:.72`, kontrast >= 4,5. Oyun ici buyuk yazilar murekkep konturludur; kontrast kontur ile (>= 15) saglanir. Devre disi (disabled) dugmeler WCAG kapsami disindadir.
+- **Dokunma hedefi >= 34 px:** menu, ayarlar, oyun secme, cevrimici ve oyun ici ogeler (qaMisc bolum 1 + oyun ici tarama).
+- **Renk koru:** renkle ayrilan her ogenin renk-disi ipucu vardir (sekil: Renk Dizisi / Renk Tuzagi, simge + yazi: dogru / yanlis rozeti, lamba, kategori noktasi + yazi, takim A / B rozeti, ag kalitesi sayisi); Renk koru modu desen ekler. Machado (2009) benzetimi (protan / deutan / tritan) ve CIEDE2000 olcumu ile dogrulandi.
+- **Hareketi azalt:** `prefers-reduced-motion: reduce` altinda surekli (sonsuz) animasyon kalmaz: menu susleri, Tepki simgeleri, son saniye uyari cubuklari, bomba / altin balon halesi, Tut ve Birak halkasi, Sayi Sirasi ipucu nabzi kapanir; geri bildirim animasyonlari kisa ve tek seferliktir.
+- **Yazi boyutu:** Android'de `setTextZoom(100)`; tarayicida `text-size-adjust:100%`. 1,3x yazi benzetiminde ana ekranlar tasmaz.
+- **Ekran okuyucu:** ayar anahtarlari `role="switch"` + `aria-checked` + baslik; secim dugmeleri (oyuncu sayisi, mod, tur, kategori, ses, oyun kartlari) `aria-pressed`.
+
+**Uyumluluk tabani: Android WebView / Chrome 108** (`capacitor.config.json` `minWebViewVersion`). Betik ES2018 sozdizimi (optional chaining, `??`, `at()`, `replaceAll`, `structuredClone` YOK).
+| ozellik | en dusuk Chrome | durum |
+|---|---|---|
+| container-type / @container / cq birimleri | 105 | `@supports (height:1cqh)` yedegi (dvh tabanli degerler) |
+| dvh birimi | 108 | taban surum; yedek gerekmez |
+| `text-wrap:balance` | 114 | yalniz guzellestirme; desteklenmezse normal satir kirma |
+| inset, aspect-ratio, overflow:clip, clip-path | 87, 88, 90, 55 | taban altinda |
+| min() / max() / clamp(), env() | 79, 69 | taban altinda |
+| `gap` (flex), position:sticky, prefers-reduced-motion | 84, 56, 74 | taban altinda |
+| repeating-conic-gradient, `font-synthesis` | 69, 97 | taban altinda |
+| `<use href>` (xlink:href'siz), CSS degiskenleri `<use>` golge agacinda | 50, 49 | taban altinda |
+| woff2 + degisken yazi tipi (`font-weight:400 700`), unicode-range | 36, 62, 36 | taban altinda |
+| PointerEvent + setPointerCapture, Web Audio, OfflineAudioContext | 55, 35 | taban altinda |
+| navigator.wakeLock, navigator.share, Clipboard | 84, 89, 66 | var-mi denetimi + yedek |
+| CompressionStream('deflate-raw') / DecompressionStream / Blob.stream | 103, 103, 76 | kodlamada var-mi denetimi + sikistirmasiz yedek (etiket `DK0`) |
+| MediaQueryList.addEventListener('change') | 79 | taban altinda |

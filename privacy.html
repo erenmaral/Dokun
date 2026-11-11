@@ -6,17 +6,20 @@
 <title>Dokun! — Gizlilik Politikası / Privacy Policy</title>
 <meta name="robots" content="index,follow">
 <style>
-  :root { color-scheme: dark; }
-  body { margin:0; background:#0c1020; color:#e8ecff; font:16px/1.65 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+  /* Dokun! gorsel kimligiyle ayni palet: gece mor zemin, krem kagit kutular, murekkep cizgi, sari basliklar */
+  :root { color-scheme: dark; --ink:#1d1838; --paper:#fff4dc; --night:#2e2766; --yellow:#ffd23f; }
+  body { margin:0; background:var(--night); color:var(--paper); font:16px/1.65 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
   main { max-width:760px; margin:0 auto; padding:28px 20px 60px; }
-  h1 { font-size:28px; margin:0 0 4px; }
-  h2 { font-size:20px; margin:30px 0 6px; color:#ffd43b; }
-  p, li { color:#cdd4f5; }
-  a { color:#7cc4ff; }
-  .meta { color:#8d97c4; font-size:14px; margin-bottom:18px; }
-  .box { background:#151b35; border:1px solid #2a3363; border-radius:14px; padding:14px 18px; margin:16px 0; }
-  hr { border:0; border-top:1px solid #2a3363; margin:44px 0 8px; }
-  code { background:#1d2547; padding:1px 6px; border-radius:6px; font-size:14px; }
+  h1 { font-size:30px; line-height:1.15; margin:0 0 4px; text-shadow:0 3px 0 var(--ink); }
+  h2 { font-size:20px; margin:30px 0 6px; color:var(--yellow); text-shadow:0 2px 0 var(--ink); }
+  p, li { color:#f3ead4; }
+  a { color:#8fd0ff; }
+  .meta { color:#d7cfee; font-size:14px; margin-bottom:18px; }
+  .box { background:var(--paper); color:var(--ink); border:3px solid var(--ink); border-radius:16px; box-shadow:0 4px 0 var(--ink); padding:14px 18px; margin:16px 0; }
+  .box p, .box li, .box strong { color:var(--ink); }
+  .box a { color:#1d5fa8; }
+  hr { border:0; border-top:3px solid var(--ink); margin:44px 0 8px; }
+  code { background:var(--ink); color:var(--paper); padding:1px 6px; border-radius:6px; font-size:14px; }
 </style>
 </head>
 <body>
