@@ -14,16 +14,16 @@ Her turdan önce ekranın ortasında **tur kartı** çıkar ("TUR 2 / 8" + oyunu
 - **Hedef Avı:** çıkan hedefe dokun, 6 hedefe ilk ulaşan kazanır. Hedef her isabette küçülür, yakına dokunmak yeter. Herkes aynı hedef dizisini görür (yeni hedef öncekinden uzakta çıkar), ıska küçük bir "x" ve yumuşak sesle belli olur; üst üste 3 ıska kısa süre dondurur. İsabetler pentatonik bir merdiven çıkar; üstte 15 saniyelik süre çubuğu vardır.
 - **Sayı Sırası:** 1'den 6'ya sırayla dokun, ilk bitiren kazanır.
 - **Tek Farklı:** farklı emojiyi bul. 3 bulmacayı (ızgara büyür, emojiler birbirine yaklaşır) ilk çözen kazanır, yanlış dokunan 1,2 sn cezalı.
-- **Renk Tuzağı:** yazının ne yazdığına değil rengine bak, doğru rengi seç. İlk 4 doğruya ulaşan kazanır.
-- **Hızlı Matematik:** doğru sonucu seç. Sorular zorlaşır (toplama/çıkarma, büyük sayılar, çarpma). İlk 4 doğruya ulaşan kazanır, yanlışta 1 sn ceza.
+- **Renk Tuzağı:** yazının ne yazdığına değil rengine bak, aynı renkteki düğmeyi seç. Her rengin bir şekli de var (üçgen, kare, daire, baklava); Renk körü modunda desenler de eklenir. İlk 4 doğruya ulaşan kazanır, yanlışta kısa ceza.
+- **Hızlı Matematik:** doğru sonucu seç. Sorular zorlaşır (küçük toplama, çıkarma, iki haneli sayılar, çarpma). İlk 4 doğruya ulaşan kazanır; yanlışta 1 sn bekletilirsin, art arda yanlışta ceza 1,5 ve 2 sn'ye çıkar.
 - **Işık Oyunu:** yeşilde dokun (hızlı basarsan 2 puan), kırmızıda dokunma. Herkes aynı ışık dizisini görür, ışık giderek kısa yanar, yanlış dokunuş puan düşürür.
 - **Renk Dizisi:** yanıp sönen 5 rengi aynı sırayla tekrarla, ilk bitiren kazanır. Yanlış basarsan dizi sana yeniden gösterilir.
 - **Balon Patlat:** 10 saniyede en çok balonu patlat. Balonun tam üstüne basmak gerekmez, yakına dokunmak yeter. ⭐ Altın balon 3 puan, 💣 bomba 1 puan götürür; bomba yalnızca tam üstüne dokunulursa patlar, boş gökyüzüne dokunmak ceza değildir. Herkes aynı balon dizisini görür; balonlar ve bomba oranı süreyle hızlanır/artar. Üstte 10 saniyelik süre çubuğu (son 3 sn kırmızı nabız), süre bitince kalan balonlar patlar.
 - **Tut ve Bırak:** basılı tut, tam 3 saniye dolunca bırak. Sayaç ilk 1 saniye görünür, sonra gizlenir.
 - **Köstebek Avı:** deliklerden çıkan köstebeğe dokun, 10 saniyede en çok vuran kazanır. Herkes aynı delik programını görür; altın köstebek 3 puan, dikenli kirpiye dokunmak 1 puan götürür, boş deliğe dokunan kısa süre donar (her yere basarak kazanılmaz). Köstebekler zamanla daha kısa durur; üstte 10 saniyelik süre çubuğu vardır.
-- **Ok Yönü:** okun yönünü seç, "TERSİNE" yazıyorsa karşı yönü. İlk 5 doğruya ulaşan kazanır.
+- **Ok Yönü:** okun yönünü seç, "TERSİNE" yazıyorsa karşı yönü (ilk iki soru hep "AYNI YÖN"). İlk 5 doğruya ulaşan kazanır, yanlışta kısa ceza.
 - **Hafıza Eşleştir:** kartları çevirip 4 çifti ilk bulan kazanır. Yanlış eşleşmede kısa süre kilitlenirsin, rastgele basarak kazanılmaz.
-- **Say Bakalım:** ekrandaki şekilleri say, doğru sayıyı seç. İlk 4 doğruya ulaşan kazanır.
+- **Say Bakalım:** ekrandaki şekilleri say, doğru sayıyı seç; sayılar her soruda büyür. İlk 4 doğruya ulaşan kazanır, yanlışta kısa ceza.
 
 Her bölge koyu, nötr bir zeminde; oyuncu rengi yalnızca çerçeve ve etiket olarak kullanılır. Bilgi kutuları karşıdaki oyuncu için ters kopya olarak da gösterilir.
 

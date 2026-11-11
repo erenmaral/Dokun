@@ -334,7 +334,7 @@
   .quiz[data-g="ma"] .q { font-size:clamp(22px, min(21cqw, 58cqh), 78px); }
   /* Ok Yonu: kagit kadran icinde buyuk ok + "AYNI YON" (yesil, esit isaretli oklar) / "TERSINE!" (kirmizi, zit oklar) rozeti: renk + simge + yazi uclu ipucu */
   .quiz[data-g="ar"] .q { gap:6px; font-size:var(--pf, 16px); }
-  @supports (height:1cqh) { .quiz[data-g="ar"] .q { --pf:clamp(14px, min(10cqw, 17cqh), 28px); --dial:max(34px, min(calc(100cqh - var(--pf) * 1.7 - 6px), 70cqw, 170px)); } }
+  @supports (height:1cqh) { .quiz[data-g="ar"] .q { --pf:clamp(14px, min(10cqw, 17cqh), 28px); --dial:max(34px, min(calc(100cqh - var(--pf) * 1.7 - 16px), 70cqw, 170px)); } }
   .qz-dial { width:var(--dial, clamp(46px, 13dvh, 110px)); height:var(--dial, clamp(46px, 13dvh, 110px)); flex:none; display:flex; align-items:center; justify-content:center; border-radius:50%;
     background:var(--paper); border:var(--ln-b) solid var(--ink); box-shadow:var(--sh-m); }
   .qz-dial svg.ar { width:74%; height:74%; display:block; --ac:var(--yellow); }
@@ -344,14 +344,22 @@
   .quiz .q .qz-rule.rev { background:var(--red); }
   .quiz .q .qz-rule svg { width:1.3em; height:1.3em; flex:none; display:block; }
   .qz-mid.in .qz-rule { animation:qzin .3s var(--pop) .06s backwards; }
+  @media (prefers-reduced-motion: reduce) { .qz-mid.in .q, .qz-mid.in .qz-rule, .opts.in, .quiz .opt.nope, .quiz .opt.ok::after, .quiz .opt.bad::after, .qz-hd .cnt.bump { animation:none !important; } }
+  /* cok kisa ekranlarda (soru alani <= 72 px) kadran ve rozet yan yana dizilir; dar bolgede rozet simgesi gizlenir (yazi kalir) */
+  @container (max-height: 72px) {
+    .quiz[data-g="ar"] .q { flex-direction:row; gap:6px; }
+    .quiz[data-g="ar"] .qz-dial { width:min(calc(100cqh - 2px), 54px); height:min(calc(100cqh - 2px), 54px); border-width:var(--ln); box-shadow:var(--sh-s); }
+    .quiz[data-g="ar"] .q .qz-rule { font-size:clamp(13px, 24cqh, 22px); }
+  }
+  @container (max-height: 72px) and (max-width: 200px) { .quiz[data-g="ar"] .q .qz-rule svg { display:none; } .quiz[data-g="ar"] .q .qz-rule { padding-left:.62em; } }
   /* Say Bakalim: sabit boyutlu "tepsi"; nesneler 4x3 kutulara yerlesir (her kutuda en fazla bir nesne, kutu icinde hafif kayma + egim): ust uste binme olmaz.
      Konum / boyut yalniz CSS'te (kap birimleri) hesaplanir; icerik (kutu no, kayma, egim) cihazdan bagimsiz: ag modunda herkeste ayni. */
   .quiz[data-g="co"] .q { width:100%; height:100%; }
   .swarm { position:relative; width:100%; height:100%; container-type:size; border-radius:var(--r-m); background:rgba(29,24,56,.4); border:var(--ln-s) dashed rgba(255,244,220,.38); }
   .swarm > span { --qw:calc(100cqw / 4); --qh:calc(100cqh / 3); --qm:min(var(--qw), var(--qh)); position:absolute; left:calc(var(--sx) * var(--qw)); top:calc(var(--sy) * var(--qh));
     width:var(--qw); height:var(--qh); display:flex; align-items:center; justify-content:center; }
-  .swarm > span svg { display:block; overflow:visible; width:calc(var(--qm) * .74); height:calc(var(--qm) * .74);
-    transform:translate(calc(var(--jx) * (var(--qw) / 2 - var(--qm) * .44)), calc(var(--jy) * (var(--qh) / 2 - var(--qm) * .44))) rotate(var(--rot)) scale(var(--sc)); }
+  .swarm > span svg { display:block; overflow:visible; width:calc(var(--qm) * .8); height:calc(var(--qm) * .8);
+    transform:translate(calc(var(--jx) * (var(--qw) / 2 - var(--qm) * .47)), calc(var(--jy) * (var(--qh) / 2 - var(--qm) * .47))) rotate(var(--rot)) scale(var(--sc)); }
   @supports not (height:1cqh) {
     .swarm { display:flex; flex-wrap:wrap; align-content:center; justify-content:center; gap:4px; padding:4px; }
     .swarm > span { position:static; width:28px; height:28px; }
@@ -2164,7 +2172,12 @@
     await new Promise(res => {
       handler = (i, e) => {
         if (winner >= 0 || vt.now() < until[i]) return;                 // tur bitti / ceza kilidi / dogru cevap sonrasi "ayni parmak" korumasi: yok say (hata sayilmaz)
-        const o = e.target.closest && e.target.closest('.opt'); if (!o || o.dataset.j === undefined) return;
+        let o = e.target.closest && e.target.closest('.opt');
+        if (!o) {                                                        // secenekler arasindaki bosluga dokunus: en yakin secenege sayilir (en fazla ~10 px uzaklik)
+          const op = e.target.closest && e.target.closest('.opts'); let best = 10.5;
+          if (op) op.querySelectorAll('.opt').forEach(c => { const r = c.getBoundingClientRect(), d = Math.hypot(Math.max(r.left - e.clientX, 0, e.clientX - r.right), Math.max(r.top - e.clientY, 0, e.clientY - r.bottom)); if (d < best) { best = d; o = c; } });
+        }
+        if (!o || o.dataset.j === undefined) return;
         const j = +o.dataset.j;
         if (tried[i].has(j)) { o.classList.remove('nope'); void o.offsetWidth; o.classList.add('nope'); return; }      // zaten denenmis yanlis secenek: yok say
         if (j === cur[i]) {                                              // dogru: yesil rozet, yukselen nota, sayac; kisa gecikmeyle yeni soru
@@ -2639,7 +2652,7 @@
     const n = cand[Math.floor(Math.random() * cand.length)], obj = COUNT_OBJ[pickExcept(5, prev ? COUNT_OBJ.indexOf(prev.obj) : -1)];
     const slots = pickIn(Array.from({ length: 12 }, (_, s) => s), n).sort((a, b) => a - b), f = v => v.toFixed(2);
     let h = '';
-    slots.forEach(s => { h += '<span style="--sx:' + (s % 4) + ';--sy:' + Math.floor(s / 4) + ';--jx:' + f(Math.random() * 2 - 1) + ';--jy:' + f(Math.random() * 2 - 1) + ';--rot:' + Math.round(Math.random() * 24 - 12) + 'deg;--sc:' + f(0.9 + Math.random() * 0.1) + '">' + ico(obj, 'sw') + '</span>'; });
+    slots.forEach(s => { h += '<span style="--sx:' + (s % 4) + ';--sy:' + Math.floor(s / 4) + ';--jx:' + f(Math.random() * 2 - 1) + ';--jy:' + f(Math.random() * 2 - 1) + ';--rot:' + Math.round(Math.random() * 20 - 10) + 'deg;--sc:' + f(0.92 + Math.random() * 0.08) + '">' + ico(obj, 'sw') + '</span>'; });
     const pool = []; for (let v = Math.max(1, n - 3); v <= n + 3; v++) if (v !== n) pool.push(v);
     const { opts, correct } = quizValues(n, pool, 1);
     return { n, obj, html: '<div class="swarm">' + h + '</div>', options: opts.map(v => ({ html: v })), correct };
@@ -2694,16 +2707,16 @@
     { icon: 'g-hedef', name: 'Hedef Avı', hint: 'Çıkan daireye dokun, her seferinde küçülür. 6 hedefe ilk ulaşan kazanır. Üst üste ıskalarsan kısa süre donarsın.', run: targets },
     { icon: 'g-sayi', name: 'Sayı Sırası', hint: "1'den 6'ya sırayla dokun, ilk bitiren kazanır. Yanlış sayıya dokunursan kısa süre donarsın.", run: numbers },
     { icon: 'g-tek', name: 'Tek Farklı', hint: 'Farklı olanı bul. 3 bulmacayı ilk çözen kazanır, bulmacalar zorlaşır. Yanlış dokunana ceza var.', run: odd },
-    { icon: 'g-renk', name: 'Renk Tuzağı', hint: 'Yazının ne yazdığına değil RENGİNE bak! Doğru rengi seç, ilk 4 doğruya ulaşan kazanır.', run: stroop },
-    { icon: 'g-mat', name: 'Hızlı Matematik', hint: 'Doğru sonucu seç, sorular zorlaşır. İlk 4 doğruya ulaşan kazanır, yanlışta 1 sn ceza.', run: math },
+    { icon: 'g-renk', name: 'Renk Tuzağı', hint: 'Yazının ne yazdığına değil RENGİNE bak! Aynı renkteki düğmeyi seç. İlk 4 doğruya ulaşan kazanır, yanlışta kısa ceza var.', run: stroop },
+    { icon: 'g-mat', name: 'Hızlı Matematik', hint: 'Doğru sonucu seç, sorular zorlaşır. İlk 4 doğruya ulaşan kazanır. Yanlışta bekletilirsin, art arda yanlışta bekleme uzar.', run: math },
     { icon: 'g-isik', name: 'Işık Oyunu', hint: 'Yeşilde BAS (hızlı basarsan 2 puan), kırmızıda BASMA! Yanlış ya da erken basış puan düşürür.', run: lights },
     { icon: 'g-dizi', name: 'Renk Dizisi', hint: 'Yanıp sönen 5 pedi aynı sırayla tekrarla. Yanlış basarsan dizi yeniden gösterilir. İlk bitiren kazanır.', run: simon },
     { icon: 'g-balon', name: 'Balon Patlat', hint: '10 saniyede en çok balonu patlat. Balona yakın dokunman yeter. ' + ico('i-star', 'inl') + ' altın balon 3 puan; ' + ico('a-bomb-s', 'inl') + ' bomba 1 puan götürür, ona tam dokunma!', run: balloons },
     { icon: 'g-tut', name: 'Tut ve Bırak', hint: "Basılı tut, tam 3 saniye dolunca bırak. Sayaç yalnız ilk 1 sn görünür. 3,00'a en yakın olan kazanır.", run: hold },
     { icon: 'g-kost', name: 'Köstebek Avı', hint: 'Deliklerden çıkan köstebeğe dokun, 10 saniyede en çok vuran kazanır. Altın köstebek 3 puan; dikenli kirpiye dokunma. Boş deliğe basarsan kısa süre donarsın.', run: moles },
-    { icon: 'g-ok', name: 'Ok Yönü', hint: 'Okun yönünü seç. "TERSİNE" yazıyorsa karşı yönü seç! İlk 5 doğruya ulaşan kazanır.', run: arrows },
+    { icon: 'g-ok', name: 'Ok Yönü', hint: 'Okun yönünü seç. "TERSİNE" yazıyorsa karşı yönü seç! İlk 5 doğruya ulaşan kazanır, yanlışta kısa ceza var.', run: arrows },
     { icon: 'g-hafiza', name: 'Hafıza Eşleştir', hint: 'Kartları çevirip 4 çifti ilk bulan kazanır. Yanlış çiftte kartlar kısa süre açık kalır.', run: memory },
-    { icon: 'g-say', name: 'Say Bakalım', hint: 'Ekrandaki şekilleri say, doğru sayıyı seç. İlk 4 doğruya ulaşan kazanır.', run: counting },
+    { icon: 'g-say', name: 'Say Bakalım', hint: 'Ekrandaki şekilleri say, doğru sayıyı seç; sayılar büyür. İlk 4 doğruya ulaşan kazanır, yanlışta kısa ceza var.', run: counting },
   ];
 
   // ---------- Ekranlar ----------
