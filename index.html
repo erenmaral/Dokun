@@ -318,7 +318,7 @@
   .quiz .opt.bad::after { background:var(--red) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cpath d='m13 13 22 22M35 13 13 35' fill='none' stroke='%231d1838' stroke-width='9' stroke-linecap='round'/%3E%3C/svg%3E") center / 76% no-repeat; }
   @keyframes qzbadge { from { transform:scale(.3); } to { transform:none; } }
   /* Renk Tuzagi: her rengin SEKLI (ucgen / daire / kare / baklava) hep gorunur; Renk koru modunda ayrica DESEN (cizgi / nokta / izgara / yatay cizgi) + buyuk simge;
-     kelime kutusunun kosesinde murekkep renginin simgesi (renk koru modunda renkli ve desenli cip) durur. Renk Dizisi ile ayni sekil / desen eslemesi. */
+     kelime kutusunun kosesindeki murekkep rengi simgesi ipucu verdigi icin YALNIZ Renk koru modunda gorunur (renkli ve desenli cip). Renk Dizisi ile ayni sekil / desen eslemesi. */
   .quiz[data-g="st"] .q { font-size:clamp(18px, 3.6dvh, 34px); }
   .quiz[data-g="st"] .q { font-size:clamp(18px, min(13cqw, 36cqh), 56px); }
   .quiz[data-g="st"] .stw { font-size:clamp(18px, min(calc((98cqw - 6px) / var(--wk, 6)), 30cqh), 96px); }
@@ -329,11 +329,11 @@
   .oc[data-c="b"] { --pat:linear-gradient(rgba(29,24,56,.24) 2.5px, transparent 2.5px) 0 0 / 14px 14px, linear-gradient(90deg, rgba(29,24,56,.24) 2.5px, transparent 2.5px) 0 0 / 14px 14px; }
   .oc[data-c="y"] { --pat:repeating-linear-gradient(0deg, rgba(29,24,56,.24) 0 4px, transparent 4px 10px); }
   .quiz .opt.oc svg.qz-sh { position:relative; width:calc(var(--oh) * .5); height:calc(var(--oh) * .5); display:block; }
-  .qz-ink { --cs:max(20px, .85em); position:absolute; right:calc(var(--cs) * -.7); top:calc(var(--cs) * -.7); width:var(--cs); height:var(--cs); display:flex; align-items:center; justify-content:center; border-radius:32%; pointer-events:none; }
+  .qz-ink { display:none; --cs:max(20px, .85em); position:absolute; right:calc(var(--cs) * -.7); top:calc(var(--cs) * -.7); width:var(--cs); height:var(--cs); align-items:center; justify-content:center; border-radius:32%; pointer-events:none; }
   .qz-ink svg { position:relative; width:100%; height:100%; display:block; }
   body.cb .oc::before { content:''; position:absolute; inset:0; border-radius:inherit; background:var(--pat); pointer-events:none; }
   body.cb .quiz .opt.oc svg.qz-sh { width:calc(var(--oh) * .62); height:calc(var(--oh) * .62); }
-  body.cb .qz-ink { --cs:max(24px, 1.05em); background-color:var(--ic); border:var(--ln) solid var(--ink); box-shadow:var(--sh-xs); }
+  body.cb .qz-ink { display:flex; --cs:max(24px, 1.05em); background-color:var(--ic); border:var(--ln) solid var(--ink); box-shadow:var(--sh-xs); }
   body.cb .qz-ink svg { width:72%; height:72%; }
   /* Hizli Matematik */
   .quiz[data-g="ma"] .q { font-size:clamp(22px, 5.4dvh, 46px); }
@@ -808,7 +808,7 @@
   .zone.narrow .count.go { font-size:clamp(22px, min(8.6vmin, calc(13vw - 14px)), 56px); }               /* "BASLA!" dar bolgeye (yaklasik %50 genislik - 40 px) sigsin */
   @keyframes cdg { 0% { transform:scale(.4) rotate(-8deg); opacity:0; } 45% { transform:scale(1.25) rotate(3deg); opacity:1; } 70% { transform:scale(.94) rotate(0); } 100% { transform:scale(1); } }
 
-  /* bitis: kazanan zıplar, digerleri soner */
+  /* bitis: kazanan ziplar, digerleri soner */
   .zone[data-s="lose"] { --ground:#25205a; }
   .zone[data-s="lose"]::before { --dot:rgba(255,244,220,.05); }
   .zone[data-s="champ"] { --ground:var(--yellow); }
@@ -2175,7 +2175,7 @@
       const t = evT(e); if (t > end) return false;                                   // sure doldu: gec gelen dokunus sayilmaz
       const m = down[i]; m.forEach((t0, id) => { if (t - t0 > 1500) m.delete(id); });   // kacan 'kalkis' olaylari bolgeyi kalici kilitlemesin
       if (m.size > 0 && !m.has(e.pointerId)) { warn(i); return false; }              // baska parmak basili: bu dokunus sayilmaz
-      if (t - lastT[i] < 60 && e.pointerId !== lastId[i]) { warn(i); return false; } // cok hizli art arda (iki parmak dönüşümlü)
+      if (t - lastT[i] < 60 && e.pointerId !== lastId[i]) { warn(i); return false; } // cok hizli art arda (iki parmak donusumlu)
       m.set(e.pointerId, t); lastT[i] = t; lastId[i] = e.pointerId;
       c[i]++; paint(); report(i, c[i], 0);
       const rp = zs[i].querySelectorAll('.rip'); for (let k = 0; k < rp.length - 12; k++) rp[k].remove();      // hizli dokunusta ripple birikmesin
@@ -2600,6 +2600,7 @@
   // ----- Ortak: soru-cevap oyunu (Renk Tuzagi / Hizli Matematik / Ok Yonu / Say Bakalim) -----
   // Ilk 'goal' dogruya ulasan kazanir (sure dolarsa en cok dogru). Sorular TEK yerde (shared) ve dizin sirasiyla uretilir: yerel modda herkes AYNI k. soruyu
   // gorur (zorluk sansi yok), ag modunda seed'li Math.random ile telefonlar arasi ayni kalir (Math.random YALNIZ soru uretiminde, dizin sirasiyla).
+  // Istisna: per=true (Hizli Matematik) her oyuncuya ayni zorlukta ama FARKLI soru verir (gen(k, oncekiDizi, n) n soruluk dizi doner); yine tek yerde ve dizin sirasiyla uretilir.
   // Yanlis cevapta AYNI soruda kalinir; ceza her ardisik yanlista artar (1 / 1,5 / 2 sn) ve denenen secenek pasif kalir (tahmin yagmuru kar etmez).
   // Dogru cevaptan sonra ~250 ms girdi cezasiz yok sayilir ("ayni parmak" ikinci dokunusu yeni soruya yanlis sayilmaz). Zamanlayicilar tur bitince temizlenir.
   const qzTimeUp = async () => {                                         // sure dolunca her bolgede kendi yonunde "SURE DOLDU" levhasi + kisa bekleme
@@ -2614,14 +2615,14 @@
     q.style.height = Math.max(60, hd.offsetTop - 10 - top) + 'px';       // alt golge + etiket payi
   };
   window.addEventListener('resize', () => zones.forEach(qzFit));
-  async function quizGame(gen, goal = 4, timeout = 20000, kind = '') {
+  async function quizGame(gen, goal = 4, timeout = 20000, kind = '', per = false) {
     const PEN = [1000, 1500, 2000], FLASH = 180, GUARD = 250, NOTE = [523.25, 659.25, 783.99, 880, 1046.5];
     const cnt = Array(N).fill(0), cur = [], nbad = Array(N).fill(0), until = Array(N).fill(0), tried = Array.from({ length: N }, () => new Set()), fin = [];
-    const T = pzTimers(), T0 = vt.now(), Q = shared(k => gen(k, k > 0 ? Q(k - 1) : null));       // k. soru: onceki soru (tekrar olmasin) + dizin sirasi
+    const T = pzTimers(), T0 = vt.now(), Q = shared(k => per ? gen(k, k > 0 ? Q(k - 1) : null, N) : [gen(k, k > 0 ? Q(k - 1)[0] : null)]);       // k. soru (per: her oyuncu icin ayri): onceki soru (tekrar olmasin) + dizin sirasi
     let winner = -1;
     const draw = i => {
       const z = zones[i], op = z && z.querySelector('.opts'); if (!op) return;                      // mac kapandiysa / alan degistiyse dokunma
-      const q = Q(cnt[i]);
+      const q = Q(cnt[i])[per ? i : 0];
       cur[i] = q.correct; nbad[i] = 0; tried[i].clear();
       z.querySelector('.q').innerHTML = q.html;
       op.innerHTML = q.options.map((o, j) => '<div class="opt' + (o.cls ? ' ' + o.cls : '') + '" data-j="' + j + '"' + (o.attr ? ' ' + o.attr : '') + (o.style ? ' style="' + o.style + '"' : '') + '>' + o.html + '</div>').join('');
@@ -2695,28 +2696,30 @@
   const stroop = () => quizGame(stroopGen, 4, 20000, 'st');
   stroop.gen = stroopGen;
 
-  // Hizli Matematik: zorluk dizin ile artar (herkes ayni sirada ayni soruyu gorur): 1) kucuk toplama 2) kucuk cikarma 3) iki haneli toplama/cikarma 4+) carpma.
+  // Hizli Matematik: zorluk dizin ile artar ve her k. soruda tum oyuncular AYNI zorluk basamaginda ama FARKLI islem gorur (ayni sayilar ya da ayni sonuc yok:
+  // yandakinin ekranina bakmak ise yaramaz): 1) kucuk toplama 2) kucuk cikarma 3) iki haneli toplama/cikarma (oyuncular arasinda donusumlu) 4+) carpma.
   // Secenekler yakin degerler (+-1..4, onluk hatasi, carpimda +-carpan); negatif secenek yok.
-  const mathGen = (k, prev) => {
+  const mathGen = (k, prev, sib = []) => {
     const R = (a, b) => a + Math.floor(Math.random() * (b - a + 1)), st = Math.min(k, 3);
     let x, y, op, ans, txt;
-    for (let t = 0; t < 6; t++) {                                       // onceki soruyla ayni islem cikmasin
-      op = st === 0 ? '+' : st === 1 ? '−' : st === 2 ? (Math.random() < 0.5 ? '+' : '−') : '×';
+    for (let t = 0; t < 40; t++) {                                      // onceki soruyla ve yandaki oyuncularin sorusuyla ayni islem / sonuc cikmasin
+      op = st === 0 ? '+' : st === 1 ? '−' : st === 2 ? (sib.length ? (sib[sib.length - 1].op === '+' ? '−' : '+') : (Math.random() < 0.5 ? '+' : '−')) : '×';
       if (op === '×') { x = R(3, 9); y = R(3, 9); ans = x * y; }
       else if (op === '+') { if (st === 0) { x = R(2, 9); y = R(2, Math.min(9, 12 - x)); } else { x = R(11, 39); y = R(3, 19); } ans = x + y; }
       else { if (st === 1) { x = R(7, 15); y = R(2, Math.min(9, x - 4)); } else { x = R(21, 49); y = R(3, Math.min(19, x - 6)); } ans = x - y; }
       txt = x + ' ' + op + ' ' + y;
-      if (!prev || prev.key !== txt) break;
+      if ((!prev || prev.key !== txt) && !sib.some(q => q.key === txt || (t < 30 && q.ans === ans))) break;
     }
     const pool = new Set(), sane = v => v !== ans && v >= 1;                                                      // anlamsiz secenek yok: yalniz pozitif sayilar (cevaplar >= 4, yeterli aday var)
     [1, 2, 3, 4].forEach(d => { pool.add(ans - d); pool.add(ans + d); });
     if (op === '×') [x, y].forEach(m => { pool.add(ans - m); pool.add(ans + m); });
     else if (st === 2) { pool.add(ans - 10); pool.add(ans + 10); }                                                 // onluk hatasi yalniz iki haneli sorularda
     const { opts, correct } = quizValues(ans, [...pool].filter(sane), 1);
-    return { key: txt, html: txt, options: opts.map(v => ({ html: v })), correct };
+    return { key: txt, op, ans, html: txt, options: opts.map(v => ({ html: v })), correct };
   };
-  const math = () => quizGame(mathGen, 4, 20000, 'ma');
-  math.gen = mathGen;
+  const mathAll = (k, prev, n) => { const out = []; for (let i = 0; i < n; i++) out.push(mathGen(k, prev ? prev[i] : null, out)); return out; };      // k. soru: her oyuncu icin bir tane, dizin ve oyuncu sirasiyla
+  const math = () => quizGame(mathAll, 4, 20000, 'ma', true);
+  math.gen = mathAll;
 
 
   // ---------- Oyuna ozel kisa notalar (Isik Oyunu lamba sesleri, Renk Dizisi ped notalari); ses ayari kapaliysa calmaz ----------
@@ -3136,7 +3139,7 @@
     { icon: 'g-sayi', name: 'Sayı Sırası', hint: "1'den 6'ya sırayla dokun, ilk bitiren kazanır. Yanlış sayıya dokunursan kısa süre donarsın.", run: numbers },
     { icon: 'g-tek', name: 'Tek Farklı', hint: 'Farklı olanı bul. 3 bulmacayı ilk çözen kazanır, bulmacalar zorlaşır. Yanlış dokunana ceza var.', run: odd },
     { icon: 'g-renk', name: 'Renk Tuzağı', hint: 'Yazının ne yazdığına değil RENGİNE bak! Aynı renkteki düğmeyi seç. İlk 4 doğruya ulaşan kazanır, yanlışta kısa ceza var.', run: stroop },
-    { icon: 'g-mat', name: 'Hızlı Matematik', hint: 'Doğru sonucu seç, sorular zorlaşır. İlk 4 doğruya ulaşan kazanır. Yanlışta bekletilirsin, art arda yanlışta bekleme uzar.', run: math },
+    { icon: 'g-mat', name: 'Hızlı Matematik', hint: 'Doğru sonucu seç, sorular zorlaşır. Her oyuncuya farklı bir işlem çıkar. İlk 4 doğruya ulaşan kazanır. Yanlışta bekletilirsin, art arda yanlışta bekleme uzar.', run: math },
     { icon: 'g-isik', name: 'Işık Oyunu', hint: 'Yeşilde BAS (hızlı basarsan 2 puan), kırmızıda BASMA! Yanlış ya da erken basış puan düşürür.', run: lights },
     { icon: 'g-dizi', name: 'Renk Dizisi', hint: 'Yanıp sönen 5 pedi aynı sırayla tekrarla. Yanlış basarsan dizi yeniden gösterilir. İlk bitiren kazanır.', run: simon },
     { icon: 'g-ritim', name: 'Ritim', hint: 'Daralan halka ortadaki daireye değdiği an dokun! 8 vuruşta ne kadar tam zamanında dokunursan o kadar çok puan alırsın. Erken ya da geç dokunmak puanı düşürür.', run: rhythm },
