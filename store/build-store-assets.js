@@ -90,6 +90,7 @@ async function phoneShots(b, tag, vw, vh, dsf, list) {
     '05-tepki': async () => {
       await startGame(p, 'Tepki', 2);
       await p.waitForFunction(() => __dokun.zones[0] && __dokun.zones[0].dataset.s === 'sig', null, { timeout: 15000, polling: 30 }).catch(() => {});
+      await p.waitForTimeout(320);                                  // bolge zemin gecisi (.15 sn) ve simge belirme animasyonu tamamlansin: dolu yesil
       await p.screenshot({ path: out('05-tepki') });
     },
     '06-hedef-3': async () => { await startGame(p, 'Hedef Avı', 3); await p.waitForTimeout(900); await p.screenshot({ path: out('06-hedef-3') }); },
@@ -103,8 +104,23 @@ async function phoneShots(b, tag, vw, vh, dsf, list) {
       await p.click('#back').catch(() => {}); await p.waitForTimeout(200);
     },
     '09-cevrimici': async () => {
+      // Android uygulamasindaki gorunum: sahte yerel ag eklentisi ile "Oda kur" -> kisa kod + oyuncu listesi (tarayicida bu ekran farkli metin gosterir)
       await p.evaluate(() => { __dokun.quitMatch(); }); await p.waitForTimeout(300);
-      await p.click('#net-btn'); await p.waitForTimeout(500); await p.screenshot({ path: out('09-cevrimici') });
+      const q = await ctx.newPage();
+      await q.addInitScript(() => {
+        window.__dokunLanPort = 47991;
+        window.Capacitor = { isNativePlatform: () => true, getPlatform: () => 'android', addListener: () => ({ remove() {} }), nativePromise: (pl, m) => (m === 'getLocalIp' || m === 'start') ? Promise.resolve({ ip: '192.168.1.23', port: 47991 }) : Promise.resolve({}) };
+      });
+      await q.goto(URL); await q.waitForTimeout(600);
+      await q.click('#net-btn'); await q.waitForTimeout(300); await q.click('#net-host-btn');
+      await q.waitForFunction(() => document.querySelector('#lan-code').textContent !== '…', null, { timeout: 8000 });
+      await q.evaluate(() => {
+        const rows = [['#ff5a5f', 'Ece (sen)', ''], ['#2fd68c', 'Mert', '24 ms'], ['#47a9f5', 'Selin', '31 ms']];
+        document.querySelector('#h-list').innerHTML = rows.map((r, i) => '<li style="--c:' + r[0] + '"><span class="av">' + (i + 1) + '</span><span>' + r[1] + '</span><span class="pg">' + r[2] + '</span></li>').join('');
+        document.querySelector('#h-slots').innerHTML = '<div class="slot"><i class="spin s"></i>Oyuncu bekleniyor…</div>';
+        const st = document.querySelector('#h-start'); st.disabled = false;
+      });
+      await q.waitForTimeout(400); await q.screenshot({ path: out('09-cevrimici') }); await q.close();
     },
   };
   for (const k of list) {
