@@ -170,6 +170,9 @@
   .track .tstar { position:absolute; left:50%; top:-25px; width:26px; height:26px; margin-left:-13px; z-index:2; overflow:visible; }
   .track .mk { top:50%; width:var(--bd); height:var(--bd); margin:calc(var(--bd) / -2) 0 0 calc(var(--bd) / -2); z-index:3; }
   .track .mk.stop { animation:trstop .34s var(--pop); }
+  .trfx { position:absolute; top:50%; width:calc(var(--bd) * 2.2); height:calc(var(--bd) * 2.2); margin:calc(var(--bd) * -1.1) 0 0 calc(var(--bd) * -1.1); z-index:4; pointer-events:none; animation:trburst .5s var(--out) forwards; }
+  .trfx svg { display:block; width:100%; height:100%; }
+  @keyframes trburst { from { transform:scale(.4) rotate(-20deg); opacity:1; } to { transform:scale(1.3) rotate(12deg); opacity:0; } }
   @keyframes trstop { 0% { transform:scale(1.5,.7); } 55% { transform:scale(.85,1.2); } 100% { transform:none; } }
   .pct { min-height:clamp(52px, 11vmin, 70px); display:flex; flex-direction:column; align-items:center; gap:2px; line-height:1.05; }
   .pct b { font-size:clamp(24px, 7vmin, 40px); font-weight:700; text-shadow:var(--ol3); animation:rtpop .3s var(--pop); }
@@ -1180,14 +1183,17 @@
       zones.some(zz => { const m = map.get(zz); if (m && m.delete(e.pointerId)) { found = zz; return true; } return false; });
       return found;
     };
-    document.addEventListener('pointerdown', e => { const z = zoneOf(e.target); if (!z) return; let s = map.get(z); if (!s) map.set(z, s = new Map()); s.set(e.pointerId, performance.now()); }, true);
+    document.addEventListener('pointerdown', e => { const z = zoneOf(e.target); if (!z) return; let s = map.get(z); if (!s) map.set(z, s = new Map()); s.set(e.pointerId, { t: performance.now(), real: e.isTrusted }); }, true);
+    // Gercek parmak: tarayicinin pointer yakalamasi (kabuk basista yakalar, parmak kalkinca / iptalde otomatik birakilir) dogruluk kaynagidir; kayip pointerup eski kaydi canli tutamaz.
+    // Sentetik olay (test): yakalama olmaz, kayit kisa omurlu sayilir.
+    const alive = (z, id, o, now) => o.real ? (z.hasPointerCapture ? z.hasPointerCapture(id) : now - o.t < 20000) : now - o.t < 2500;
     const up = e => { const z = drop(e, zoneOf(e.target)); subs.forEach(f => f(e, z)); };
     document.addEventListener('pointerup', up, true); document.addEventListener('pointercancel', up, true);
     const clear = () => zones.forEach(z => map.delete(z));
     document.addEventListener('visibilitychange', () => { if (document.hidden) clear(); });
     window.addEventListener('blur', clear);
     return {
-      n: z => { const s = map.get(z); if (!s) return 0; const now = performance.now(); s.forEach((t, id) => { if (now - t > 20000) s.delete(id); }); return s.size; },   // 20 sn'den eski kayit: kayip pointerup sayilir
+      n: z => { const s = map.get(z); if (!s) return 0; const now = performance.now(); s.forEach((o, id) => { if (!alive(z, id, o, now)) s.delete(id); }); return s.size; },
       on: f => { subs.add(f); return () => subs.delete(f); },
     };
   })();
@@ -1201,11 +1207,13 @@
     go:   ['rt-go', '<svg class="bu"><use href="#a-burst"/></svg><svg class="bo"><use href="#i-bolt"/></svg>'],
     out:  ['rt-out', '<svg><use href="#i-x"/></svg>'],
   };
+  let rtRecord = Infinity;                                        // oturum rekoru (ms): bu sayfa acikken en hizli tepki
   const rtBox = (k, tx) => '<div class="rt ' + RT_ICON[k][0] + '"><div class="rt-ic">' + RT_ICON[k][1] + '</div><div class="rt-tx">' + tx + '</div></div>';
   async function reaction() {
     const TIE = 8, WIN = 55, LATE = 450;                          // ms: beraberlik esigi, toplama penceresi, gec basana ek sure
     const out = new Set(), rt = [];                               // rt[i]: gecerli dokunusun tepki suresi (ms)
     let go = false, goAt = 0, fake = false, fakeEnd = -1, done = false, decided = false, settled = false, winners = [], best = 0;
+    const prevRec = rtRecord;
     const live = () => zones.filter((_, i) => aliveZ(i)).length;
     zones.forEach((_, i) => body(i, rtBox('wait', 'Hazır…')));
     // rastgele degerler hep ayni sirada ve basta cekilir (ag modunda tohumlu: telefonlar arasi ayni kalir)
@@ -1214,7 +1222,7 @@
     const paintAll = () => zones.forEach((_, i) => {
       if (out.has(i) || !aliveZ(i)) return;
       if (rt[i] == null) { setS(i, ''); body(i, '<div class="rt rt-lose"><div class="rt-tag">' + (winners.length ? 'Geç kaldın' : 'Süre doldu') + '</div></div>'); return; }
-      if (winners.includes(i)) { setS(i, 'sig'); body(i, '<div class="rt rt-res"><div class="rt-ic"><svg class="bu"><use href="#a-burst"/></svg><svg class="bo"><use href="#i-bolt"/></svg></div>' + msBox(rt[i]) + '<div class="rt-sub">' + (winners.length > 1 ? 'Berabere!' : 'En hızlı!') + '</div></div>'); return; }
+      if (winners.includes(i)) { setS(i, 'sig'); body(i, '<div class="rt rt-res"><div class="rt-ic"><svg class="bu"><use href="#a-burst"/></svg><svg class="bo"><use href="#i-bolt"/></svg></div>' + msBox(rt[i]) + '<div class="rt-sub">' + (winners.length > 1 ? 'Berabere!' : (prevRec < Infinity && best < prevRec) ? 'Yeni rekor!' : 'En hızlı!') + '</div></div>'); return; }
       setS(i, '');
       body(i, '<div class="rt rt-lose"><div class="rt-tag">Geç kaldın</div>' + msBox(rt[i]) + '<div class="rt-sub">+' + Math.round(rt[i] - best) + ' ms geride</div></div>');
     });
@@ -1265,6 +1273,7 @@
     });
     handler = null;
     if (!decided) zones.forEach((_, i) => { if (!out.has(i) && aliveZ(i)) { setS(i, ''); body(i, '<div class="rt rt-lose"><div class="rt-tag">Süre doldu</div></div>'); } });
+    if (decided) rtRecord = Math.min(rtRecord, best);
     lastScores = zones.map((_, i) => out.has(i) ? -1e9 : rt[i] != null ? 5000 - Math.round(rt[i]) : -5000);
     return decided ? winners.slice() : [];
   }
@@ -1293,7 +1302,7 @@
     };
     handler = (i, e) => {
       const t = evT(e); if (t > end) return;                                         // sure doldu: gec gelen dokunus sayilmaz
-      if (t - lastT[i] < 35 && e.pointerId !== lastId[i]) return;                    // ayni anda basilan baska parmak: tek vurus
+      if (t - lastT[i] < 45 && e.pointerId !== lastId[i]) return;                    // ayni anda basilan baska parmak: tek vurus
       lastT[i] = t; lastId[i] = e.pointerId;
       c[i]++; paint(); report(i, c[i], 0);
       const rp = zs[i].querySelectorAll('.rip'); for (let k = 0; k < rp.length - 12; k++) rp[k].remove();      // hizli dokunusta ripple birikmesin
@@ -1345,7 +1354,7 @@
         const pc = (1 - Math.abs(pos[i] - 0.5) * 2) * 100, q = Math.round(pc * 10) / 10;
         mk(i).style.left = mkLeft(pos[i]); mk(i).classList.add('stop');
         zs[i].querySelector('.pct').innerHTML = '<b>' + (q >= 100 ? '%100' : '%' + dec1(q)) + '</b><small>' + stopRate(pc) + '</small>';
-        if (pc >= 96) right(i);
+        if (pc >= 96) { right(i); const fxEl = document.createElement('div'); fxEl.className = 'trfx'; fxEl.style.left = mkLeft(pos[i]); fxEl.innerHTML = ico('a-burst'); fxEl.addEventListener('animationend', () => fxEl.remove()); zs[i].querySelector('.track').appendChild(fxEl); }
         if (allIn()) vt.timeout(finish, 300);
       };
       const tick = () => {
@@ -1510,7 +1519,9 @@
         if (held < MINHOLD) { wrong(i); reset(i, 'Çok kısa!', 'Tekrar bas'); return; }
         en[i] = Math.min(t, st[i] + MAXHOLD); hs[i] = Math.round((en[i] - st[i]) / 10);
         setS(i, ''); body(i, resultBox(i)); report(i, 1, 1);
-        if (Math.abs(hs[i] - TARGET / 10) <= 15) right(i);
+        const ae = Math.abs(hs[i] - TARGET / 10);
+        if (ae <= 15) right(i);
+        if (ae <= 5) burst(zs[i], 16);                          // 3,00'a +-0,05 sn: kutlama
         check();
       };
       handler = (i, e) => { if (st[i] === null && en[i] === null && !no[i]) press(i, evT(e)); };
