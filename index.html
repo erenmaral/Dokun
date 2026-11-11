@@ -1422,7 +1422,7 @@
         const f = 300 * Math.pow(2, ((c | 0) * 2) / 12) * R.jit(0.03);
         R.noise(t, 0.07, { f0: 3000, f1: 1000, q: 0.8, vol: 0.4, atk: 0.001 }); R.thump(t, f * 1.5, f * 0.8, 0.1, 0.2); R.tone(f * 3, t + 0.01, 0.06, { vol: 0.05, atk: 0.002 });
       }],
-      gold:    [4, 40, 7, 0.6, (R, t) => { [12, 16, 19].forEach((d, i) => R.pluck(R.n(d), t + i * 0.065, 0.2, 0.17)); R.pluck(R.n(24), t + 0.2, 0.3, 0.06); }],
+      gold:    [4, 40, 7, 0.6, (R, t) => { [12, 16, 19].forEach((d, i) => R.pluck(R.n(d), t + i * 0.065, 0.2, 0.21)); R.pluck(R.n(19), t + 0.2, 0.3, 0.06); }],
       bomb:    [5, 100, 5, 0.6, (R, t) => {
         R.tone(120, t, 0.5, { to: 42, vol: 0.4, atk: 0.004 }); R.noise(t, 0.4, { type: 'lowpass', f0: 700, f1: 120, q: 0.5, vol: 0.5, atk: 0.003 }); R.noise(t, 0.03, { f0: 2000, q: 0.7, vol: 0.25, atk: 0.001 });
       }],
@@ -1432,10 +1432,11 @@
       warn:    [3, 100, 2, 0.4, (R, t) => { R.tone(R.n(-9), t, 0.1, { type: 'triangle', vol: 0.14, atk: 0.008 }); R.tone(R.n(-9), t + 0.16, 0.1, { type: 'triangle', vol: 0.14, atk: 0.008 }); }],
       stop:    [4, 150, 4, 0.5, (R, t) => { R.thump(t, 240, 100, 0.32, 0.28); R.noise(t, 0.25, { type: 'lowpass', f0: 700, f1: 150, q: 0.5, vol: 0.22, atk: 0.004 }); }],
       timeUp:  [4, 200, 4, 0.5, (R, t) => { R.pluck(R.n(7), t, 0.1, 0.17); R.pluck(R.n(0), t + 0.1, 0.2, 0.17); R.thump(t + 0.1, 150, 100, 0.2, 0.12); }],
-      chime:   [3, 30, 3, 0.5, (R, t, a) => { const f = a && a.f || R.n(0); R.pluck(f * R.jit(0.003), t, a && a.last ? 0.34 : 0.15, a && a.last ? 0.24 : 0.2, { oct: 1 }); }],
-      lampOn:  [3, 60, 4, 0.35, (R, t) => { R.pluck(784, t, 0.1, 0.13); R.pluck(1175, t + 0.07, 0.14, 0.13); }],
-      lampOff: [3, 60, 2, 0.3, (R, t) => { R.tone(196, t, 0.22, { type: 'triangle', to: 166, vol: 0.09, atk: 0.01, lp: [1200, 400] }); }],
-      pad:     [4, 30, 4, 0.5, (R, t, a) => { const f = a && a.f || R.n(0); R.pluck(f, t, 0.36, 0.2); R.tone(f * 2, t, 0.2, { vol: 0.04, atk: 0.004 }); }],
+      chime:   [3, 30, 3, 0.5, (R, t, a) => { const f = a && a.f ? a.f * Math.pow(2, R.key / 12) : R.n(0); R.pluck(f * R.jit(0.003), t, a && a.last ? 0.34 : 0.15, a && a.last ? 0.24 : 0.2, { oct: 1 }); }],       // oyunun pentatonik merdiveni muzigin anahtarina uyar
+      lampOn:  [3, 60, 4, 0.35, (R, t) => { R.pluck(784, t, 0.1, 0.16); R.pluck(1175, t + 0.07, 0.14, 0.16); }],
+      lampOff: [3, 60, 2, 0.3, (R, t) => { R.tone(196, t, 0.22, { type: 'triangle', to: 166, vol: 0.13, atk: 0.01, lp: [1200, 400] }); }],
+      pad:     [4, 30, 4, 0.5, (R, t, a) => { const f = a && a.f ? a.f * Math.pow(2, R.key / 12) : R.n(0); R.pluck(f, t, 0.36, 0.2); R.tone(f * 2, t, 0.2, { vol: 0.04, atk: 0.004 }); }],
+      ui:      [2, 50, 2, 0.1, (R, t) => { R.tone(760 * R.jit(0.03), t, 0.05, { vol: 0.14, to: 560, atk: 0.003 }); R.noise(t, 0.012, { f0: 3000, q: 1.2, vol: 0.05, atk: 0.001 }); }],
       flip:    [2, 30, 3, 0.15, (R, t) => { R.noise(t, 0.05, { f0: 1100, f1: 3200, q: 1.2, vol: 0.35, atk: 0.004 }); R.tone(640 * R.jit(0.05), t + 0.035, 0.05, { vol: 0.06, atk: 0.002 }); }],
     };
     const state = () => ctx ? ctx.state : (failed ? 'failed' : 'none');
@@ -1551,8 +1552,14 @@
     fanfare() { audio.play('fanfare'); haptic.play([80, 50, 80, 50, 200], 3); },
   };
   // ilk dokunusta baglam acilir; tarayicilar kullanici etkilesimini pointerdown (fare) / pointerup / touchend / click / keydown ile sayar
-  const gestureUnlock = () => { audio.unlock(true); if (typeof playing !== 'undefined' && !playing && !music.active) music.home(); };
+  const gestureUnlock = () => { try { audio.unlock(true); if (typeof playing !== 'undefined' && !playing && !music.active) music.home(); } catch (e) { console.error(e); } };
   ['pointerdown', 'pointerup', 'touchend', 'click', 'keydown'].forEach(ev => document.addEventListener(ev, gestureUnlock, { passive: true, capture: true }));
+  // menu / ayar / duraklat dugmelerine hafif dokunus sesi ve titresimi (oyun alaninin icinde oyunlarin kendi sesleri vardir)
+  document.addEventListener('click', e => {
+    const b = e.target && e.target.closest && e.target.closest('button');
+    if (!b || b.disabled || b.closest('#board, #ptabs') || (b.dataset && (b.dataset.k === 'sfx' || b.dataset.k === 'vib'))) return;       // oyun alani ve duraklat sekmeleri sessiz; ses / titresim anahtarlarinin kendi onizlemesi var
+    audio.play('ui'); haptic.play(10, 1);
+  }, true);
 
   // ---------- Arka plan muzigi: kodla uretilir, oyuna gore degisir ----------
   // Her "ruh hali" kendi anahtar, tempo ve dokusuna sahiptir; hepsi sakin ve yormayacak sekilde tutulur.
@@ -1567,7 +1574,7 @@
     calm:   { bpm: 66,  cut: 1300, gain: 0.86, wave: 'sine',     pad: 0.34, key: 5, echo: 0.26, p: 0.82,
       A: [[41, 45, 48, 52], [38, 41, 45, 48], [46, 50, 53, 57], [48, 52, 55, 57]], B: [[43, 46, 50, 53], [45, 48, 52, 55], [46, 50, 53, 57], [48, 52, 55, 57]],
       arps: [[0, -1, 2, -1, 3, -1, 2, -1], [0, -1, 1, -1, 3, -1, 2, -1], [2, -1, 3, -1, 1, -1, 0, -1]], bass: [0, -1, -1, -1, -1, -1, -1, -1], hat: [] },
-    lively: { bpm: 108, cut: 2600, gain: 0.99, wave: 'triangle', pad: 0.28, key: 7, echo: 0.14, p: 0.86,
+    lively: { bpm: 108, cut: 2600, gain: 0.99, wave: 'triangle', pad: 0.28, key: -5, echo: 0.14, p: 0.86,
       A: [[43, 47, 50, 55], [40, 43, 47, 50], [48, 52, 55, 59], [38, 42, 45, 50]], B: [[40, 43, 47, 50], [48, 52, 55, 59], [43, 47, 50, 55], [38, 42, 45, 50]],
       arps: [[0, 2, 1, 3, 0, 2, 1, 3], [0, 1, 2, 1, 3, 2, 1, 2], [3, 1, 2, 0, 3, 1, 2, 1]], bass: [0, -1, -1, -1, 0, -1, -1, 0], hat: [2, 6] },
     tense:  { bpm: 122, cut: 1700, gain: 1.23, wave: 'sine',     pad: 0.34, key: 0, echo: 0.18, p: 0.8,
@@ -1620,16 +1627,17 @@
     };
     // Ruh hali grubu: notalar -> (kuru + tempoya bagli yanki) -> cikis kazanci. Gecislerde eski grup sonerken yenisi acilir (kesintisiz).
     const makeGroup = (c, out, M) => {
-      const inp = c.createGain(), o = c.createGain();
+      const inp = c.createGain(), o = c.createGain(), all = [inp, o];
       inp.connect(o); o.connect(out);
       if (M.echo) {
         const send = c.createGain(), dl = c.createDelay(1.5), fb = c.createGain(), lp = c.createBiquadFilter();
         send.gain.value = M.echo; dl.delayTime.value = 60 / M.bpm * 0.75; fb.gain.value = 0.34; lp.type = 'lowpass'; lp.frequency.value = 1500;
         inp.connect(send); send.connect(dl); dl.connect(lp); lp.connect(o); lp.connect(fb); fb.connect(dl);
+        all.push(send, dl, fb, lp);
       }
-      return { inp, out: o };
+      return { inp, out: o, all };
     };
-    const dispose = g => { if (!g) return; setTimeout(() => { try { g.inp.disconnect(); g.out.disconnect(); } catch (_) {} }, 3000); };
+    const dispose = g => { if (!g) return; setTimeout(() => { g.all.forEach(n => { try { n.disconnect(); } catch (_) {} }); }, 3000); };      // soniklenen grup (yanki dongusu dahil) tamamen cozulur
     const graph = () => {
       const c = audio.unlock(); if (!c) return null;
       if (!master) {
@@ -1639,24 +1647,28 @@
       }
       return c;
     };
+    const hold = (prm, t) => { if (prm.cancelAndHoldAtTime) prm.cancelAndHoldAtTime(t); else prm.cancelScheduledValues(t); };         // sureken gecisi bulundugu degerde tutar (sicrama olmaz)
     const apply = () => {
       const c = audio.ctx; if (!master || !c) return;
       const t = c.currentTime;
-      master.gain.cancelScheduledValues(t); master.gain.setTargetAtTime(level(), t, ducked ? 0.2 : 0.45);
-      filt.frequency.cancelScheduledValues(t); filt.frequency.setTargetAtTime(ducked ? DUCK_CUT : MOODS[cur].cut, t, ducked ? 0.2 : 0.6);
+      hold(master.gain, t); master.gain.setTargetAtTime(level(), t, ducked ? 0.2 : 0.45);
+      hold(filt.frequency, t); filt.frequency.setTargetAtTime(ducked ? DUCK_CUT : MOODS[cur].cut, t, ducked ? 0.2 : 0.6);
     };
-    const fadeOut = (g, c, tc) => { if (!g) return; const t = c.currentTime; g.out.gain.cancelScheduledValues(t); g.out.gain.setTargetAtTime(0.0001, t, tc); dispose(g); };
+    const fadeOut = (g, c, tc) => { if (!g) return; const t = c.currentTime; hold(g.out.gain, t); g.out.gain.setTargetAtTime(0.0001, t, tc); dispose(g); };
     const open = (c, m) => {                         // yeni ruh hali grubu: kaldigi olcudan (olcu basindan) baslar
       const g = makeGroup(c, filt, MOODS[m]), t = c.currentTime;
       g.out.gain.setValueAtTime(0.0001, t); g.out.gain.setTargetAtTime(1, t, 0.3);
       grp = g; pos = Math.ceil((cursor[m] || 0) / 8) * 8; nextT = t + 0.12; audio.key = MOODS[m].key;
     };
+    let warned = false;
     const schedule = () => {
-      const c = audio.ctx; if (!c || !active || !prefs.music || !grp || c.state !== 'running') return;
-      const now = c.currentTime, M = MOODS[cur], dur = 30 / M.bpm;
-      if (nextT < now - 0.01) nextT = now + 0.06;                              // zamanlayici aksadi / baglam askidaydi: kacirilan adimlar calinmaz, yeniden hizalan
-      for (let n = 0; nextT < now + LOOK && n < 64; n++) { playStep(c, grp.inp, M, pos, nextT, prng); nextT += dur; pos++; }
-      cursor[cur] = pos;
+      try {
+        const c = audio.ctx; if (!c || !active || !prefs.music || !grp || c.state !== 'running') return;
+        const now = c.currentTime, M = MOODS[cur], dur = 30 / M.bpm;
+        if (nextT < now - 0.01) nextT = now + 0.06;                              // zamanlayici aksadi / baglam askidaydi: kacirilan adimlar calinmaz, yeniden hizalan
+        for (let n = 0; nextT < now + LOOK && n < 64; n++) { playStep(c, grp.inp, M, pos, nextT, prng); nextT += dur; pos++; }
+        cursor[cur] = pos;
+      } catch (e) { if (!warned) { warned = true; console.error('Muzik hatasi:', e); } }        // muzik hatasi oyunu / turu asla bozmaz
     };
     audio.onRunning(() => schedule());
     // Cevrimdisi cizim (test): ruh halini n saniye uretir, olcum istatistiklerini dondurur
@@ -1672,7 +1684,7 @@
       return { peak, rms: Math.sqrt(sum / d.length), perSecondRms: per, bpm: M.bpm };
     };
     // Cevrimdisi karisim (test): muzik (secili ses duzeyinde) + efekt olaylari ayni zincirden gecer; tepe ve kirpilma olcer
-    const renderMix = async (name, secs, events, volIdx, sr = 22050) => {
+    const renderMix = async (name, secs, events, volIdx, sr = 22050, wantData) => {
       const oc = new OfflineAudioContext(1, Math.floor(sr * secs), sr), M = MOODS[name], ch = audio.chain(oc);
       const f = oc.createBiquadFilter(); f.type = 'lowpass'; f.Q.value = 0.5; f.frequency.value = M.cut;
       const m = oc.createGain(); m.gain.value = VOL[volIdx == null ? 3 : volIdx] * M.gain; f.connect(m); m.connect(ch.mus);
@@ -1682,9 +1694,9 @@
       (events || []).forEach(e => { R.g = e.g || 1; audio.RC[e.n][4](R, e.at, e.arg); });
       const buf = await oc.startRendering(), d = buf.getChannelData(0);
       let peak = 0, sum = 0, hot = 0; for (let i = 0; i < d.length; i++) { const a = Math.abs(d[i]); if (a > peak) peak = a; if (a > 0.9) hot++; sum += d[i] * d[i]; }
-      return { peak, rms: Math.sqrt(sum / d.length), hot };
+      return { peak, rms: Math.sqrt(sum / d.length), hot, data: wantData ? Array.from(d) : null, sr };
     };
-    return {
+    const api = {
       get active() { return active; },
       get mood() { return cur; },
       get ducked() { return ducked; },
@@ -1714,7 +1726,7 @@
         else this.stop();
       },
       stop() {
-        active = false; apply();
+        active = false; apply(); audio.key = 0;                              // muzik yokken efektler Do anahtarinda
         if (timer) { clearInterval(timer); timer = null; }
         const c = audio.ctx; if (grp && c) fadeOut(grp, c, 0.12);
         grp = null;
@@ -1722,19 +1734,23 @@
       duck(v) { ducked = !!v; apply(); },
       volume() { apply(); },
     };
+    // Muzik hatasi oyunu / turu asla bozmamali: her genel cagri korunur (hata bir kez raporlanir)
+    ['start', 'setMood', 'home', 'stop', 'duck', 'volume'].forEach(k => { const f = api[k]; api[k] = function () { try { return f.apply(api, arguments); } catch (e) { if (!warned) { warned = true; console.error('Muzik hatasi (' + k + '):', e); } } }; });
+    return api;
   })();
 
   // Android uygulamasinda (Capacitor) WebView otomatik oynatmaya izin verir (Bridge: setMediaPlaybackRequiresUserGesture(false)):
   // menu muzigi ilk dokunusu beklemeden baslar. Tarayicida baglam ilk dokunusta acilir (otomatik oynatma politikasi), bu yuzden orada beklenir.
-  try {
-    const CP = window.Capacitor;
-    if (CP && (typeof CP.isNativePlatform === 'function' ? CP.isNativePlatform() : CP.platform && CP.platform !== 'web')) {
-      setTimeout(() => {
-        if (!audio.unlock(true)) return;
-        setTimeout(() => { if (audio.state === 'running' && !music.active && typeof playing !== 'undefined' && !playing) music.home(); }, 300);
-      }, 0);
-    }
-  } catch (_) {}
+  const nativeStart = () => {
+    try {
+      const CP = window.Capacitor;
+      if (!CP || !(typeof CP.isNativePlatform === 'function' ? CP.isNativePlatform() : CP.platform && CP.platform !== 'web') || nativeStart.done) return;
+      nativeStart.done = true;
+      if (!audio.unlock(true)) return;
+      setTimeout(() => { if (audio.state === 'running' && !music.active && typeof playing !== 'undefined' && !playing) music.home(); }, 300);
+    } catch (_) {}
+  };
+  nativeStart(); window.addEventListener('load', nativeStart);                    // kopru gec yuklenirse ikinci deneme
 
   // ---------- Ekran uyanik kalsin ----------
   // on(): idempotent (acik bir kilit varken yenisi alinmaz, sizinti olmaz); off(): birakir; refresh(): arka plandan donunce kilidi yeniden alir

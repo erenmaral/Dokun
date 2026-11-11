@@ -76,3 +76,11 @@ Tum 16 oyun yeni kabuga ve simgelere gecirildi. Isteyen icin ince ayar fikirleri
 3. Simge: sprite'a yeni `<symbol>` ekle, emoji kullanma.
 4. Hareket: yalniz `transform/opacity`, `--pop` ile asma, basma `translateY(3px)`.
 5. Dokunma hedefi >= 34px; ust bolgeler 180 derece donuk oldugundan hicbir sey tek yone gore konumlandirilmaz.
+
+## 9. Ses dili (oyuncak kutusu sesi)
+Gorsel dilin sesteki karsiligi: **yuvarlak, tatli, yumusak.** Hepsi Web Audio ile kodla uretilir (dosya yok), tek merkezi motordan (`audio`) gecer.
+- **Palet:** cam / marimba benzeri "pluck" notalari (yumusak testere + parlaktan yumusaga suzulen alcak geciren), yuvarlak "tok" sesleri (perde dusen sinus + yumusak govde), kisa gurultu patlamalari (balon "pop", kart cevirme, "vuup"). Sert kare / testere dalgasi YOK; eski cagrilar bile yumusak dalgaya cevrilir. Ust kesme ~7,6 kHz.
+- **Perde:** efektler Do major pentatonik (C D E G A) merdivenindedir ve muzigin ruh haline gore anahtar degistirir (menu Do, sakin Fa, canli Sol, gergin La minor = Do pentatonik), boylece efekt muzige karsi durmaz.
+- **Seviye hiyerarsisi (tepe):** dokunus tiki ~ -21 dBFS, kucuk olaylar (iska, cevirme, uyari) ~ -12..-14, ana geri bildirim (dogru / yanlis / pop / nota) ~ -9..-6, tur / mac sesleri (go, kazanma, fanfar, bomba) ~ -5..-2. Muzik (Orta) ~ -28 dBFS rms; tum seviyeler `OfflineAudioContext` ile olculur (`audio.render`, `music.render`, `music.renderMix`).
+- **Tekrarda varyasyon:** sik calan sesler her seferinde kucuk perde sapmasi ve donen varyantlar kullanir (kendi sabit uretecimizle; `Math.random` KULLANILMAZ).
+- **Yeni ses eklerken:** `RC` tablosuna tarif yaz (`[oncelik, en kisa aralik ms, kaynak sayisi, uzunluk sn, cizim]`), oyundan `audio.play('ad', arg)` ile cagir; ham `createOscillator` / `navigator.vibrate` yazma (`audio.note` / `haptic.play` kullan). Titresim her zaman `haptic.play(desen, oncelik)`.
