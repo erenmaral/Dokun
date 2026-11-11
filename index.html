@@ -3355,6 +3355,7 @@
     } catch (_) { toast('Cevap kodu geçersiz'); }
   }
   function broadcastRoster() {
+    if (net.matchStarted) { paintHost(); return; }                                // mac basladiktan sonra oyuncu numaralari sabittir: liste yeniden gonderilirse puan dizileriyle kayardi
     const peers = livePeers(), names = [nameOf(0), ...peers.map(p => p.name)], pings = [0, ...peers.map(p => Math.round(p.rtt || 0))];
     peers.forEach((p, k) => jsend(p.dc, { t: 'roster', names, idx: k + 1, pings }));
     paintHost();
@@ -3401,6 +3402,7 @@
       return;
     }
     if (!peer.open) return;                                                        // el sikismamis baglantinin diger mesajlari yok sayilir
+    if (m.t === 'bye') { peer.bye = true; try { peer.dc.close(); } catch (_) {} peerGone(peer); return; }          // misafir bilerek cikti: yeniden baglanmasi beklenmez
     if (m.t === 'ping') {
       if (!isNum(m.t0, 0, 1e12)) return;
       if (isNum(m.rtt, 1, 60000)) peer.rtt = m.rtt;
@@ -3422,20 +3424,24 @@
     if (peer.gone || !net.on) return;
     if (peer.waiting) { const w = peer.waiting; peer.waiting = null; w.res(-Infinity); }
     // Mac sirasinda LAN baglantisi kopan oyuncu 25 sn beklenir (otomatik yeniden baglanabilir)
-    if (net.matchStarted && peer.open && peer.token && net.mode === 'lan' && !peer.away) {
+    if (net.matchStarted && peer.open && peer.token && net.mode === 'lan' && !peer.away && !peer.bye) {          // bilerek cikan (bye) beklenmez
       peer.away = true; net.away[peer.idx] = true;
       net.peers.forEach(q => q !== peer && jsend(q.dc, { t: 'away', i: peer.idx, on: true }));
       toast(peer.name + ' bağlantısı koptu, bekleniyor…'); paintNetBar();
       peer.awayTimer = setTimeout(() => {
         if (!peer.away) return;
         peer.away = false; peer.gone = true; toast(peer.name + ' ayrıldı'); paintNetBar();
+        net.peers.forEach(q => q !== peer && jsend(q.dc, { t: 'away', i: peer.idx, on: true, left: true }));
       }, 25000);
       return;
     }
     peer.gone = true;
     if (net.pending === peer) { net.pending = null; }
     if (peer.open) toast(peer.name + ' ayrıldı');
-    broadcastRoster();
+    if (net.matchStarted && peer.open) {                                              // macta: oyuncu numaralari degismez, digerlerine yalnizca "ayrildi" bildirilir
+      net.away[peer.idx] = true; paintNetBar();
+      net.peers.forEach(q => q !== peer && jsend(q.dc, { t: 'away', i: peer.idx, on: true, left: true }));
+    } else broadcastRoster();
   }
 
   async function startNetMatch() {
@@ -3535,6 +3541,7 @@
   async function runNetHost(peers, my) {
     const pool = lastPool, nextGame = makeBag(pool), { open, total, val } = matchPlan(pool);
     for (let r = 1; r <= total; r++) {
+      if (peers.every(p => p.gone)) { leaveNet('Tüm oyuncular ayrıldı'); return; }                  // yalnız kalan host sonsuz tek kisilik mac oynamasin
       const g = nextGame(), seed = (Math.random() * 2147483647) | 0, intro = !seenGames.has(g);
       seenGames.add(g);
       const hSent = nowP(), at = hSent + (r === 1 ? 1200 : 700);   // tur birazdan herkeste ayni anda baslar (ilk turda saat olcumu icin biraz daha uzun)
@@ -3547,7 +3554,7 @@
       const mine = await netRound(g, seed, r, total, open, intro, at);
       if (my !== matchId) return;
       net.peers.forEach(q => jsend(q.dc, { t: 'd', i: 0, r }));
-      const metrics = [mine, ...(await Promise.all(waits))].map((m, i) => (dead[i] || m == null) ? -Infinity : m);
+      const metrics = [mine, ...(await Promise.all(waits))].map((m, i) => (dead[i] || !isNum(m, -1e12, 1e12)) ? -Infinity : m);
       if (my !== matchId) return;
       const mx = Math.max(...metrics);
       const winners = mx > 0 ? metrics.map((m, i) => m === mx ? i : -1).filter(i => i >= 0) : [];
@@ -3662,7 +3669,7 @@
     }
     else if (m.t === 'pong') { if (isNum(m.t0, 0, 1e12) && isNum(m.h, 0, 1e12)) onPong(m); }
     else if (m.t === 'roster') {
-      if (!validNames(m.names) || !isInt(m.idx, 0, m.names.length - 1)) return;
+      if (net.matchStarted || !validNames(m.names) || !isInt(m.idx, 0, m.names.length - 1)) return;          // mac suruyorsa oyuncu numaralari sabit: liste yok sayilir
       net.names = m.names; net.myIdx = m.idx;
       $('#g-roster').classList.remove('hidden');
       $('#g-list').innerHTML = rosterHtml(m.names, m.idx, Array.isArray(m.pings) ? m.pings.map(x => isNum(x, 0, 60000) ? x : 0) : []);
@@ -3697,7 +3704,7 @@
     }
     else if (m.t === 'd') { if (isInt(m.i, 0, 3) && m.r === net.round) { net.done[m.i] = true; paintNetBar(); } }
     else if (m.t === 'away') {
-      if (isInt(m.i, 0, 3) && typeof m.on === 'boolean') { net.away[m.i] = m.on; if (m.on) toast((net.names && net.names[m.i] || 'Oyuncu') + ' bağlantısı koptu'); paintNetBar(); }
+      if (isInt(m.i, 0, 3) && typeof m.on === 'boolean') { net.away[m.i] = m.on; if (m.on) toast((net.names && net.names[m.i] || 'Oyuncu') + (m.left === true ? ' ayrıldı' : ' bağlantısı koptu')); paintNetBar(); }
     }
     else if (m.t === 'result') {
       const P = net.names ? net.names.length : 0;
@@ -3719,6 +3726,7 @@
       setTimeout(() => { peers.forEach(p => { try { if (p.dc) p.dc.close(); if (p.pc) p.pc.close(); } catch (_) {} }); try { if (lan) lan.stop(); } catch (_) {} }, 250);
     } else {
       net.peers.forEach(p => { try { if (p.dc) p.dc.close(); if (p.pc) p.pc.close(); } catch (_) {} });
+      jsend(net.gdc, { t: 'bye' });                                                // host "baglantisi koptu, bekleniyor" demesin: bilerek cikiyoruz
       try { if (net.gdc) net.gdc.close(); if (net.gws) net.gws.close(); if (net.gpc) net.gpc.close(); } catch (_) {}
       try { if (net.lan && lanPlugin()) lanPlugin().stop(); } catch (_) {}
     }
