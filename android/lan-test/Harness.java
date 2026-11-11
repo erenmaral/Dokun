@@ -47,8 +47,27 @@ public class Harness {
     public static void main(String[] a) throws Exception {
         String only = a.length > 0 ? a[0] : "all";
         LanServerPlugin p = new TestPlugin();
+        try {
+            runAll(only, p);
+        } catch (Throwable t) {
+            fail++;
+            System.out.println("HATA senaryo coktu: " + t);
+            t.printStackTrace(System.out);
+        }
+        System.out.println("TOPLAM: " + pass + " basarili, " + fail + " hatali");
+        System.exit(fail == 0 ? 0 : 1);
+    }
+
+    static LanServerPlugin fresh(LanServerPlugin old) {
+        try { old.stop(new PluginCall()); old.callDestroy(); } catch (Throwable ignored) { }
+        try { Thread.sleep(700); } catch (InterruptedException ignored) { }
+        return new TestPlugin();                                      // onceki senaryonun olaylari / sunucusu karismasin
+    }
+
+    static void runAll(String only, LanServerPlugin p) throws Exception {
 
         if (only.equals("all") || only.contains("restart")) {
+            p = fresh(p);
             System.out.println("--- 1) durdur / yeniden baslat: ayni port ---");
             int bad = 0, n = 25; StringBuilder errs = new StringBuilder();
             for (int i = 0; i < n; i++) {
@@ -64,6 +83,7 @@ public class Harness {
         }
 
         if (only.equals("all") || only.contains("startstart")) {
+            p = fresh(p);
             System.out.println("--- 2) stop cagirmadan ust uste start (oda kur, geri, oda kur) ---");
             int bad = 0; StringBuilder errs = new StringBuilder();
             for (int i = 0; i < 15; i++) { String r = startOn(p, PORT); if (!r.contains("ip")) { bad++; if (errs.length() < 300) errs.append(r).append(" | "); } }
@@ -72,6 +92,7 @@ public class Harness {
         }
 
         if (only.equals("all") || only.contains("basic")) {
+            p = fresh(p);
             System.out.println("--- 3) temel akis: baglan, mesaj, gonder, kapat ---");
             String r = startOn(p, PORT); ok("start", r.contains("\"ip\""), r);
             Cli c1 = new Cli(PORT); ok("istemci 1 baglandi", c1.connectBlocking(3, TimeUnit.SECONDS), "");
@@ -93,6 +114,7 @@ public class Harness {
         }
 
         if (only.equals("all") || only.contains("big")) {
+            p = fresh(p);
             System.out.println("--- 4) cok buyuk mesaj ---");
             String r = startOn(p, PORT); ok("start", r.contains("\"ip\""), r);
             Cli c = new Cli(PORT); c.connectBlocking(3, TimeUnit.SECONDS); nextEvent(p, "clientOpen", 2000);
@@ -109,6 +131,7 @@ public class Harness {
         }
 
         if (only.equals("all") || only.contains("race")) {
+            p = fresh(p);
             System.out.println("--- 5) es zamanli baglantilarda kimlik benzersizligi ---");
             String r = startOn(p, PORT); ok("start", r.contains("\"ip\""), r);
             int N = 10; List<Cli> cs = new ArrayList<>(); ExecutorService ex = Executors.newFixedThreadPool(N); CountDownLatch go = new CountDownLatch(1);
@@ -125,6 +148,7 @@ public class Harness {
         }
 
         if (only.equals("all") || only.contains("many")) {
+            p = fresh(p);
             System.out.println("--- 6) cok sayida baglanti (4 kisilik oda icin sinir) ---");
             String r = startOn(p, PORT);
             List<Cli> cs = new ArrayList<>(); int accepted = 0;
@@ -137,6 +161,7 @@ public class Harness {
         }
 
         if (only.equals("all") || only.contains("throw")) {
+            p = fresh(p);
             System.out.println("--- 7) send sirasinda koparak giden baglanti: eklenti yontemi istisna firlatmamali ---");
             String r = startOn(p, PORT);
             Cli c = new Cli(PORT); c.connectBlocking(3, TimeUnit.SECONDS); String ev = nextEvent(p, "clientOpen", 2000);
@@ -164,6 +189,7 @@ public class Harness {
         }
 
         if (only.equals("all") || only.contains("badport")) {
+            p = fresh(p);
             System.out.println("--- 8) port baska surec tarafindan kullaniliyor: anlasilir (Turkce) hata ---");
             java.net.ServerSocket blocker = new java.net.ServerSocket(PORT + 1);
             long t0 = System.currentTimeMillis();
@@ -189,8 +215,6 @@ public class Harness {
             LanServerPlugin p2 = new TestPlugin(); String r2 = startOn(p2, PORT); ok("yeni eklenti ornegi ayni portu acar", r2.contains("\"ip\""), r2);
             call(p2, "stop", new PluginCall(), 3000); Thread.sleep(500);
         }
-        System.out.println("TOPLAM: " + pass + " basarili, " + fail + " hatali");
-        System.exit(fail == 0 ? 0 : 1);
     }
 
     /** IP bulma: test icin sabit */
