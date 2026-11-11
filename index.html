@@ -666,6 +666,11 @@
     <div class="setrow"><span>Ekran açık kalsın</span><button class="tog" data-k="wake"></button></div>
   </div>
   <div class="csec">
+    <div class="sh">Hakkında</div>
+    <div class="setrow"><span>Sürüm</span><b id="ver">__DOKUN_VERSION__</b></div>
+    <div class="setrow"><span>Gizlilik politikası</span><button class="sm" id="privacy-btn">Aç</button></div>
+  </div>
+  <div class="csec">
     <div class="sh">Oyuncu adları</div>
     <div id="names">
       <label class="nrow" style="--c:var(--red)"><i></i><input maxlength="10" data-i="0" placeholder="Oyuncu 1"></label>
@@ -1917,6 +1922,8 @@
     if (b.dataset.k === 'music' || b.dataset.k === 'menuMusic') { if (!prefs.music) music.stop(); else if (!playing) music.home(); }
   }));
   $('#vol-row').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; prefs.vol = +b.dataset.v; savePrefs(); paintSettings(); music.volume(); });
+  { const v = $('#ver'); if (v && /__DOKUN/.test(v.textContent)) v.textContent = 'geliştirme'; }
+  $('#privacy-btn').addEventListener('click', () => { try { window.open('https://erenmaral.github.io/Dokun/privacy.html', '_blank', 'noopener'); } catch (_) {} });
   $('#names').addEventListener('input', e => { const i = +e.target.dataset.i; prefs.names[i] = e.target.value.trim().slice(0, 10); savePrefs(); });
   $('#set-btn').addEventListener('click', () => { paintSettings(); showScreen('settings'); });
   $('#set-back').addEventListener('click', () => showScreen('home'));

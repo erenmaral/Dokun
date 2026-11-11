@@ -33,7 +33,8 @@ jobs:
       - name: Site klasorunu hazirla
         run: |
           mkdir _site
-          cp index.html privacy.html _site/
+          sed "s/__DOKUN_VERSION__/web-${{ github.run_number }}/g" index.html > _site/index.html
+          cp privacy.html _site/
 
       - uses: actions/upload-pages-artifact@v3
         with:
