@@ -2149,7 +2149,8 @@
     const T = pzTimers(), T0 = vt.now(), Q = shared(k => gen(k, k > 0 ? Q(k - 1) : null));       // k. soru: onceki soru (tekrar olmasin) + dizin sirasi
     let winner = -1;
     const draw = i => {
-      const q = Q(cnt[i]), z = zones[i], op = z.querySelector('.opts');
+      const z = zones[i], op = z && z.querySelector('.opts'); if (!op) return;                      // mac kapandiysa / alan degistiyse dokunma
+      const q = Q(cnt[i]);
       cur[i] = q.correct; nbad[i] = 0; tried[i].clear();
       z.querySelector('.q').innerHTML = q.html;
       op.innerHTML = q.options.map((o, j) => '<div class="opt' + (o.cls ? ' ' + o.cls : '') + '" data-j="' + j + '"' + (o.attr ? ' ' + o.attr : '') + (o.style ? ' style="' + o.style + '"' : '') + '>' + o.html + '</div>').join('');
@@ -2192,11 +2193,11 @@
   // ---- soru uretim yardimcilari: Math.random YALNIZ burada ve dizin sirasiyla (ag modunda her telefonda ayni) ----
   const pickIn = (a, n) => { a = a.slice(); const o = []; while (o.length < n && a.length) o.push(a.splice(Math.floor(Math.random() * a.length), 1)[0]); return o; };         // a'dan n farkli oge
   const pickExcept = (n, ...no) => { const c = []; for (let k = 0; k < n; k++) if (!no.includes(k)) c.push(k); return c[Math.floor(Math.random() * c.length)]; };   // 0..n-1 icinden 'no' disinda biri
-  // 4 sayisal secenek: dogru cevabin kucukten buyuge SIRASI (0..3) esit olasilikla secilir (cevap hep ortadaki degerlerden biri olmaz), celdiriciler adaylardan;
-  // tekrar yok, [min, max] disinda deger yok (ornegin negatif sayi)
+  // 4 sayisal secenek: dogru cevabin kucukten buyuge SIRASI (0..3) mumkun olan siralar arasinda esit olasilikla secilir (cevap hep ortadaki degerlerden biri olmaz),
+  // celdiriciler adaylardan; tekrar yok, [min, max] disinda deger yok (ornegin negatif sayi)
   const quizValues = (ans, pool, min, max = Infinity) => {
-    const lo = pool.filter(v => v < ans), hi = pool.filter(v => v > ans);
-    const r = Math.max(Math.min(Math.floor(Math.random() * 4), lo.length), 3 - hi.length);
+    const lo = pool.filter(v => v < ans), hi = pool.filter(v => v > ans), rMin = Math.max(0, 3 - hi.length), rMax = Math.min(3, lo.length);
+    const r = rMin <= rMax ? rMin + Math.floor(Math.random() * (rMax - rMin + 1)) : rMax;
     const vals = [ans, ...pickIn(lo, r), ...pickIn(hi, 3 - r)];
     for (let d = 1; vals.length < 4; d++) [ans + d, ans - d].forEach(v => { if (vals.length < 4 && v >= min && v <= max && !vals.includes(v)) vals.push(v); });
     const opts = shuffle(vals);
@@ -2226,15 +2227,15 @@
       op = st === 0 ? '+' : st === 1 ? '−' : st === 2 ? (Math.random() < 0.5 ? '+' : '−') : '×';
       if (op === '×') { x = R(3, 9); y = R(3, 9); ans = x * y; }
       else if (op === '+') { if (st === 0) { x = R(2, 9); y = R(2, Math.min(9, 12 - x)); } else { x = R(11, 39); y = R(3, 19); } ans = x + y; }
-      else { if (st === 1) { x = R(6, 15); y = R(2, Math.min(9, x - 1)); } else { x = R(21, 49); y = R(3, 19); } ans = x - y; }
+      else { if (st === 1) { x = R(7, 15); y = R(2, Math.min(9, x - 4)); } else { x = R(21, 49); y = R(3, Math.min(19, x - 6)); } ans = x - y; }
       txt = x + ' ' + op + ' ' + y;
       if (!prev || prev.key !== txt) break;
     }
-    const pool = new Set(), sane = v => v !== ans && v >= 0 && (op === '−' ? v < x : v > Math.max(x, y));         // anlamsiz secenek yok: toplam / carpim terimlerden buyuk, fark eksilenden kucuk ve negatif degil
+    const pool = new Set(), sane = v => v !== ans && v >= 1;                                                      // anlamsiz secenek yok: yalniz pozitif sayilar (cevaplar >= 4, yeterli aday var)
     [1, 2, 3, 4].forEach(d => { pool.add(ans - d); pool.add(ans + d); });
     if (op === '×') [x, y].forEach(m => { pool.add(ans - m); pool.add(ans + m); });
     else if (st === 2) { pool.add(ans - 10); pool.add(ans + 10); }                                                 // onluk hatasi yalniz iki haneli sorularda
-    const { opts, correct } = quizValues(ans, [...pool].filter(sane), op === '−' ? 0 : Math.max(x, y) + 1, op === '−' ? x - 1 : Infinity);
+    const { opts, correct } = quizValues(ans, [...pool].filter(sane), 1);
     return { key: txt, html: txt, options: opts.map(v => ({ html: v })), correct };
   };
   const math = () => quizGame(mathGen, 4, 20000, 'ma');
@@ -2629,9 +2630,9 @@
   const arrows = () => quizGame(arrowGen, 5, 20000, 'ar');
   arrows.gen = arrowGen;
 
-  // Say Bakalim: sayi dizin ile artar (3-4, 5-6, 6-8, 8-10); nesne turu ve sayi onceki sorudan farkli. Nesneler 4x3 kutudan rastgele n tanesine (kutu basina en fazla bir)
+  // Say Bakalim: sayi dizin ile artar (4-5, 5-7, 7-8, 9-10); nesne turu ve sayi onceki sorudan farkli. Nesneler 4x3 kutudan rastgele n tanesine (kutu basina en fazla bir)
   // hafif kayma + egimle yerlesir (ust uste binme yok); her nesne bir <span> (sayilacak sey), konum cihazdan bagimsiz.
-  const COUNT_OBJ = ['a-bee', 'a-apple', 'a-fish', 'i-star', 'a-balloon-s'], COUNT_RANGE = [[3, 4], [5, 6], [6, 8], [8, 10]];
+  const COUNT_OBJ = ['a-bee', 'a-apple', 'a-fish', 'i-star', 'a-balloon-s'], COUNT_RANGE = [[4, 5], [5, 7], [7, 8], [9, 10]];
   const countGen = (k, prev) => {
     const [lo, hi] = COUNT_RANGE[Math.min(k, 3)], cand = [];
     for (let v = lo; v <= hi; v++) if (!prev || v !== prev.n) cand.push(v);
