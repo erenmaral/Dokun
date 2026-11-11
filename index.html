@@ -176,6 +176,8 @@
   @keyframes lpop { from { transform:scale(.72); } 55% { transform:scale(1.1); } to { transform:none; } }
   @keyframes lwob { 0% { transform:scale(.8); } 30% { transform:scale(1.06) rotate(-6deg); } 55% { transform:rotate(5deg); } 80% { transform:rotate(-2deg); } 100% { transform:none; } }
   @keyframes ltfx { 0% { transform:translateY(0) scale(.4) rotate(-14deg); opacity:0; } 18% { transform:translateY(-8px) scale(1.15) rotate(4deg); opacity:1; } 38% { transform:translateY(-12px) scale(1) rotate(0); opacity:1; } 100% { transform:translateY(-52px); opacity:0; } }
+  #board.p3 .zone:nth-child(3) .lt { --hp:200px; }
+  #board.p3 .zone:nth-child(3) .lamp { --lp:clamp(66px, calc(50dvh - var(--hp)), calc(.84 * ((100vw - 16px) / 2 - 32px))); }                /* 3 oyuncu: alttaki bolgenin lambasi ustlerle ayni boyda */
   body.cb { --lt-cb:1; }                                                       /* renk koru modu: lamba desenleri (nokta / cizgi) gorunur */
 
   /* ---------- Renk Dizisi: 4 ped (renk + sekil + ses), adim seridi, tekrar kilidi, kalan sure cubugu ---------- */
@@ -184,7 +186,9 @@
   .sgrid { display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); grid-template-rows:repeat(2, minmax(0,1fr)); gap:8px; width:100%; aspect-ratio:1; margin:0 auto;
     max-width:min(100%, calc(50dvh - var(--hp))); }
   .zone.narrow .sgrid { gap:5px; }
-  body.net .sgrid { max-width:min(100%, 440px, calc(100dvh - var(--hp) - 48px)); }
+  #board.p3 .zone:nth-child(3) .sm { --hp:146px; }
+  #board.p3 .zone:nth-child(3) .sgrid { gap:5px; max-width:min(100%, calc(50dvh - var(--hp)), calc((100vw - 16px) / 2 - 32px)); }        /* 3 oyuncu: alttaki bolgenin pedleri ustlerle ayni boyda */
+  body.net .sgrid { max-width:min(100%, 360px, calc(100dvh - var(--hp) - 48px), calc(100vw - 72px)); }       /* duraklat sekmelerinin altina girmesin */
   .pad { --pd:var(--red-d); position:relative; display:flex; align-items:center; justify-content:center; min-width:0; min-height:0;
     background:radial-gradient(ellipse 14% 9% at 24% 20%, rgba(255,244,220,.7) 0 97%, transparent 100%), var(--pc);
     border:var(--ln) solid var(--ink); border-radius:var(--r-m); box-shadow:var(--sh-m), inset 0 -10px 0 var(--pd); transition:transform .12s var(--pop), opacity .15s; }
@@ -1537,7 +1541,7 @@
   // Renk Dizisi. 4 ped renk + sekil + notayla ayrilir (renk korleri icin). Dizi tum bolgelerde ayni; yanlis basan kendi pedlerinde dizinin
   // yeniden gosterilmesini bekler (kilit). Kimse bitirmezse 20 sn sonra turun en iyi ilerlemesi (yanlis basista sifirlanmaz) sayilir.
   async function simon() {
-    const LEN = 5, FLASH = 520, GAP = 230, RFLASH = 440, RGAP = 190, TIN = 20000, TBAR = 8000;
+    const LEN = 5, FLASH = 520, GAP = 230, TIN = 20000, TBAR = 8000;
     const SHAPE = ['p-tri', 'p-circ', 'p-sq', 'p-dia'], NOTE = [523.25, 659.25, 783.99, 1046.5], CV = ['var(--red)', 'var(--green)', 'var(--blue)', 'var(--yellow)'];
     const zs = zones;
     // Dizi tek yerde ve giristen bagimsiz uretilir (Math.random yalniz burada): tum bolgeler ve (ag modunda) tum telefonlar AYNI diziyi gorur.
@@ -1572,12 +1576,12 @@
       zs.forEach((z, i) => { setS(i, 'go'); sm(i).classList.remove('lk', 'watch'); z.querySelector('.sm-bar').classList.remove('on'); });
       resolve();
     };
-    // Yanlis basan oyuncuya dizi, yalnizca kendi pedlerinde yeniden gosterilir (unutan takilip kalmaz); bu surede dokunamaz.
+    // Yanlis basan oyuncuya dizi, ilk gosterimle AYNI tempoda ve yalnizca kendi pedlerinde yeniden gosterilir (unutan takilip kalmaz); bu surede dokunamaz.
     const replay = async i => {
       lock[i] = true; setLk(i, true); await sleep(500);
       for (const k of seq) {
         if (over) return;
-        pads[i][k].classList.add('lit'); noteSnd(k); await sleep(RFLASH); pads[i][k].classList.remove('lit'); await sleep(RGAP);
+        pads[i][k].classList.add('lit'); noteSnd(k); await sleep(FLASH); pads[i][k].classList.remove('lit'); await sleep(GAP);
       }
       if (over) return;
       lock[i] = false; setLk(i, false);
@@ -1591,7 +1595,7 @@
         tapFx(pd, false); noteSnd(k); fill(i, prog[i], k);
         prog[i]++; if (prog[i] > best[i]) best[i] = prog[i];
         report(i, prog[i], LEN);
-        if (prog[i] >= LEN) { fin[i] = vt.now() - T0; winner = i; right(i); finish(); }
+        if (prog[i] >= LEN) { fin[i] = vt.now() - T0; winner = i; right(i); if (net.on) say('Bitirdin!', 'Rakipler bekleniyor…'); finish(); }
       } else {
         prog[i] = 0; report(i, 0, LEN); tapFx(pd, true); wrong(i); clear(i); replay(i);
       }
