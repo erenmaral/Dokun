@@ -2088,7 +2088,7 @@
     let go = false, goAt = 0, fake = false, fakeEnd = -1, done = false, decided = false, settled = false, winners = [], best = 0;
     const prevRec = rtRecord;
     const live = () => zones.filter((_, i) => aliveZ(i)).length;
-    zones.forEach((_, i) => body(i, rtBox('wait', 'Hazır…')));
+    zones.forEach((_, i) => body(i, aliveZ(i) ? rtBox('wait', 'Hazır…') : ''));          // elenmis (maskeli) bolgede kutu cizilmez
     // rastgele degerler hep ayni sirada ve basta cekilir (ag modunda tohumlu: telefonlar arasi ayni kalir)
     const decoy = Math.random() < 0.4, wait1 = 1500 + Math.random() * 2500, fakeLen = 550 + Math.random() * 450, wait2 = 700 + Math.random() * 1300;
     const msBox = v => '<div class="rt-ms"><b>' + Math.round(v) + '</b> ms</div>';
@@ -3268,6 +3268,7 @@
       msg = wt.length ? wt.map(t => 'Takım ' + 'AB'[t]).join(' & ') + ' +1' : 'Kimse puan alamadı';
     } else {
       winners.forEach(i => { scores[i]++; });
+      if (modeKey === 'yaris') noWin = winners.length ? 0 : noWin + 1;          // yaris: ust uste 6 kazanansiz tur (terk edilmis telefon): mac sonsuza uzamasin
       msg = winners.length ? winners.map(i => esc(pname(i))).join(' & ') + ' +1' : 'Kimse puan alamadı';
     }
     return msg;
@@ -3297,7 +3298,7 @@
     const mix = pool === GAMES || pool.mix === true;                       // "Karisik Mac": tum oyunlardan rastgele, tur sayisi ayardaki kadar; secilen oyunlar en az bir kez oynanir
     return { open, total: open ? 60 : (mix ? val : Math.max(val, pool.length)), single: pool.length === 1, val };
   };
-  const matchOver = val => (modeKey === 'yaris' && scores.some(x => x >= val)) || (modeKey === 'can' && dead.filter(d => !d).length <= 1);
+  const matchOver = val => (modeKey === 'yaris' && (scores.some(x => x >= val) || noWin >= 6)) || (modeKey === 'can' && dead.filter(d => !d).length <= 1);
   // Oyundan donen kazananlar: yalniz gecerli oyuncu indeksleri, tekrarsiz ve izin verilenler (bozuk bir sonuc puani / mesaji / bitis ekranini bozmasin)
   const cleanWinners = (v, ok) => [...new Set(Array.isArray(v) ? v : [])].filter(i => Number.isInteger(i) && i >= 0 && i < scores.length && ok(i));
 
