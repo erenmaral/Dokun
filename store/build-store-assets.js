@@ -84,8 +84,17 @@ async function phoneShots(b, tag, vw, vh, dsf, list) {
     },
     '04-hafiza-4': async () => {
       await startGame(p, 'Hafıza Eşleştir', 4); await p.waitForTimeout(900);
-      for (let z = 0; z < 4; z++) await tapEls(p, '.zone:nth-child(' + (z + 1) + ') .card', 2);
-      await p.waitForTimeout(200); await p.screenshot({ path: out('04-hafiza-4') });
+      // her bolgede AYNI yuzlu kartlari (data-e) bul ve dokun: eslesen cift yesil + tik rozeti gosterir (rastgele iki kart yanlis cift = pembe olabiliyordu)
+      for (let z = 0; z < 4; z++) {
+        const pairs = await p.evaluate(([zi, want]) => {
+          const cs = [...document.querySelectorAll('.zone')[zi].querySelectorAll('.card')], by = {}, out = [];
+          cs.forEach(c => { (by[c.dataset.e] = by[c.dataset.e] || []).push(c); });
+          Object.values(by).slice(0, want).forEach(g => out.push(g.slice(0, 2).map(c => { const r = c.getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height / 2]; })));
+          return out;
+        }, [z, z < 2 ? 2 : 1]);
+        for (const pr of pairs) for (const [x, y] of pr) { await p.touchscreen.tap(x, y); await sleep(90); }
+      }
+      await p.waitForTimeout(450); await p.screenshot({ path: out('04-hafiza-4') });
     },
     '05-tepki': async () => {
       await startGame(p, 'Tepki', 2);
