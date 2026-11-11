@@ -101,24 +101,24 @@
     background:var(--paper); color:var(--ink); border:var(--ln-s) solid var(--ink); box-shadow:var(--sh-xs); white-space:nowrap; pointer-events:none; text-shadow:none; }
 
   /* ---------- Oyun ogeleri ---------- */
-  .track { position:relative; width:86%; height:46px; margin:0 auto; background:var(--paper); border:var(--ln-b) solid var(--ink); border-radius:23px; box-shadow:var(--sh-m); text-shadow:none; }
+  .track { position:relative; width:86%; margin:0 auto; background:var(--paper); border:var(--ln-b) solid var(--ink); border-radius:var(--r-pill); box-shadow:var(--sh-m); text-shadow:none; }
   .track::before { content:''; position:absolute; left:43%; width:14%; top:0; bottom:0; background:var(--green); border:3px solid var(--ink); border-top:0; border-bottom:0; }
   .track .mid { position:absolute; left:50%; top:-8px; bottom:-8px; width:6px; margin-left:-3px; background:var(--ink); border-radius:3px; }
-  .track .mk { position:absolute; width:32px; height:32px; margin-left:-16px; left:18px; border-radius:50%;
+  .track .mk { position:absolute; border-radius:50%;
     background:var(--c); border:var(--ln) solid var(--ink); box-shadow:inset -5px -5px 0 var(--cd, rgba(0,0,0,.25)); }
-  .track .mk::after { content:''; position:absolute; left:5px; top:4px; width:9px; height:6px; border-radius:50%; background:var(--paper); transform:rotate(-30deg); }
+  .track .mk::after { content:''; position:absolute; left:15%; top:12%; width:28%; height:19%; border-radius:50%; background:var(--paper); transform:rotate(-30deg); }
   /* ================= Refleks oyunlari (Tepki / Seri Dokun / Tam Ortada / Tut ve Birak) ================= */
   /* --- ortak: simge + yazi yigini --- */
   .rt, .hd, .sp { display:flex; flex-direction:column; align-items:center; line-height:1.05; }
   .rt { gap:clamp(3px, 1.1vmin, 8px); }
-  .rt-ic { position:relative; width:clamp(54px, 21vmin, 118px); height:clamp(54px, 21vmin, 118px); flex:none; animation:rtpop .3s var(--pop); }
+  .rt-ic { position:relative; width:clamp(60px, 27vmin, 150px); height:clamp(60px, 27vmin, 150px); flex:none; animation:rtpop .3s var(--pop); }
   .rt-ic svg { position:absolute; inset:0; width:100%; height:100%; display:block; overflow:visible; }
   .rt-ic svg.bo { inset:19%; width:62%; height:62%; }
-  .rt-tx { font-size:clamp(24px, 8.4vmin, 56px); font-weight:700; line-height:1.05; text-wrap:balance; }
-  .rt-sub { font-family:var(--f-body); font-size:clamp(14px, 3.8vmin, 22px); font-weight:600; line-height:1.1; text-shadow:var(--ol2); }
-  .rt-tag { font-family:var(--f-display); font-size:clamp(15px, 4.2vmin, 24px); font-weight:700; background:var(--paper); color:var(--ink); text-shadow:none;
+  .rt-tx { font-size:clamp(24px, 9vmin, 60px); font-weight:700; line-height:1.05; text-wrap:balance; }
+  .rt-sub { font-family:var(--f-body); font-size:clamp(15px, 4.4vmin, 26px); font-weight:600; line-height:1.1; text-shadow:var(--ol2); }
+  .rt-tag { font-family:var(--f-display); font-size:clamp(16px, 4.8vmin, 28px); font-weight:700; background:var(--paper); color:var(--ink); text-shadow:none;
     border:var(--ln-s) solid var(--ink); border-radius:var(--r-pill); padding:1px 12px 2px; box-shadow:var(--sh-xs); }
-  .rt-ms, .hd-big { display:flex; align-items:baseline; justify-content:center; gap:.2em; font-size:clamp(20px, 6.6vmin, 38px); font-weight:700; line-height:1; text-shadow:var(--ol3); animation:rtpop .3s var(--pop); }
+  .rt-ms, .hd-big { display:flex; align-items:baseline; justify-content:center; gap:.2em; font-size:clamp(22px, 8vmin, 48px); font-weight:700; line-height:1; text-shadow:var(--ol3); animation:rtpop .3s var(--pop); }
   .rt-ms b, .hd-big b { font-size:1.75em; font-weight:700; }
   @keyframes rtpop { from { transform:scale(.45) rotate(-10deg); opacity:0; } to { transform:none; opacity:1; } }
   @keyframes rtwob { from { transform:rotate(-8deg); } to { transform:rotate(8deg); } }
@@ -130,12 +130,12 @@
   .rt-go .rt-ic svg.bo { animation:rtthrob .32s ease-in-out infinite alternate; }
   .rt-out .rt-ic { border-radius:50%; background:var(--red); border:var(--ln-b) solid var(--ink); box-shadow:var(--sh-m); color:var(--paper); }
   .rt-out .rt-ic svg { inset:19%; width:62%; height:62%; }
-  .rt-res .rt-ic { width:clamp(46px, 16vmin, 92px); height:clamp(46px, 16vmin, 92px); }
+  .rt-res .rt-ic { width:clamp(50px, 20vmin, 110px); height:clamp(50px, 20vmin, 110px); }
   .rt-lose { gap:clamp(4px, 1.4vmin, 9px); }
   .zone.narrow .rt-tx { font-size:clamp(20px, 6.8vmin, 30px); }
-  .zone.narrow .rt-ic { width:clamp(46px, 17vmin, 70px); height:clamp(46px, 17vmin, 70px); }
-  .zone.narrow .rt-res .rt-ic { width:clamp(38px, 13vmin, 56px); height:clamp(38px, 13vmin, 56px); }
-  .zone.narrow .rt-ms, .zone.narrow .hd-big { font-size:clamp(16px, 5.4vmin, 24px); }
+  .zone.narrow .rt-ic { width:clamp(50px, 22vmin, 96px); height:clamp(50px, 22vmin, 96px); }
+  .zone.narrow .rt-res .rt-ic { width:clamp(40px, 16vmin, 64px); height:clamp(40px, 16vmin, 64px); }
+  .zone.narrow .rt-ms, .zone.narrow .hd-big { font-size:clamp(17px, 5.6vmin, 28px); }
   .zone.narrow .rt-sub { font-size:clamp(12px, 3.6vmin, 15px); }
   .zone.narrow .rt-tag { font-size:clamp(13px, 3.9vmin, 17px); }
   /* renk koru: yazi her zaman kagit plakada, sahte isaret taramali */
@@ -151,9 +151,9 @@
   .sp-time.low { animation:spshake .34s linear infinite; }
   @keyframes spshake { 25% { transform:translateX(-2px); } 75% { transform:translateX(2px); } }
   body.cb .sp-time.low i { background:repeating-linear-gradient(135deg, var(--red) 0 7px, var(--paper) 7px 14px); }
-  .spw { position:relative; flex:none; transition:transform .18s var(--pop); }
+  .spw { position:relative; flex:none; margin-top:6px; transition:transform .18s var(--pop); }
   .spw.fin { transform:scale(1.1); }
-  .sp-crown { position:absolute; right:-10%; top:-24%; width:46%; height:46%; transform:rotate(16deg) scale(0); transition:transform .2s var(--pop); pointer-events:none; }
+  .sp-crown { position:absolute; right:-8%; top:-21%; width:44%; height:44%; transform:rotate(16deg) scale(0); transition:transform .2s var(--pop); pointer-events:none; }
   .spw.lead .sp-crown { transform:rotate(16deg) scale(1); }
   .sp-rate { font-family:var(--f-display); font-size:clamp(13px, 3.8vmin, 20px); font-weight:700; background:var(--paper); color:var(--ink); text-shadow:none;
     border:var(--ln-s) solid var(--ink); border-radius:var(--r-pill); padding:1px 12px 2px; box-shadow:var(--sh-xs); white-space:nowrap; animation:rtpop .3s var(--pop); }
@@ -163,9 +163,12 @@
   /* --- Tam Ortada --- */
   .tr-cap { font-size:clamp(17px, 4.8vmin, 28px); font-weight:700; line-height:1.1; margin-bottom:clamp(12px, 3.4vmin, 22px); }
   .zone.narrow .tr-cap { font-size:clamp(13px, 4vmin, 18px); margin-bottom:12px; }
-  .track::after { content:''; position:absolute; left:48%; width:4%; top:0; bottom:0; background:var(--yellow); border:2px solid var(--ink); border-top:0; border-bottom:0; }
+  .track { --bd:32px; --mr:19px; height:46px; }
+  .zone:not(.narrow) .track { --bd:clamp(32px, 8.6vmin, 46px); --mr:calc(var(--bd) / 2 + 3px); height:clamp(46px, 11vmin, 64px); }
+  .track::before { left:calc(50% - (100% - 2 * var(--mr)) * .07); width:calc((100% - 2 * var(--mr)) * .14); }       /* yesil bant: >= %86 (tam ortadan +-%7 yolculuk) */
+  .track::after { content:''; position:absolute; left:calc(50% - (100% - 2 * var(--mr)) * .02); width:calc((100% - 2 * var(--mr)) * .04); top:0; bottom:0; background:var(--yellow); border:2px solid var(--ink); border-top:0; border-bottom:0; }   /* altin bant: >= %96 */
   .track .tstar { position:absolute; left:50%; top:-25px; width:26px; height:26px; margin-left:-13px; z-index:2; overflow:visible; }
-  .track .mk { top:50%; margin-top:-17px; z-index:3; }
+  .track .mk { top:50%; width:var(--bd); height:var(--bd); margin:calc(var(--bd) / -2) 0 0 calc(var(--bd) / -2); z-index:3; }
   .track .mk.stop { animation:trstop .34s var(--pop); }
   @keyframes trstop { 0% { transform:scale(1.5,.7); } 55% { transform:scale(.85,1.2); } 100% { transform:none; } }
   .pct { min-height:clamp(52px, 11vmin, 70px); display:flex; flex-direction:column; align-items:center; gap:2px; line-height:1.05; }
@@ -179,7 +182,7 @@
 
   /* --- Tut ve Birak --- */
   .hd { gap:clamp(6px, 1.8vmin, 14px); }
-  .hd-btn { position:relative; width:clamp(78px, 25vmin, 140px); height:clamp(78px, 25vmin, 140px); border-radius:50%; background:var(--c); border:var(--ln-b) solid var(--ink); box-shadow:var(--sh-l);
+  .hd-btn { position:relative; width:clamp(84px, 30vmin, 160px); height:clamp(84px, 30vmin, 160px); margin-bottom:clamp(8px, 2.4vmin, 16px); border-radius:50%; background:var(--c); border:var(--ln-b) solid var(--ink); box-shadow:var(--sh-l);
     display:flex; align-items:center; justify-content:center; color:var(--ink); text-shadow:none; transition:transform .12s var(--out), box-shadow .12s var(--out); }
   .hd-btn::before { content:''; position:absolute; inset:-12px; border-radius:50%; border:3px dashed var(--paper); opacity:.5; }
   .hd-btn::after { content:''; position:absolute; left:14%; top:12%; width:30%; height:18%; border-radius:50%; background:var(--paper); opacity:.85; transform:rotate(-32deg); }
@@ -202,7 +205,7 @@
   .hd-rule i { position:absolute; top:50%; }
   .hd-rule .tg { width:4px; height:22px; margin:-11px 0 0 -2px; background:var(--ink); border-radius:2px; }
   .hd-rule .mk { width:16px; height:16px; margin:-8px 0 0 -8px; border-radius:50%; background:var(--c); border:var(--ln-s) solid var(--ink); }
-  .zone.narrow .hd-btn { width:clamp(70px, 24vmin, 96px); height:clamp(70px, 24vmin, 96px); }
+  .zone.narrow .hd-btn { width:clamp(70px, 26vmin, 104px); height:clamp(70px, 26vmin, 104px); margin-bottom:12px; }
   .zone.narrow .hd-tx { font-size:clamp(17px, 5.6vmin, 24px); }
   .zone.narrow .hd-sub { font-size:clamp(11px, 3.4vmin, 14px); }
   .zone.narrow .hd-diff { font-size:clamp(12px, 3.6vmin, 15px); padding:1px 8px 2px; }
@@ -558,8 +561,9 @@
   .body.shake { animation:shake .3s var(--out); }
   @keyframes shake { 20% { transform:translateX(-7px); } 45% { transform:translateX(7px); } 70% { transform:translateX(-4px); } }
   .cell.badc { background:#ffb3b6; }
-  .spc { display:flex; align-items:center; justify-content:center; width:clamp(72px, 22vmin, 118px); height:clamp(72px, 22vmin, 118px); margin:0 auto; border-radius:50%;
-    background:var(--c); border:var(--ln-b) solid var(--ink); box-shadow:var(--sh-m); font-size:clamp(34px, 11vmin, 62px); font-weight:700; line-height:1; text-shadow:var(--ol3); }
+  .spc { display:flex; align-items:center; justify-content:center; width:clamp(72px, 26vmin, 150px); height:clamp(72px, 26vmin, 150px); margin:0 auto; border-radius:50%;
+    background:var(--c); border:var(--ln-b) solid var(--ink); box-shadow:var(--sh-m); font-size:clamp(34px, 12vmin, 72px); font-weight:700; line-height:1; text-shadow:var(--ol3); }
+  .zone.narrow .spc { width:clamp(64px, 24vmin, 96px); height:clamp(64px, 24vmin, 96px); font-size:clamp(30px, 10vmin, 44px); }
   .spc.tap { animation:tapb .2s var(--pop); }
   @keyframes tapb { 0% { transform:scale(1.22,.86); } 60% { transform:scale(.94,1.08); } 100% { transform:none; } }
   .spbar { width:72%; height:16px; flex:none; border-radius:var(--r-pill); background:var(--ink); border:3px solid var(--ink); margin:0; overflow:hidden; box-shadow:0 0 0 2px rgba(255,244,220,.35); }
@@ -1330,7 +1334,7 @@
     const t0 = vt.now();
     let drawn = 0;                                                            // son cizilen karenin zamani
     const mk = i => zs[i].querySelector('.mk');
-    const mkLeft = p => 'calc(18px + (100% - 36px) * ' + p + ')';
+    const mkLeft = p => 'calc(var(--mr) + (100% - 2 * var(--mr)) * ' + p + ')';
     await new Promise(res => {
       let raf;
       const finish = () => { cancelAnimationFrame(raf); res(); };
