@@ -551,6 +551,9 @@
   /* tek bolge tum ekrani kapladigi icin bilgi kutusu ve bitis dugmeleri icerigin ustune binmesin */
   body.net #hud { top:13%; }
   body.net #hud.rcard { top:42%; }               /* buyuk tur karti: rakip seridinin ve ekran ustunun altinda, ortada */
+  /* "Bitirdin" kutusu: rakip seridinin (3 rakipte en uzun) ve centik / durum cubugu boslugunun hemen altinda, tek satirda okunur */
+  body.net #hud.wait { top:calc(max(10px, env(safe-area-inset-top) + 5px) + 96px); }
+  #hud.wait .hline { min-width:min(74vw, 250px); }
   body.net #endbar { top:auto; bottom:calc(64px + env(safe-area-inset-bottom)); transform:translateX(-50%); animation-name:hinn; }
 
   /* ============ MENU ============ */
@@ -1472,6 +1475,7 @@
     hud.dataset.h = h;
     hud.classList.toggle('mini', !big);
     hud.classList.toggle('rcard', kind === 'round');
+    hud.classList.toggle('wait', kind === 'wait');
     hud.classList.remove('hidden');
   }
 
@@ -3493,7 +3497,7 @@
     if (!net.waiting || !net.on || !playing || !net.names) return;
     const left = net.names.filter((n, i) => i !== net.myIdx && !net.done[i] && !net.away[i]).length;
     const sec = net.waitSec != null ? net.waitSec.toFixed(1).replace('.', ',') + ' sn · ' : '';
-    say('BİTİRDİN!', sec + (left ? left + ' rakip bekleniyor' : 'sonuç hesaplanıyor'), true);
+    say('BİTİRDİN!', sec + (left ? left + ' rakip bekleniyor' : 'sonuç hesaplanıyor'), true, 'wait');
   }
   // Canli ilerleme: en fazla her 120 ms'de bir rakiplere gonderilir
   let progT = null, progLast = null;
