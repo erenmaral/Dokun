@@ -1253,11 +1253,14 @@
 
   // ---------- Ayarlar ----------
   const prefs = { sfx: true, vib: true, music: true, menuMusic: true, vol: 2, wake: true, cb: false, names: ['', '', '', ''] };
-  try { Object.assign(prefs, JSON.parse(localStorage.getItem('dokun-ayar') || '{}')); } catch (_) {}
+  try {                                             // yalniz bilinen anahtarlar okunur (bozuk / dusmanca kayit prototipi ya da ayarlari bozmasin)
+    const sv = JSON.parse(localStorage.getItem('dokun-ayar') || 'null');
+    if (sv && typeof sv === 'object') Object.keys(prefs).forEach(k => { if (Object.prototype.hasOwnProperty.call(sv, k)) prefs[k] = sv[k]; });
+  } catch (_) {}
   // kayitli ayarlar dogrulanir (bozuk / eski surumden kalan degerler sesi ya da ayar ekranini bozmasin)
   ['sfx', 'vib', 'music', 'menuMusic', 'wake', 'cb'].forEach(k => { prefs[k] = !!prefs[k]; });
   prefs.vol = [1, 2, 3].includes(+prefs.vol) ? +prefs.vol : 2;
-  prefs.names = [0, 1, 2, 3].map(i => String((Array.isArray(prefs.names) ? prefs.names : [])[i] || '').slice(0, 10));
+  prefs.names = [0, 1, 2, 3].map(i => { const n = Array.isArray(prefs.names) ? prefs.names[i] : ''; return typeof n === 'string' ? n.slice(0, 10) : ''; });       // yalniz metin adlar (nesne "[object Object]" olarak gorunmesin)
   const applyCb = () => document.body.classList.toggle('cb', !!prefs.cb);       // renk koru modu: renkle ayrilan ogelere sekil/simge/desen eklenir (CSS: body.cb ...)
   applyCb();
   const savePrefs = () => { try { localStorage.setItem('dokun-ayar', JSON.stringify(prefs)); } catch (_) {} };
@@ -3197,6 +3200,8 @@
     return { open, total: open ? 60 : (mix ? val : Math.max(val, pool.length)), single: pool.length === 1, val };
   };
   const matchOver = val => (modeKey === 'yaris' && scores.some(x => x >= val)) || (modeKey === 'can' && dead.filter(d => !d).length <= 1);
+  // Oyundan donen kazananlar: yalniz gecerli oyuncu indeksleri, tekrarsiz ve izin verilenler (bozuk bir sonuc puani / mesaji / bitis ekranini bozmasin)
+  const cleanWinners = (v, ok) => [...new Set(Array.isArray(v) ? v : [])].filter(i => Number.isInteger(i) && i >= 0 && i < scores.length && ok(i));
 
   // ---------- Hata yalitma: bir oyun hata verirse ya da takilirsa mac donmaz, o tur atlanir ----------
   let liveRun = null, runMark = 0;
@@ -3256,7 +3261,7 @@
       sLock = true;                                                           // artik oyun kodu bolge durumunu degistiremez
       const skipped = !!res.err;
       if (skipped) skipRound(res.err);
-      const winners = skipped ? [] : (Array.isArray(res.v) ? res.v : []).filter(i => !dead[i]);
+      const winners = skipped ? [] : cleanWinners(res.v, i => !dead[i]);
       roundVisual(winners, skipped ? 'Bu tur atlandı' : applyRound(winners, r));
       await sleep(1800);
       if (my !== matchId) return;
@@ -3288,7 +3293,7 @@
       sLock = true;
       const skipped = !!res.err;
       if (skipped) skipRound(res.err);
-      const winners = skipped ? [] : (Array.isArray(res.v) ? res.v : []).filter(i => set.includes(i));
+      const winners = skipped ? [] : cleanWinners(res.v, i => set.includes(i));
       roundVisual(winners, skipped ? 'Bu tur atlandı' : (winners.length ? 'Altın Tur: ' : '') + applyRound(winners, 0));
       await sleep(1800);
       if (my !== matchId) return;
@@ -3427,7 +3432,7 @@
       if (!active) return;
       if (!pauseEl.classList.contains('hidden')) { resumeGame(); return; }                    // duraklatma katmani aciksa geri tusu once onu kapatir
       if (!playing && !endbar.classList.contains('hidden')) { endMenu(); return; }            // bitis ekraninda tek geri = menu
-      if (Date.now() < armedUntil) { armedUntil = 0; if (net.on) leaveNet(); else quitMatch(); return; }
+      if (Date.now() < armedUntil) { armedUntil = 0; toast.hide(); if (net.on) leaveNet(); else quitMatch(); return; }       // "bir kez daha bas" uyarisi menude kalmaz
       armedUntil = Date.now() + 2500;
       toast('Oyundan çıkmak için geri tuşuna bir kez daha bas', 2500, true);
     };
@@ -3435,6 +3440,7 @@
       if (hg.ignore > 0) { hg.ignore--; if (hg.ignore === 0 && hg.pushLater) { hg.pushLater = false; if (hg.extra) hgPush(); } return; }
       if (!hg.extra) return;                              // taban giris: tarayici / uygulama kendi varsayilanini yapar
       hg.extra = false;                                   // geri tusu ek girisi tuketti
+      if (!guide.classList.contains('hidden')) { closeGuide(); hgEnsure(); return; }       // rehber acikken geri: once rehber kapanir, ekran ayni kalir
       if (active) { hgEnsure(); confirmBack(); return; }  // macta: korumayi yeniden kur, ikinci basista cik
       if (upOne() === 'stay') hgEnsure();                 // alt ekranlarda: bir ust seviyeye (cevrimici panelinden secime, aksi halde ana menuye)
     });
@@ -3612,6 +3618,7 @@
     t2.textContent = dual ? msg : ''; t2.classList.toggle('hidden', !dual);
     clearTimeout(toast.h); toast.h = setTimeout(() => { t.classList.add('hidden'); t2.classList.add('hidden'); }, ms);
   };
+  toast.hide = () => { clearTimeout(toast.h); $('#toast').classList.add('hidden'); $('#toast2').classList.add('hidden'); };
   const mulberry = a => () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
   // Tur ortasinda cikilirsa fn hic bitmez; bu yuzden geri alma islemi disaridan da (quitMatch / leaveNet) tetiklenebilir. Yalnizca kendi atadigimiz uretecte geri alinir.
   let seedUndo = null;
@@ -3926,6 +3933,7 @@
     if (net.role !== 'host' || !net.on || playing) return;                           // cift dokunus ya da misafirden gelen cagri ikinci bir mac baslatamaz
     const peers = livePeers();
     if (!peers.length) return toast('Önce bir arkadaşını bağla');
+    if (!net.prev) net.prev = { N, modeKey, modeVal: Object.assign({}, modeVal) };       // cikista kendi yerel ayarlarimiz (Takim secimi dahil) geri yuklenir
     if (modeKey === 'takim') modeKey = 'klasik';
     stopFinaleFx();
     net.matchStarted = true; net.round = 0;
@@ -4288,7 +4296,7 @@
     const sv = JSON.parse(localStorage.getItem(LAST_KEY) || 'null');
     if (sv && typeof sv === 'object') {
       if ([2, 3, 4].includes(+sv.n)) N = +sv.n;
-      if (sv.m && MODES[sv.m]) modeKey = sv.m;
+      if (typeof sv.m === 'string' && Object.prototype.hasOwnProperty.call(MODES, sv.m)) modeKey = sv.m;       // "constructor" gibi miras anahtarlar mod sayilmaz
       Object.keys(MODES).forEach(k => { const v = sv.v && +sv.v[k]; if (MODES[k].opts.includes(v)) modeVal[k] = v; });
       if (Array.isArray(sv.sel)) sv.sel.forEach(k => { if (Number.isInteger(k) && k >= 0 && k < GAMES.length) sel.add(k); });
       if (['all', 'refleks', 'hiz', 'zeka', 'hafiza'].includes(sv.tag)) tagFilter = sv.tag;
