@@ -282,7 +282,7 @@
      kullanilir), ortada soru alani (kalan yeri doldurur), altta SABIT yukseklikli 2x2 secenek: sorular arasinda secenekler kaymaz, yukseklik >= 34 px.
      Yalniz transform / opacity animasyonu. */
   .quiz { --oh:clamp(34px, 5.8dvh, 62px); --og:clamp(6px, 1.2dvh, 10px); --qg:clamp(5px, 1.2dvh, 12px); --ow:min(100%, 230px);
-    container-type:size; position:relative; width:100%; height:100%; }
+    container-type:size; position:absolute; left:0; right:0; top:0; height:100%; }                  /* konum / yukseklik qzFit ile (bolgenin bos alani), yedek: govdenin tamami */
   @supports (height:1cqh) { .quiz { --oh:clamp(34px, 15cqh, 96px); --og:clamp(6px, 2.6cqmin, 12px); --qg:clamp(5px, 2.4cqmin, 14px); --ow:min(100%, 520px); } }
   .qz { width:100%; height:100%; display:flex; flex-direction:column; align-items:center; gap:var(--qg); }
   .qz-hd { display:flex; align-items:center; gap:6px; width:100%; flex:none; padding:0 10px; }                  /* kenar duraklat sekmelerinin altinda kalmasin */
@@ -316,6 +316,7 @@
      kelime kutusunun kosesinde murekkep renginin simgesi (renk koru modunda renkli ve desenli cip) durur. Renk Dizisi ile ayni sekil / desen eslemesi. */
   .quiz[data-g="st"] .q { font-size:clamp(18px, 3.6dvh, 34px); }
   .quiz[data-g="st"] .q { font-size:clamp(18px, min(13cqw, 36cqh), 56px); }
+  .quiz[data-g="st"] .stw { font-size:clamp(18px, min(calc((98cqw - 6px) / var(--wk, 6)), 30cqh), 96px); }
   .quiz .stw { position:relative; display:inline-block; max-width:100%; }
   .quiz .word { display:inline-block; max-width:100%; background:var(--ink); padding:.1em .42em .14em; border-radius:var(--r-s); border:var(--ln) solid var(--paper); text-shadow:none; }
   .oc[data-c="r"] { --pat:repeating-linear-gradient(45deg, rgba(29,24,56,.26) 0 5px, transparent 5px 12px); }
@@ -327,7 +328,7 @@
   .qz-ink svg { position:relative; width:100%; height:100%; display:block; }
   body.cb .oc::before { content:''; position:absolute; inset:0; border-radius:inherit; background:var(--pat); pointer-events:none; }
   body.cb .quiz .opt.oc svg.qz-sh { width:calc(var(--oh) * .62); height:calc(var(--oh) * .62); }
-  body.cb .qz-ink { --cs:max(28px, 1.05em); background-color:var(--ic); border:var(--ln) solid var(--ink); box-shadow:var(--sh-xs); }
+  body.cb .qz-ink { --cs:max(24px, 1.05em); background-color:var(--ic); border:var(--ln) solid var(--ink); box-shadow:var(--sh-xs); }
   body.cb .qz-ink svg { width:72%; height:72%; }
   /* Hizli Matematik */
   .quiz[data-g="ma"] .q { font-size:clamp(22px, 5.4dvh, 46px); }
@@ -338,7 +339,7 @@
   .qz-dial { width:var(--dial, clamp(46px, 13dvh, 110px)); height:var(--dial, clamp(46px, 13dvh, 110px)); flex:none; display:flex; align-items:center; justify-content:center; border-radius:50%;
     background:var(--paper); border:var(--ln-b) solid var(--ink); box-shadow:var(--sh-m); }
   .qz-dial svg.ar { width:74%; height:74%; display:block; --ac:var(--yellow); }
-  .quiz .opt svg.ar { width:calc(var(--oh) * .74); height:calc(var(--oh) * .74); display:block; --ac:var(--c, var(--yellow)); }
+  .quiz .opt svg.ar { width:calc(var(--oh) * .9); height:calc(var(--oh) * .9); display:block; --ac:var(--c, var(--yellow)); }
   .quiz .q .qz-rule { display:inline-flex; align-items:center; gap:.3em; margin:0; padding:.14em .62em .2em .42em; border-radius:var(--r-pill); border:var(--ln) solid var(--ink);
     background:var(--green); color:var(--ink); box-shadow:var(--sh-s); text-shadow:none; font-size:var(--pf, 16px); line-height:1; font-weight:700; white-space:nowrap; }
   .quiz .q .qz-rule.rev { background:var(--red); }
@@ -2151,6 +2152,13 @@
     pzTone(660, 0.09, { type: 'triangle', vol: 0.14 }); pzTone(440, 0.18, { type: 'triangle', vol: 0.14, at: 0.1 }); pzVib(40);
     await sleep(750);
   };
+  const qzFit = z => {                                                   // soru alanini bolgenin bos kismina yayar (ust kenardan .head'in ustune); ag modunda ust seridin altindan baslar
+    const q = z && z.querySelector('.quiz'), hd = z && z.querySelector('.head'); if (!q || !hd) return;
+    const top = document.body.classList.contains('net') ? (parseFloat(getComputedStyle(z).paddingTop) || 35) : 6;
+    q.style.top = (top - q.parentNode.offsetTop) + 'px';
+    q.style.height = Math.max(60, hd.offsetTop - 10 - top) + 'px';       // alt golge + etiket payi
+  };
+  window.addEventListener('resize', () => zones.forEach(qzFit));
   async function quizGame(gen, goal = 4, timeout = 20000, kind = '') {
     const PEN = [1000, 1500, 2000], FLASH = 180, GUARD = 250, NOTE = [523.25, 659.25, 783.99, 880, 1046.5];
     const cnt = Array(N).fill(0), cur = [], nbad = Array(N).fill(0), until = Array(N).fill(0), tried = Array.from({ length: N }, () => new Set()), fin = [];
@@ -2167,7 +2175,7 @@
     zones.forEach((_, i) => {
       arena(i, '<div class="quiz" data-g="' + kind + '"><div class="qz"><div class="qz-hd" style="--T:' + timeout + 'ms"><div class="pz-tm"><i></i><i></i></div><div class="cnt">0/' + goal + '</div></div>' +
         '<div class="qz-mid"><div class="q"></div></div><div class="opts"></div></div></div>');
-      setS(i, 'go'); draw(i);
+      setS(i, 'go'); qzFit(zones[i]); draw(i);
     });
     await new Promise(res => {
       handler = (i, e) => {
@@ -2218,12 +2226,13 @@
   };
 
   // Renk Tuzagi: kelime hep BASKA bir rengin adi (uyumsuz), murekkep rengi onceki sorudan farkli. Her rengin sekli (Renk Dizisi ile ayni): kirmizi ucgen, mavi kare, yesil daire, sari baklava.
-  const INK = [['KIRMIZI', '#ff5a5f', 'r', 'p-tri'], ['MAVİ', '#47a9f5', 'b', 'p-sq'], ['YEŞİL', '#2fd68c', 'g', 'p-circ'], ['SARI', '#ffd23f', 'y', 'p-dia']];
+  // 5. oge: kelime kutusu (yazi + dolgu + kose simgesi) genisligi / yazi boyutu orani: kisa kelimeler daha buyuk yazilir, hepsi bolgeye sigar
+  const INK = [['KIRMIZI', '#ff5a5f', 'r', 'p-tri', 6], ['MAVİ', '#47a9f5', 'b', 'p-sq', 4.8], ['YEŞİL', '#2fd68c', 'g', 'p-circ', 5], ['SARI', '#ffd23f', 'y', 'p-dia', 4.6]];
   const stroopGen = (k, prev) => {
     const c = pickExcept(4, prev ? prev.ink : -1), w = pickExcept(4, c, prev ? prev.word : -1), order = shuffle([0, 1, 2, 3]);
     return {
       ink: c, word: w,
-      html: '<span class="stw"><span class="word" style="color:' + INK[c][1] + '">' + INK[w][0] + '</span><i class="qz-ink oc" data-c="' + INK[c][2] + '" style="--ic:' + INK[c][1] + '">' + ico(INK[c][3], 'qz-sh') + '</i></span>',
+      html: '<span class="stw" style="--wk:' + INK[w][4] + '"><span class="word" style="color:' + INK[c][1] + '">' + INK[w][0] + '</span><i class="qz-ink oc" data-c="' + INK[c][2] + '" style="--ic:' + INK[c][1] + '">' + ico(INK[c][3], 'qz-sh') + '</i></span>',
       options: order.map(j => ({ html: ico(INK[j][3], 'qz-sh'), cls: 'oc', attr: 'data-c="' + INK[j][2] + '"', style: 'background-color:' + INK[j][1] })),
       correct: order.indexOf(c),
     };
