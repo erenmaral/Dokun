@@ -39,7 +39,9 @@ Ana menüden oyuncu sayısı ve mod seçilir:
 - **Klasik:** 3 / 5 / 8 / 12 tur, en çok puan alan kazanır.
 - **Yarış:** hedef puana (3 / 5 / 7) ilk ulaşan kazanır.
 - **Hayatta Kal:** her oyuncunun canı vardır (1 / 2 / 3). Turu kazanmayan can kaybeder, canı biten elenir, son kalan kazanır.
-- **Takım:** 4 oyuncu, üstteki ikili alttakilere karşı, takım puanları toplanır.
+- **Takım:** 4 oyuncu, üstteki ikili alttakilere karşı, takım puanları toplanır (bir turda bir takım en fazla +1 alır).
+
+**Beraberlik ve Altın Tur:** Maç berabere biterse (puanlar eşit; takımda iki takım eşit) bitiş ekranında **Altın Tur** düğmesi de çıkar (yalnızca yerel maçlarda, Hayatta Kal hariç). Eşit kalan oyuncular tek bir rastgele oyun daha oynar, diğerleri "Bekliyor" der; kazanan +1 alır. Yine berabere kalırsa Altın Tur yeniden denenebilir. **Hayatta Kal'da** üst üste iki turda kimse kazanamazsa hayatta kalan herkes bir can kaybeder (maç sonsuza uzamaz); herkes aynı turda elenirse sonuç beraberliktir ("Birlikte elendi").
 
 **🎲 Karışık Maç** tüm oyunlardan, **🎮 Oyun Seç** ise listeden seçtiğin bir ya da birden fazla oyundan oynar.
 
