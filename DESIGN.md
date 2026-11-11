@@ -12,6 +12,8 @@ Her sey bir cikartma ya da oyuncak gibi: **duz doygun renkler, kalin murekkep di
 | `--purple` `--orange` | `#a56bff` `#ff9442` | yardimci renkler (hafiza karti, ritim, ayarlar karosu) |
 | `--*-d` | koyu tonlar | golge/yuzey tonu (oyuncu topu); `color-mix` KULLANILMIYOR (eski WebView guvenligi) |
 
+Oyuncu renkleri: 6'li palet (kirmizi, yesil, mavi, sari, mor, pembe; `--pink #ff7bc4`); her oyuncu Ayarlar'dan birini secer, ayni renk iki oyuncuda olamaz (secimde yer degistirir), cevrimicide renkleri oda sahibi dagitir.
+
 Kural: bir yuzeyde en fazla bir doygun renk + murekkep + kagit. Oyuncu rengi yalniz cerceve, isim fisi ve oyun nesnelerinde; zemin hep nötr (renk karisikligi olmaz, Renk Tuzagi okunur kalir).
 
 ## 2. Yazi tipleri (dis kaynak yok, base64 gomulu, `font-display:block`)
@@ -49,11 +51,11 @@ Not: Lilita One ve Fredoka denendi ama Turkce ğ ş İ glifleri YOK; bu yuzden s
 ## 5. Simgeler ve oyun varliklari (emoji YOK)
 Tek bir satir ici SVG `<symbol>` sprite'i (`<use href="#...">`; ~29 KB): 3px murekkep cizgi, duz dolgu, kucuk kagit parlama noktasi.
 - Arayuz: `i-back i-play i-pause i-home i-redo i-check i-x i-phone` (tek renk, `currentColor`); cikartma: `i-heart i-skull i-star i-stars i-crown i-bolt i-wifi i-gear i-gamepad i-dice i-link i-flag i-team i-lock`.
-- 17 oyun simgesi `g-*` (tur karti, Oyun Sec kartlari, menu seridi).
+- 20 oyun simgesi `g-*` (tur karti, Oyun Sec kartlari, menu seridi).
 - **Ritim:** hedef daire oyuncu renginde (kalin murekkep cizgi + sert golge), daralan halka kagit rengi + cift murekkep cizgi (`.rit-ring`, yalniz transform/opacity animasyonu), vurus sonucu yazisi (`.rit-fb`), 8 vurus noktasi (`.rit-dots`). Halka animasyon sinifi `run` (genel `.go` dugme kuralina carpmamak icin `go` KULLANILMAZ).
 - **Hedef Avi:** `a-target` (oyuncu renkli halkalar, sari goz, parlama), sicrayarak belirir, hafif sallanir, isabette patlama yildizi.
 - **Hafiza Eslestir:** 8 cikartma yuz (`f-bear f-cat f-frog f-bunny f-panda f-pig f-octo f-pizza`), mor noktali kart arkasi + "?" , cevirme `scaleX` animasyonu, eslesince ziplama; genis bolgede 4x2 yerlesim (kartlar buyuk), dar bolgede 2x4.
-- **Tek Farkli:** ayni yuzler + `o-smile/wink/smirk` (zorluk artar). **Ok Yonu:** `a-arrow` (kagit kadran icinde buyuk ok; kural rozeti: yesil "AYNI YON" + `q-same` (es oklar), kirmizi "TERSINE!" + `q-rev` (zit oklar); secenek oklari oyuncu renginde). **Say Bakalim:** `a-bee a-apple a-fish i-star a-balloon-s`, nesneler sabit boyutlu tepsideki 4x3 kutulara (kutu basina en fazla bir, kayma + egim) yerlesir. **Renk Tuzagi:** her rengin sekli (Renk Dizisi ile ayni: kirmizi ucgen, yesil daire, mavi kare, sari baklava) secenekte hep gorunur; kelimenin yaninda ipucu simgesi YOKTUR (oyunu kolaylastirirdi); yalniz Renk koru modunda kelime kutusunun kosesine murekkep renginin simgesi ve secenek desenleri (cizgi / nokta / izgara / yatay cizgi) eklenir. **Kaydirmaca:** 3x3 tahta, kagit kutular (`.cell.nc`, `--x/--y` ile yalniz transform'la kayar), bosluk koyu girinti; dogru yerdeki kutu yesil + kosede tik rozeti (renk-disi ipucu), rozet rakami kapatmasin diye kutunun kosesine tasar. **Kostebek:** `a-mole` + toprak delik, sicrayarak cikar. **Seri Dokun:** oyuncu renkli sayac rozeti, her dokunusta siçrar. **Isik Oyunu:** kalin cizgili lamba + halka dalgasi. **Renk Dizisi:** parlak ped, yanarken kagit kaplama + buyume. **Tam Ortada:** kagit iz + yesil hedef bolgesi + oyuncu rengi top.
+- **Tek Farkli:** ayni yuzler + `o-smile/wink/smirk` (zorluk artar). **Ok Yonu:** `a-arrow` (kagit kadran icinde buyuk ok; kural rozeti: yesil "AYNI YON" + `q-same` (es oklar), kirmizi "TERSINE!" + `q-rev` (zit oklar); secenek oklari oyuncu renginde). **Say Bakalim:** `a-bee a-apple a-fish i-star a-balloon-s`, nesneler sabit boyutlu tepsideki 4x3 kutulara (kutu basina en fazla bir, kayma + egim) yerlesir. **Renk Tuzagi:** her rengin sekli (Renk Dizisi ile ayni: kirmizi ucgen, yesil daire, mavi kare, sari baklava) secenekte hep gorunur; kelimenin yaninda ipucu simgesi YOKTUR (oyunu kolaylastirirdi); yalniz Renk koru modunda kelime kutusunun kosesine murekkep renginin simgesi ve secenek desenleri (cizgi / nokta / izgara / yatay cizgi) eklenir. **Kaydirmaca:** 3x3 tahta, kagit kutular (`.cell.nc`, `--x/--y` ile yalniz transform'la kayar), bosluk koyu girinti; dogru yerdeki kutu yesil + kosede tik rozeti (renk-disi ipucu), rozet rakami kapatmasin diye kutunun kosesine tasar. **Karo Kosusu:** 3x4 `.pz` izgarasi; alt satir aktif, koyu karo + oyuncu rengi nokta (renk-disi ipucu), ust satirlar soluk. **Yon Kaydir:** buyuk `a-arrow` (sari), dogru kaydirmada o yone ucar, yanlista sallanir. **Topu Bul:** oyuncu renginde ters bardaklar (satir ici SVG, `--x` yuva / `--y` yay ile kayar), kalkinca alttaki sari top gorunur; secim yalniz notr isaret, sonuc herkes secince acilir. **Kostebek:** `a-mole` + toprak delik, sicrayarak cikar. **Seri Dokun:** oyuncu renkli sayac rozeti, her dokunusta siçrar. **Isik Oyunu:** kalin cizgili lamba + halka dalgasi. **Renk Dizisi:** parlak ped, yanarken kagit kaplama + buyume. **Tam Ortada:** kagit iz + yesil hedef bolgesi + oyuncu rengi top.
 
 ## 6. Performans kurallari (dusuk donanim, Android WebView)
 - Hic `filter`, `backdrop-filter`, `blur()`, `color-mix`, animasyonlu `box-shadow` / `background-position` YOK. Tum surekli animasyonlar `transform` / `opacity` (gecisler: renk, `transform`).
@@ -63,7 +65,7 @@ Tek bir satir ici SVG `<symbol>` sprite'i (`<use href="#...">`; ~29 KB): 3px mur
 - Balon, hedef, kostebek, kart yuzleri `<use>` ile paylasilir (DOM cok hafif).
 
 ## 7. Kalan oyunlar icin yapilacaklar (varsa)
-Tum 17 oyun yeni kabuga ve simgelere gecirildi. Isteyen icin ince ayar fikirleri:
+Tum 20 oyun yeni kabuga ve simgelere gecirildi. Isteyen icin ince ayar fikirleri:
 1. **Sayi Sirasi / Tek Farkli / Hizli Matematik:** hucrelere kucuk "dogru" cikartmasi (kagit yildiz) animasyonu.
 2. **Tut ve Birak / Tepki:** rakam ve sonuc yazilarina simge (kronometre) eklemek.
 3. ~~**Renk Tuzagi:** secenek hucrelerine renk-kor modu icin desen (nokta/cizgi) ayrimi.~~ Yapildi: sekil + cb modunda desen (bkz. bolum 5).

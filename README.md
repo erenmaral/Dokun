@@ -2,7 +2,7 @@
 
 Aynı telefonu paylaşan 2-4 arkadaş için hızlı mini oyunlar. Ekran oyuncu sayısına göre bölünür, üstteki oyuncular karşıdan oynar. Çoklu dokunuş desteklenir. Tek dosya (`index.html`): yazı tipleri ve simgeler içine gömülü, internet gerekmez.
 
-17 mini oyun var. Ana menüden iki şekilde oynanır:
+20 mini oyun var. Ana menüden iki şekilde oynanır:
 - **Karışık Maç:** oyunlar rastgele sırayla ve tekrarsız oynanır (3 / 5 / 8 / 12 tur).
 - **Oyun Seç:** listeden bir ya da birden fazla oyun seçilir. Oyunlar kategorilerine göre (Refleks, Hız, Zeka, Dikkat) gruplanmış, her grubun başında başlık şeridi bulunur; üstteki çiplerle tek bir kategori gösterilebilir.
 
@@ -13,6 +13,9 @@ Her turdan önce ekranın ortasında **tur kartı** çıkar ("TUR 2 / 8" + oyunu
 - **Tam Ortada:** kayan topu yeşil banda en yakın durduran kazanır. Top herkes için aynı hızda ve zamanla hızlanır.
 - **Hedef Avı:** çıkan hedefe dokun, 6 hedefe ilk ulaşan kazanır. Hedef her isabette küçülür, yakına dokunmak yeter. Herkes aynı hedef dizisini görür (yeni hedef öncekinden uzakta çıkar), ıska küçük bir "x" ve yumuşak sesle belli olur; üst üste 3 ıska kısa süre dondurur. İsabetler pentatonik bir merdiven çıkar; üstte 15 saniyelik süre çubuğu vardır.
 - **Sayı Sırası:** 1'den 6'ya sırayla dokun, ilk bitiren kazanır.
+- **Karo Koşusu:** 3 şeritli karo yolu: alttaki satırdaki koyu karoya dokun, satırlar aşağı kayar. 20 karoya ilk ulaşan kazanır (süre 20 sn; dolarsa en çok karo). Yanlış karo kısa süre dondurur, üst satırlara dokunmak yok sayılır. Herkes aynı yolu görür.
+- **Yön Kaydır:** ekrandaki okun yönüne parmağını kaydır (en az 28 px). 12 doğru kaydırmaya ilk ulaşan kazanır; yanlış yön kısa süre dondurur, tek dokunuş sayılmaz. Ok dizisi herkeste aynıdır; ters dönük bölgelerde yön oyuncunun kendi eksenindedir.
+- **Topu Bul:** top bir bardağın altına saklanır, bardaklar yer değiştirir (3 tur, 4 / 6 / 8 takas, giderek hızlanır). Topun hangi bardakta olduğunu bul: doğru bulmak 100 puan + hız bonusu (3 sn içinde en çok 50). Takaslar herkeste aynıdır; seçimden sonra sonuç herkes seçince birlikte açıklanır, böylece yandakinin ekranından cevap okunamaz.
 - **Kaydırmaca:** kolay bir kaydırmalı bulmaca. 3×3 tahtada 1'den 8'e numaralı kutuları boşluğa kaydırıp sıraya diz. Boşlukla aynı sıradaki bir kutuya dokunursan o sıra birlikte kayar, doğru yerdeki kutu yeşil olur ve köşesinde tik rozeti çıkar. Herkes aynı karışık tahtayı çözer (en fazla 6 hamlelik karıştırma, her zaman çözülebilir). İlk bitiren kazanır; süre (30 sn) dolarsa tahtayı en çok düzelten kazanır (hiç dokunmayan puan almaz). Ceza yok.
 - **Tek Farklı:** farklı yüzü bul. 3 bulmacayı (ızgara büyür, yüzler birbirine yaklaşır) ilk çözen kazanır, yanlış dokunan 1,2 sn cezalı.
 - **Renk Tuzağı:** yazının ne yazdığına değil rengine bak, aynı renkteki düğmeyi seç. Her rengin bir şekli de var (üçgen, kare, daire, baklava); şekiller yalnız düğmelerde görünür, yazının yanında ipucu yoktur (Renk körü modunda yazının yanına renkli şekil ve düğmelere desen eklenir). İlk 4 doğruya ulaşan kazanır, yanlışta kısa ceza.
@@ -26,7 +29,7 @@ Her turdan önce ekranın ortasında **tur kartı** çıkar ("TUR 2 / 8" + oyunu
 - **Hafıza Eşleştir:** kartları çevirip 4 çifti ilk bulan kazanır. Yanlış eşleşmede kısa süre kilitlenirsin, rastgele basarak kazanılmaz.
 - **Say Bakalım:** ekrandaki şekilleri say, doğru sayıyı seç; sayılar her soruda büyür. İlk 4 doğruya ulaşan kazanır, yanlışta kısa ceza.
 
-Her bölge koyu, nötr bir zeminde; oyuncu rengi yalnızca çerçeve ve etiket olarak kullanılır. Bilgi kutuları karşıdaki oyuncu için ters kopya olarak da gösterilir.
+Her bölge koyu, nötr bir zeminde; oyuncu rengi yalnızca çerçeve ve etiket olarak kullanılır. Oyuncu renkleri değiştirilebilir: Ayarlar'da her oyuncu 6 renkten birini seçer (kırmızı, yeşil, mavi, sarı, mor, pembe); aynı rengi iki oyuncu kullanamaz, başkasının rengi seçilirse renkler yer değiştirir. Çevrimiçi oyunda herkes kendi rengini ister, oda sahibi çakışmaları çözer (istenen renk doluysa ilk boş renk verilir) ve renkler tüm telefonlarda aynı görünür. Bilgi kutuları karşıdaki oyuncu için ters kopya olarak da gösterilir.
 
 Telefonu dikey tut. Tarayıcıda yatay çevrilirse "Telefonu dikey tut" uyarısı çıkar; oyun sırasında telefon yan çevrilirse oyun kendiliğinden duraklar (çevrimiçi maçlarda oyun durmaz: kenardaki sekme yalnızca "Maç sürüyor / Maça dön / Çık" menüsünü açar). Android uygulamasında sistem yazı boyutu büyütülmüş olsa da arayüz taşmasın diye WebView yazı yakınlaştırması %100'e sabitlenir; menü ekranları çentik/durum çubuğu boşluğunu (`safe-area`) dikkate alır. Tablet ve büyük ekranlarda (yatay dahil) bu uyarı çıkmaz; oyun yatayda da oynanır (Android 16 büyük ekranlarda yön kilidini yok sayar).
 
@@ -51,7 +54,7 @@ Ekranın sol ve sağ kenarının ortasındaki duraklat sekmesine **basılı tuta
 **Geri tuşu:** Oyun Seç, Ayarlar ve Çevrimiçi ekranlarında geri tuşu ana menüye döner. Oyun sırasında geri tuşuna (Android geri / tarayıcı geri / Esc) bir kez basmak yalnızca uyarı gösterir. 2,5 saniye içinde ikinci kez basılırsa oyundan çıkılır. Hızlı dokunulan oyunlarda (Seri Dokun gibi) yanlışlıkla çıkılmaz.
 
 ## Ses, müzik ve ayarlar
-Ana menüdeki **Ayarlar**: ses efektleri, titreşim, müzik, menü müziği ve müzik sesi, ekranın açık kalması ve oyuncu adları. Tercihler hatırlanır (bozuk ya da eski kayıtlar güvenle varsayılana döner).
+Ana menüdeki **Ayarlar**: ses efektleri, titreşim, müzik, menü müziği ve müzik sesi, ekranın açık kalması ve oyuncular (ad ve renk). Tercihler hatırlanır (bozuk ya da eski kayıtlar güvenle varsayılana döner).
 
 **Ses motoru.** Tüm sesler ve müzik Web Audio ile kodla üretilir (dosya yok); tek bir `AudioContext` ve tek çıkış zinciri kullanılır: efektler yumuşak bir üst kesmeden, müzik doğrudan geçer, ikisi de yumuşak bir sınırlayıcıdan çıkar (aynı anda çok ses olsa bile keskin kırpılma olmaz). Efektler katmanlı ve yumuşaktır (çan / marimba benzeri notalar, yuvarlak "tok" sesleri, gürültü patlamaları); sert kare / testere dalgaları yoktur, tekrarlarda perde ve doku hafifçe değişir. Eşzamanlı ses sayısı sınırlıdır, çok sık gelen aynı sesler seyreltilir, biten her düğüm temizlenir. Uygulama arka plana gidince, ekran kilitlenince ya da arama gibi bir kesinti olunca bağlam askıya alınır, geri dönünce (ve ilk dokunuşta) yeniden başlar; askıdayken ses kuyruğa alınmaz, dönüşte toplu patlama olmaz. Sesler ve konfeti kendi sabit üreteçlerini kullanır; çevrimiçi turlarda tohumlu `Math.random` yalnızca oyun içeriğine aittir. Android uygulamasında (WebView otomatik oynatmaya izin verir) menü müziği ilk dokunuşu beklemeden başlar; tarayıcıda ilk dokunuşta açılır.
 
