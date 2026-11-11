@@ -3110,7 +3110,18 @@
   // ======================= AG MODU: telefondan telefona (WebRTC, sunucusuz) =======================
   // Bluetooth web sayfalarindan kullanilamaz; bunun yerine telefonlar kod degis tokusu ile dogrudan baglanir.
   // Her telefon kendi tam ekran bolgesinde oynar; ayni tohumla ayni tur ayni anda baslar, sonuclar host'ta karsilastirilir.
-  const VERSION = 'dokun-net-1';
+  // Ag protokol numarasi: mesaj bicimi degisince elle artirilir. El sikismada karsilastirilan tam damga (buildVersion) ayrica oyun listesinden
+  // (sira, sayi, ad) ve oyun kurallarinin / rastgele cekim sirasinin kodundan turetilir: farkli surumdeki telefonlar ayni tohumla farkli icerik gormesin.
+  const NET_PROTO = 2;
+  const MAX_NET_MSG = 8192;                                   // protokol mesajlari kucuktur; bundan uzunu bozuk ya da kotu niyetlidir ve ayristirilmaz
+  const HELLO_MS = 8000;                                      // baglanti kuran ama el sikismayan istemci bu sureden sonra atilir
+  const NET_SRC = (() => {                                    // oyunlarin kaynak metni (yalniz betik yuklenirken okunabilir: document.currentScript)
+    try {
+      const s = document.currentScript.textContent, a = s.indexOf('// ---------- Mini ' + 'oyunlar'), b = s.indexOf('const GAMES ' + '= [');
+      const e = b > a ? s.indexOf('\n  ];', b) : -1;
+      return a > 0 && e > a ? s.slice(a, e) : '';
+    } catch (_) { return ''; }
+  })();
   // toast(metin, sure_ms, karsidanOkunsun): yerel macta karsi taraftaki oyuncu da okuyabilsin diye ustte ters donuk ikinci kopya da gosterilir
   const toast = (msg, ms = 3500, both = false) => {
     const t = $('#toast'), t2 = $('#toast2');
@@ -3129,6 +3140,15 @@
     seedUndo = () => { if (Math.random === rng) Math.random = orig; };
     try { return await fn(); } finally { restoreRandom(); }
   }
+  // El sikisma damgasi: protokol no + oyun sayisi + (oyun adlari ve kaynaklari, ortak uretim yardimcilari, rastgele cekim sirasini belirleyen kodun ozeti).
+  // Yorumlar ve bosluklar sayilmaz; ayni kodu calistiran iki telefonun (APK / web) damgasi birebir aynidir, bir oyunun kurali ya da RNG sirasi degisince farkli olur.
+  let buildV = null;
+  const buildVersion = () => buildV || (buildV = (() => {
+    const norm = f => String(f).replace(/\/\/[^\n]*/g, '').replace(/\s+/g, ' ');
+    const fnv = t => { let x = 0x811c9dc5; for (let i = 0; i < t.length; i++) { x ^= t.charCodeAt(i); x = Math.imul(x, 0x01000193); } return (x >>> 0).toString(36); };
+    const rules = [GAMES.map(g => g.name + ':' + norm(g.run)).join('|'), norm(NET_SRC), [shuffle, shared, mulberry, makeBag, matchPlan, applyRound, topScorers].map(norm).join('|')].join('#');
+    return 'dokun-net-' + NET_PROTO + '-' + GAMES.length + '-' + fnv(rules);
+  })());
   const b64 = bytes => btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
   const unb64 = str => { str = str.replace(/-/g, '+').replace(/_/g, '/'); while (str.length % 4) str += '='; return Uint8Array.from(atob(str), c => c.charCodeAt(0)); };
   const pipeBytes = async (bytes, stream) => new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(stream)).arrayBuffer());
@@ -3138,7 +3158,7 @@
     return 'DK' + tag + '-' + b64(bytes);
   }
   async function decodeDesc(code) {
-    const m = String(code).replace(/\s+/g, '').match(/DK([01])-([A-Za-z0-9_-]+)/);
+    const m = String(code).slice(0, 30000).replace(/\s+/g, '').match(/DK([01])-([A-Za-z0-9_-]+)/);
     if (!m) throw new Error('Kod geçersiz');
     let bytes = unb64(m[2]);
     if (m[1] === '1') bytes = await pipeBytes(bytes, new DecompressionStream('deflate-raw'));
@@ -3154,6 +3174,34 @@
     setTimeout(done, 3500);
   });
   const jsend = (dc, o) => { if (dc && dc.readyState === 'open') { try { dc.send(JSON.stringify(o)); } catch (_) {} } };
+  // ---- gelen mesajlarin dogrulamasi: bozuk, eksik, cok buyuk ya da turu yanlis mesajlar sessizce yok sayilir (islenyiciye ulasmaz) ----
+  const parseNet = data => {
+    if (typeof data !== 'string' || data.length > MAX_NET_MSG) return null;
+    let m; try { m = JSON.parse(data); } catch (_) { return null; }
+    return m && typeof m === 'object' && !Array.isArray(m) && typeof m.t === 'string' && m.t.length <= 12 ? m : null;
+  };
+  const isNum = (v, lo, hi) => typeof v === 'number' && v >= lo && v <= hi;                  // NaN ve +-Infinity gecmez
+  const isInt = (v, lo, hi) => Number.isInteger(v) && v >= lo && v <= hi;
+  const isStr = (v, max) => typeof v === 'string' && v.length <= max;
+  // islenyici istisna firlatsa bile ag olay dongusu (ve oyunun yakalanmayan hata sayaci) etkilenmez
+  const guardMsg = fn => e => { const m = parseNet(e && e.data); if (!m) return; try { fn(m); } catch (err) { console.error('Ag mesaji islenemedi:', err); } };
+  const cleanName = raw => Array.from(String(raw == null || typeof raw === 'object' ? '' : raw).replace(/[\u0000-\u001f\u007f-\u009f\u200b-\u200f\u2028-\u202e\u2066-\u2069]/g, ' ').replace(/\s+/g, ' ').trim()).slice(0, 10).join('');
+  // oyuncu adi: temizlenir, 10 karakterle sinirlanir, bos ise "Oyuncu N", baskasiyla ayniysa sonuna sayi eklenir
+  function uniqueName(raw, taken) {
+    const lc = t => t.toLocaleLowerCase('tr'), used = new Set(taken.map(lc)), base = cleanName(raw);
+    if (!base) { let n = 2; while (used.has(lc('Oyuncu ' + n))) n++; return 'Oyuncu ' + n; }
+    if (!used.has(lc(base))) return base;
+    for (let n = 2; n < 20; n++) { const suf = ' ' + n, cand = Array.from(base).slice(0, 10 - suf.length).join('') + suf; if (!used.has(lc(cand))) return cand; }
+    return base;
+  }
+  // result mesajinin HTML'i: yalniz oyunun kendi urettigi sprite simgeleri (svg > use) kalir, baska her etiket kacirilir
+  const OK_TAGS = [/^<svg class="[a-z0-9 _-]{0,24}" aria-hidden="true">$/, /^<use href="#[a-z0-9-]{1,24}"\/>$/, /^<\/svg>$/];
+  const safeMsg = t => isStr(t, 600) ? t.replace(/<[^>]*>?|>/g, x => OK_TAGS.some(r => r.test(x)) ? x : x.replace(/</g, '&lt;').replace(/>/g, '&gt;')) : '';
+  const validNames = (a, n) => Array.isArray(a) && a.length >= 2 && a.length <= 4 && (n == null || a.length === n) && a.every(x => isStr(x, 24) && x.length > 0);
+  const validState = (st, P) => !!st && typeof st === 'object' && ['scores', 'lives', 'dead', 'elim'].every(k => Array.isArray(st[k]) && st[k].length === P) &&
+    st.scores.every(x => isInt(x, 0, 1000)) && st.lives.every(x => isInt(x, -50, 50)) && st.dead.every(x => typeof x === 'boolean') && st.elim.every(x => x === null || isInt(x, 0, 1000));
+  // yeniden baglanma belirteci: tahmin edilemesin diye tarayicinin guvenli rastgele kaynagi (seed'li Math.random degil)
+  const makeToken = () => { try { const a = new Uint8Array(12); crypto.getRandomValues(a); return Array.from(a, x => (x % 36).toString(36)).join(''); } catch (_) { return Math.random().toString(36).slice(2, 10) + Math.random().toString(36).slice(2, 6); } };
   const copyText = async el => {
     el.select();
     try { await navigator.clipboard.writeText(el.value); toast('Kopyalandı'); }
@@ -3174,9 +3222,11 @@
       if (!C || typeof C.nativePromise !== 'function' || !(C.isNativePlatform && C.isNativePlatform())) return null;
       if (!lanPlugin.p) {
         const call = (m, o) => C.nativePromise('LanServer', m, o || {});
+        // gonder / kapat / durdur hatalari sessizce yutulur: yakalanmayan vaat reddi oyunun "tur takildi" sayacini tetiklemesin (kopan oyuncu zaten kopma olayiyla bildirilir)
+        const quiet = f => { try { return Promise.resolve(f()).catch(() => {}); } catch (_) { return Promise.resolve(); } };
         lanPlugin.p = {
-          getLocalIp: () => call('getLocalIp'), start: o => call('start', o), stop: () => call('stop'),
-          send: o => call('send', o), broadcast: o => call('broadcast', o), close: o => call('close', o),
+          getLocalIp: () => call('getLocalIp'), start: o => call('start', o), stop: () => quiet(() => call('stop')),
+          send: o => quiet(() => call('send', o)), broadcast: o => quiet(() => call('broadcast', o)), close: o => quiet(() => call('close', o)),
           addListener: (e, cb) => C.addListener('LanServer', e, cb),
         };
       }
@@ -3194,36 +3244,47 @@
   };
   let lanBound = false;
   const lanChans = {};
+  // eklentinin Turkce hata metni varsa o gosterilir (ornegin "bagli nokta baska uygulamada kullanimda"), yoksa genel uyari
+  const lanErrText = e => { const t = e && typeof e.message === 'string' ? e.message : ''; return t && t.length <= 90 ? t : 'Oda kurulamadı. Wi-Fi bağlı mı?'; };
+  // true = oda kuruldu, false = kurulamadi (hata gosterildi), null = oda kurulurken kullanici cikti (sunucu kapatilir, bir sey yapilmaz)
   async function hostLanStart() {
     const L = lanPlugin(); if (!L) return false;
     if (!lanBound) {                                    // olay dinleyicileri bir kez baglanir
       lanBound = true;
-      L.addListener('clientOpen', e => lanOpen(e.id));
-      L.addListener('clientMessage', e => { const c = lanChans[e.id]; if (c && c.onmessage) c.onmessage({ data: e.data }); });
-      L.addListener('clientClose', e => { const c = lanChans[e.id]; if (c) { c.readyState = 'closed'; delete lanChans[e.id]; if (c.onclose) c.onclose(); } });
+      L.addListener('clientOpen', e => { if (e && isStr(e.id, 16)) lanOpen(e.id); });
+      L.addListener('clientMessage', e => { const c = e && lanChans[e.id]; if (c && c.onmessage) c.onmessage({ data: e.data }); });
+      L.addListener('clientClose', e => { const c = e && lanChans[e.id]; if (c) { c.readyState = 'closed'; delete lanChans[e.id]; if (c.onclose) c.onclose(); } });
+      L.addListener('serverError', () => { if (net.on && net.role === 'host' && net.mode === 'lan' && !net.leaving) leaveNet('Oda bağlantısı kesildi'); });      // sunucu calisirken coktu
     }
     try {
       const r = await L.start({ port: lanPort() });
+      if (!net.on || net.role !== 'host' || net.leaving) { L.stop(); return null; }               // oda kurulurken cikildi: yeni acilan sunucu kapatilir
+      if (!r || !isStr(r.ip, 15)) throw new Error('adres yok');
       net.lan = r;
       $('#lan-code').textContent = codeFromIp(r.ip);
       $('#lan-ip').textContent = 'IP: ' + r.ip;
       return true;
-    } catch (e) { console.error(e); toast('Oda kurulamadı. Wi-Fi bağlı mı?'); return false; }
+    } catch (e) { console.error(e); toast(lanErrText(e)); return false; }
   }
   function lanOpen(id) {
     const L = lanPlugin();
     const chan = { id, readyState: 'open', onmessage: null, onclose: null, send: d => L.send({ id, data: d }), close: () => L.close({ id }) };
-    if (net.role !== 'host') { chan.close(); return; }
+    if (net.role !== 'host' || net.leaving || net.peers.filter(p => !p.gone).length >= 8) { chan.close(); return; }          // oda kapali ya da yari acik baglantilarla dolmus
     lanChans[id] = chan;
     // Kabul / red karari 'hello' mesajinda verilir (ayni oyuncunun yeniden baglanmasi icin belirtec kontrol edilir)
-    const peer = { pc: null, dc: chan, open: false, gone: false, idx: 0, name: '', waiting: null, lastSeen: nowP(), rtt: 0, token: null, away: false, awayTimer: null };
+    const peer = { pc: null, dc: chan, open: false, gone: false, idx: 0, name: '', waiting: null, lastSeen: nowP(), rtt: 0, token: null, away: false, awayTimer: null, helloT: null };
     net.peers.push(peer);
-    chan.onmessage = e => { let m; try { m = JSON.parse(e.data); } catch (_) { return; } onHostMsg(peer, m); };
+    peer.helloT = setTimeout(() => { if (!peer.open && !peer.gone) { dropPeer(peer); try { chan.close(); } catch (_) {} } }, HELLO_MS);      // el sikismayan baglanti yer isgal etmesin
+    chan.onmessage = guardMsg(m => onHostMsg(peer, m));
     chan.onclose = () => { if (peer.dc === chan) peerGone(peer); };
   }
   const failLan = msg => { net.on = false; net.role = null; $('#g-status').textContent = ''; toast(msg || 'Bağlanılamadı. Aynı Wi-Fi\'da mısınız, kod doğru mu?'); };
   async function guestLan() {
-    const L = lanPlugin(); if (!L) return;
+    const L = lanPlugin(); if (!L || net.on || guestLan.busy) return;                  // baglaniyor / bagli iken ikinci dokunus yeni baglanti acmaz
+    guestLan.busy = true;
+    try { await guestLanGo(L); } finally { guestLan.busy = false; }
+  }
+  async function guestLanGo(L) {
     const code = $('#g-short').value.trim();
     let own = null; try { own = (await L.getLocalIp()).ip; } catch (_) {}
     if (!own) return toast('Wi-Fi\'ye bağlı değilsin');
@@ -3236,7 +3297,10 @@
     try { ws = new WebSocket('ws://' + ip + ':' + lanPort()); } catch (_) { return failLan(); }
     const chan = { readyState: 'connecting', onmessage: null, onclose: null, send: d => ws.send(d), close: () => { try { ws.close(); } catch (_) {} } };
     const timer = setTimeout(() => { if (chan.readyState !== 'open') { try { ws.close(); } catch (_) {} failLan(); } }, 6000);
-    ws.onopen = () => { clearTimeout(timer); chan.readyState = 'open'; net.gws = ws; wireGuest(chan, true); };
+    ws.onopen = () => {
+      clearTimeout(timer); chan.readyState = 'open'; net.gws = ws; wireGuest(chan, true);
+      net.welcomeT = setTimeout(() => { if (net.on && !net.leaving && !net.token) leaveNet('Host cevap vermedi'); }, HELLO_MS + 2000);      // el sikisma cevabi gelmezse sonsuza kadar beklenmez
+    };
     ws.onmessage = e => { if (chan.onmessage) chan.onmessage({ data: e.data }); };
     ws.onerror = () => { if (chan.readyState !== 'open') { clearTimeout(timer); failLan(); } };
     ws.onclose = () => { const was = chan.readyState === 'open'; chan.readyState = 'closed'; if (was && chan.onclose) chan.onclose(); };
@@ -3270,7 +3334,7 @@
     const pc = new RTCPeerConnection(iceCfg());
     const peer = { pc, dc: pc.createDataChannel('dokun'), open: false, gone: false, idx: 0, name: '', waiting: null };
     net.pending = peer; net.peers.push(peer);
-    peer.dc.onmessage = e => { let m; try { m = JSON.parse(e.data); } catch (_) { return; } onHostMsg(peer, m); };
+    peer.dc.onmessage = guardMsg(m => onHostMsg(peer, m));
     peer.dc.onclose = () => peerGone(peer);
     pc.onconnectionstatechange = () => { if (pc.connectionState === 'failed' || pc.connectionState === 'closed') peerGone(peer); };
     await pc.setLocalDescription(await pc.createOffer());
@@ -3280,8 +3344,11 @@
   }
   async function hostAccept() {
     const peer = net.pending; if (!peer) return;
-    try { await peer.pc.setRemoteDescription(await decodeDesc($('#h-ans').value)); $('#h-status').textContent = 'Bağlanıyor…'; }
-    catch (_) { toast('Cevap kodu geçersiz'); }
+    try {
+      const ans = await decodeDesc($('#h-ans').value);
+      if (!ans || ans.type !== 'answer' || !isStr(ans.sdp, 20000)) throw new Error('cevap degil');
+      await peer.pc.setRemoteDescription(ans); $('#h-status').textContent = 'Bağlanıyor…';
+    } catch (_) { toast('Cevap kodu geçersiz'); }
   }
   function broadcastRoster() {
     const peers = livePeers(), names = [nameOf(0), ...peers.map(p => p.name)], pings = [0, ...peers.map(p => Math.round(p.rtt || 0))];
@@ -3295,36 +3362,55 @@
     const dc = tmp.dc, prevDc = old.dc;
     old.dc = dc; old.pc = null; old.open = true; old.gone = false; old.lastSeen = nowP();
     clearTimeout(old.awayTimer); old.away = false; net.away[old.idx] = false;
-    dc.onmessage = e => { let m; try { m = JSON.parse(e.data); } catch (_) { return; } onHostMsg(old, m); };
+    dc.onmessage = guardMsg(m => onHostMsg(old, m));
     dc.onclose = () => { if (old.dc === dc) peerGone(old); };
     try { if (prevDc && prevDc !== dc) prevDc.close(); } catch (_) {}
     jsend(dc, { t: 'resume', idx: old.idx, started: net.matchStarted, token: old.token, ...(net.matchStarted ? hostState() : {}) });
     net.peers.forEach(q => q !== old && jsend(q.dc, { t: 'away', i: old.idx, on: false }));
     toast(old.name + ' geri bağlandı'); broadcastRoster(); paintNetBar();
   }
-  const dropPeer = peer => { net.peers = net.peers.filter(p => p !== peer); peer.gone = true; };
+  const dropPeer = peer => { clearTimeout(peer.helloT); net.peers = net.peers.filter(p => p !== peer); peer.gone = true; };
+  const openPeers = () => net.peers.filter(p => p.open && !p.gone);
+  // el sikisma reddi: oyuncuya sebebi bildirilir, kisa sure sonra baglanti kapanir ve yer bosalir
+  const rejectPeer = (peer, msg) => {
+    jsend(peer.dc, { t: 'bad', msg });
+    setTimeout(() => { try { peer.dc.close(); } catch (_) {} }, 300);
+    if (net.pending === peer) net.pending = null;
+    dropPeer(peer); paintHost();
+  };
   function onHostMsg(peer, m) {
+    if (!m || peer.gone) return;
     peer.lastSeen = nowP();
     if (m.t === 'hello') {
-      if (m.token) { const old = net.peers.find(p => p.token === m.token && p !== peer && !p.gone); if (old) { rebind(old, peer); return; } }
-      if (m.v !== VERSION) { jsend(peer.dc, { t: 'bad', msg: 'Uygulama sürümleri uyuşmuyor' }); return; }
-      if (net.matchStarted) { jsend(peer.dc, { t: 'bad', msg: 'Maç zaten başladı' }); setTimeout(() => { try { peer.dc.close(); } catch (_) {} }, 300); dropPeer(peer); return; }
-      if (net.peers.filter(p => p !== peer && !p.gone).length >= 3) { jsend(peer.dc, { t: 'bad', msg: 'Oda dolu' }); setTimeout(() => { try { peer.dc.close(); } catch (_) {} }, 300); dropPeer(peer); return; }
-      peer.open = true; peer.name = String(m.name || '').slice(0, 10) || ('Oyuncu ' + (livePeers().length + 1));
-      peer.token = Math.random().toString(36).slice(2, 10) + Math.random().toString(36).slice(2, 6);
+      if (peer.open) return;                                                       // kayitli oyuncunun tekrar "hello"su adini ya da yerini degistiremez
+      clearTimeout(peer.helloT);
+      const tok = isStr(m.token, 40) ? m.token : null;
+      if (tok) { const old = net.peers.find(p => p.token === tok && p !== peer && !p.gone); if (old) { rebind(old, peer); return; } }
+      if (m.v !== buildVersion()) { toast((cleanName(m.name) || 'Bir oyuncu') + ' farklı sürümde, katılamadı', 4500); rejectPeer(peer, 'Uygulama sürümleri uyuşmuyor. Herkes Dokun!\'u güncellemeli.'); return; }
+      if (net.matchStarted) { rejectPeer(peer, 'Maç zaten başladı'); return; }
+      if (openPeers().length >= 3) { rejectPeer(peer, 'Oda dolu'); return; }
+      peer.open = true; peer.name = uniqueName(m.name, [nameOf(0), ...openPeers().filter(p => p !== peer).map(p => p.name)]);
+      peer.token = makeToken();
       if (net.pending === peer) net.pending = null;
       $('#h-status').textContent = peer.name + ' bağlandı';
-      jsend(peer.dc, { t: 'welcome', token: peer.token }); broadcastRoster(); fx.hit();          // oyuncu katildi: kisa ses / titresim
-    } else if (m.t === 'ping') {
-      peer.rtt = m.rtt || peer.rtt;
+      jsend(peer.dc, { t: 'welcome', token: peer.token, v: buildVersion() }); broadcastRoster(); fx.hit();          // oyuncu katildi: kisa ses / titresim
+      return;
+    }
+    if (!peer.open) return;                                                        // el sikismamis baglantinin diger mesajlari yok sayilir
+    if (m.t === 'ping') {
+      if (!isNum(m.t0, 0, 1e12)) return;
+      if (isNum(m.rtt, 1, 60000)) peer.rtt = m.rtt;
       jsend(peer.dc, { t: 'pong', t0: m.t0, h: nowP() });
     } else if (m.t === 'score') {
-      if (peer.waiting && peer.waiting.r === m.r) { const w = peer.waiting; peer.waiting = null; w.res(m.v == null ? -Infinity : m.v); }
+      if (!net.matchStarted || peer.idx < 1 || !isInt(m.r, 0, 1000)) return;
+      const v = isNum(m.v, -1e9, 1e9) ? m.v : null;                                // sayi olmayan / asiri skor "puan yok" sayilir: tek istemci turu herkes icin bozamaz
+      if (peer.waiting && peer.waiting.r === m.r) { const w = peer.waiting; peer.waiting = null; w.res(v == null ? -Infinity : v); }
       if (m.r === net.round) { net.done[peer.idx] = true; net.peers.forEach(q => jsend(q.dc, { t: 'd', i: peer.idx, r: m.r })); paintNetBar(); }
     } else if (m.t === 'p') {
-      if (m.r !== net.round) return;
-      net.prog[peer.idx] = { v: m.v, m: m.m };
-      net.peers.forEach(q => q !== peer && jsend(q.dc, { t: 'p', i: peer.idx, v: m.v, m: m.m, r: m.r }));
+      if (!net.matchStarted || peer.idx < 1 || m.r !== net.round) return;
+      const v = isNum(m.v, -1e9, 1e9) ? m.v : 0, mm = isNum(m.m, 0, 1e9) ? m.m : undefined;
+      net.prog[peer.idx] = { v, m: mm };
+      net.peers.forEach(q => q !== peer && jsend(q.dc, { t: 'p', i: peer.idx, v, m: mm, r: m.r }));
       paintNetBar();
     }
   }
@@ -3349,6 +3435,7 @@
   }
 
   async function startNetMatch() {
+    if (net.role !== 'host' || !net.on || playing) return;                           // cift dokunus ya da misafirden gelen cagri ikinci bir mac baslatamaz
     const peers = livePeers();
     if (!peers.length) return toast('Önce bir arkadaşını bağla');
     if (modeKey === 'takim') modeKey = 'klasik';
@@ -3365,7 +3452,7 @@
   function netEnter(P, names, idx, mode, val, pool) {
     if (!net.prev) net.prev = { N, modeKey, modeVal: Object.assign({}, modeVal) };       // cikista kendi yerel ayarlarimiz geri yuklenir (host'un degerleri kalici olmasin)
     matchId++; stopFinaleFx(); noWin = 0; seenGames = new Set(); maxLives = val;
-    net.names = names; net.myIdx = idx; N = 1; modeKey = mode; modeVal[mode] = val; net.prog = []; net.done = []; net.round = 0;
+    net.names = names; net.myIdx = idx; N = 1; modeKey = mode; modeVal[mode] = val; net.prog = []; net.done = []; net.round = 0; net.waiting = false; net.matchStarted = true;
     scores = Array(P).fill(0); lives = Array(P).fill(val); dead = Array(P).fill(false); elim = Array(P).fill(Infinity);
     lastPool = pool.map(k => GAMES[k]);
     build([idx]); showScreen(null); endbar.classList.add('hidden'); endbar.classList.remove('tie'); hud.classList.add('hidden');
@@ -3380,7 +3467,7 @@
       const d = net.role === 'host' ? startAt - nowP() : (net.off == null ? startAt - (hostSent || startAt) : (startAt - net.off) - nowP());
       if (d > 0) await sleep(d);
     }
-    net.round = r; net.prog = []; net.done = [];
+    net.round = r; net.prog = []; net.done = []; net.waiting = false;
     if (!music.active || r === 1) music.start(moodOf(g)); else music.setMood(moodOf(g));
     resetZones(); showScores(); fx.round();
     zones[0].querySelector('.gname').textContent = g.name + ' · ' + (open ? 'Tur ' + r : r + '/' + total);
@@ -3389,6 +3476,7 @@
     addDeadMasks();
     await countdown();
     reportHook = (i, v, m) => netProgress(v, m);
+    const t0 = nowP();
     try {
       await seeded(seed, async () => {
         const res = await guardedRun(g);
@@ -3396,8 +3484,16 @@
         if (res.err) skipRound(res.err);
       });
     } finally { reportHook = null; }
-    net.done[net.myIdx] = true; paintNetBar();
+    net.done[net.myIdx] = true;
+    net.waiting = true; net.waitSec = (nowP() - t0) / 1000; paintNetBar();                  // bitirdin: en yavas rakip beklenirken geri bildirim (bayat oyun mesaji yerine)
     return lastScores[0];
+  }
+  // Turu bitiren oyuncu rakipleri beklerken: "BITIRDIN!" + kendi suresi + kac rakip kaldi. Oyunun son mesaji ("Sira sende!" gibi) bayat kalmaz.
+  function paintNetWait() {
+    if (!net.waiting || !net.on || !playing || !net.names) return;
+    const left = net.names.filter((n, i) => i !== net.myIdx && !net.done[i] && !net.away[i]).length;
+    const sec = net.waitSec != null ? net.waitSec.toFixed(1).replace('.', ',') + ' sn · ' : '';
+    say('BİTİRDİN!', sec + (left ? left + ' rakip bekleniyor' : 'sonuç hesaplanıyor'), true);
   }
   // Canli ilerleme: en fazla her 120 ms'de bir rakiplere gonderilir
   let progT = null, progLast = null;
@@ -3430,6 +3526,7 @@
     }).join('');
     const q = netQuality();
     el.innerHTML = parts + '<div class="nq ' + q.cls + '">' + q.txt + '</div>';
+    paintNetWait();
   }
   async function runNetHost(peers, my) {
     const pool = lastPool, nextGame = makeBag(pool), { open, total, val } = matchPlan(pool);
@@ -3451,6 +3548,7 @@
       const mx = Math.max(...metrics);
       const winners = mx > 0 ? metrics.map((m, i) => m === mx ? i : -1).filter(i => i >= 0) : [];
       const msg = applyRound(winners, r);
+      net.waiting = false;
       peers.forEach(p => jsend(p.dc, { t: 'result', r, winners, msg, state: stateOut() }));
       roundVisual(winners, msg);
       await sleep(1800);
@@ -3463,28 +3561,37 @@
 
   // ---- misafir ----
   async function guestJoin() {
+    if (net.on) return;
     let offer;
     try { offer = await decodeDesc($('#g-code').value); } catch (_) { return toast('Kod geçersiz'); }
+    if (!offer || offer.type !== 'offer' || !isStr(offer.sdp, 20000)) return toast('Kod geçersiz');
     $('#g-status').textContent = 'Cevap kodu hazırlanıyor…';
-    const pc = new RTCPeerConnection(iceCfg()); net.gpc = pc; net.role = 'guest'; net.on = true; net.leaving = false;
-    pc.ondatachannel = e => wireGuest(e.channel);
-    pc.onconnectionstatechange = () => { if (pc.connectionState === 'failed' || pc.connectionState === 'closed') leaveNet('Bağlantı koptu'); };
-    await pc.setRemoteDescription(offer);
-    await pc.setLocalDescription(await pc.createAnswer());
-    await waitIce(pc);
-    $('#g-ans').value = await encodeDesc(pc.localDescription);
+    let pc = null;
+    try {
+      pc = new RTCPeerConnection(iceCfg()); net.gpc = pc; net.role = 'guest'; net.on = true; net.leaving = false;
+      pc.ondatachannel = e => wireGuest(e.channel);
+      pc.onconnectionstatechange = () => { if (pc.connectionState === 'failed' || pc.connectionState === 'closed') leaveNet('Bağlantı koptu'); };
+      await pc.setRemoteDescription(offer);
+      await pc.setLocalDescription(await pc.createAnswer());
+      await waitIce(pc);
+      $('#g-ans').value = await encodeDesc(pc.localDescription);
+    } catch (e) {
+      console.error(e);
+      net.gpc = null; try { if (pc) { pc.onconnectionstatechange = null; pc.close(); } } catch (_) {}
+      return failLan('Bağlantı kurulamadı, kodu kontrol et');
+    }
     $('#g-ansbox').classList.remove('hidden');
     $('#g-status').textContent = 'Bu cevap kodunu host\'a gönder. Host kodu girince otomatik bağlanırsın.';
   }
-  function wireGuest(dc, open) {
+  function wireGuest(dc, open, token) {
     net.gdc = dc;
-    dc.onmessage = e => { let m; try { m = JSON.parse(e.data); } catch (_) { return; } onGuestMsg(m); };
+    dc.onmessage = guardMsg(onGuestMsg);
     dc.onclose = () => {
       if (!net.on || net.leaving || net.gdc !== dc) return;
       if (net.lanIp && net.token) guestReconnect(); else leaveNet('Host ile bağlantı koptu');   // LAN: otomatik yeniden baglan
     };
-    const hello = () => jsend(dc, { t: 'hello', v: VERSION, name: prefs.names[0] });
-    if (open) hello(); else dc.onopen = hello;
+    const hello = () => jsend(dc, Object.assign({ t: 'hello', v: buildVersion(), name: prefs.names[0] }, token ? { token } : {}));
+    if (open || dc.readyState === 'open') hello(); else dc.onopen = hello;                    // WebRTC: kanal "ondatachannel"de zaten acik olabilir (open olayi gelmeyebilir)
   }
   // ---- baglanti kalitesi: ping / saat farki / kopma tespiti ----
   function startPing() {
@@ -3533,7 +3640,7 @@
       try { ws = new WebSocket('ws://' + net.lanIp + ':' + lanPort()); } catch (_) { return res(false); }
       const chan = { readyState: 'connecting', onmessage: null, onclose: null, send: d => ws.send(d), close: () => { try { ws.close(); } catch (_) {} } };
       timer = setTimeout(() => { try { ws.close(); } catch (_) {} fin(false); }, 4500);
-      ws.onopen = () => { chan.readyState = 'open'; net.gws = ws; wireGuest(chan, false); jsend(chan, { t: 'hello', v: VERSION, name: prefs.names[0], token: net.token }); };
+      ws.onopen = () => { chan.readyState = 'open'; net.gws = ws; wireGuest(chan, true, net.token); };
       ws.onmessage = e => { if (chan.onmessage) chan.onmessage({ data: e.data }); };
       ws.onerror = () => fin(false);
       ws.onclose = () => { const was = chan.readyState === 'open'; chan.readyState = 'closed'; if (!done) fin(false); else if (was && chan.onclose) chan.onclose(); };
@@ -3541,44 +3648,69 @@
     });
   }
   function onGuestMsg(m) {
+    if (!m || !net.on) return;
     if (m.t === 'welcome') {
-      net.token = m.token || null;
+      clearTimeout(net.welcomeT);
+      if (isStr(m.v, 64) && m.v !== buildVersion()) { leaveNet('Uygulama sürümleri uyuşmuyor. Herkes Dokun!\'u güncellemeli.'); return; }
+      net.token = isStr(m.token, 40) ? m.token : null;
       $('#g-status').textContent = 'Bağlandı. Host maçı başlatınca oyun başlar.';
       wake.on(); startPing();
     }
-    else if (m.t === 'pong') { onPong(m); }
+    else if (m.t === 'pong') { if (isNum(m.t0, 0, 1e12) && isNum(m.h, 0, 1e12)) onPong(m); }
     else if (m.t === 'roster') {
+      if (!validNames(m.names) || !isInt(m.idx, 0, m.names.length - 1)) return;
       net.names = m.names; net.myIdx = m.idx;
       $('#g-roster').classList.remove('hidden');
-      $('#g-list').innerHTML = rosterHtml(m.names, m.idx, m.pings);
+      $('#g-list').innerHTML = rosterHtml(m.names, m.idx, Array.isArray(m.pings) ? m.pings.map(x => isNum(x, 0, 60000) ? x : 0) : []);
     }
-    else if (m.t === 'bad') { if (net.rejoinDone) net.rejoinDone(false); leaveNet(m.msg); }
+    else if (m.t === 'bad') { if (net.rejoinDone) net.rejoinDone(false); leaveNet(isStr(m.msg, 120) && m.msg ? m.msg : 'Bağlantı reddedildi'); }
     else if (m.t === 'bye') { leaveNet('Host odayı kapattı'); }
     else if (m.t === 'resume') {                                            // yeniden baglandik: durumu al, sonraki turdan devam et
-      net.token = m.token || net.token; net.myIdx = m.idx;
-      if (m.started) { net.names = m.names; adopt(m.state); showScores(); }
+      if (!isInt(m.idx, 0, 3)) return;
+      const started = m.started === true;
+      if (started && !(validNames(m.names) && m.idx < m.names.length && validState(m.state, m.names.length))) return;
+      net.token = isStr(m.token, 40) && m.token ? m.token : net.token; net.myIdx = m.idx;
+      if (started) { net.names = m.names; adopt(m.state); showScores(); }
       toast('Yeniden bağlandı'); startPing();
       if (net.rejoinDone) net.rejoinDone(true);
     }
-    else if (m.t === 'start') { netEnter(m.P, m.names, m.idx, m.mode, m.val, m.pool); }
+    else if (m.t === 'start') {
+      if (!(isInt(m.P, 2, 4) && validNames(m.names, m.P) && isInt(m.idx, 1, m.P - 1) && ['klasik', 'yaris', 'can'].includes(m.mode) && MODES[m.mode].opts.includes(m.val) &&
+        Array.isArray(m.pool) && m.pool.length >= 1 && m.pool.length <= GAMES.length && m.pool.every(k => isInt(k, 0, GAMES.length - 1)))) return;
+      netEnter(m.P, m.names, m.idx, m.mode, m.val, m.pool);
+    }
     else if (m.t === 'round') {
+      if (!net.matchStarted || !(isInt(m.r, 1, 60) && isInt(m.total, 1, 60) && isInt(m.gi, 0, GAMES.length - 1) && isInt(m.seed, -2147483648, 2147483647) &&
+        typeof m.open === 'boolean' && typeof m.intro === 'boolean' && isNum(m.at, 0, 1e12) && isNum(m.h, 0, 1e12))) return;
       (async () => {
-        const v = await netRound(GAMES[m.gi], m.seed, m.r, m.total, m.open, m.intro, m.at, m.h);
+        let v = null;                                                       // tur hata verirse host'u 70 sn bekletmemek icin "puan yok" bildirilir
+        try { v = await netRound(GAMES[m.gi], m.seed, m.r, m.total, m.open, m.intro, m.at, m.h); } catch (e) { console.error(e); }
         jsend(net.gdc, { t: 'score', r: m.r, v });
       })();
     }
-    else if (m.t === 'p') { if (m.r === net.round) { net.prog[m.i] = { v: m.v, m: m.m }; paintNetBar(); } }
-    else if (m.t === 'd') { if (m.r === net.round) { net.done[m.i] = true; paintNetBar(); } }
-    else if (m.t === 'away') { net.away[m.i] = m.on; if (m.on) toast((net.names && net.names[m.i] || 'Oyuncu') + ' bağlantısı koptu'); paintNetBar(); }
-    else if (m.t === 'result') { adopt(m.state); roundVisual(m.winners, m.msg); }
-    else if (m.t === 'final') { adopt(m.state); finale(); }
+    else if (m.t === 'p') {
+      if (isInt(m.i, 0, 3) && m.i !== net.myIdx && m.r === net.round) { net.prog[m.i] = { v: isNum(m.v, -1e9, 1e9) ? m.v : 0, m: isNum(m.m, 0, 1e9) ? m.m : undefined }; paintNetBar(); }
+    }
+    else if (m.t === 'd') { if (isInt(m.i, 0, 3) && m.r === net.round) { net.done[m.i] = true; paintNetBar(); } }
+    else if (m.t === 'away') {
+      if (isInt(m.i, 0, 3) && typeof m.on === 'boolean') { net.away[m.i] = m.on; if (m.on) toast((net.names && net.names[m.i] || 'Oyuncu') + ' bağlantısı koptu'); paintNetBar(); }
+    }
+    else if (m.t === 'result') {
+      const P = net.names ? net.names.length : 0;
+      if (!(Array.isArray(m.winners) && m.winners.length <= P && m.winners.every(i => isInt(i, 0, P - 1)) && validState(m.state, P))) return;
+      net.waiting = false; adopt(m.state); roundVisual(m.winners, safeMsg(m.msg));
+    }
+    else if (m.t === 'final') {
+      if (!validState(m.state, net.names ? net.names.length : 0)) return;
+      net.waiting = false; adopt(m.state); finale();
+    }
   }
 
   function leaveNet(msg) {
-    net.leaving = true; clearNetTimers(); showReconn(false); $('#netbar').classList.add('hidden');
-    net.peers.forEach(p => clearTimeout(p.awayTimer));
+    net.leaving = true; clearNetTimers(); showReconn(false); $('#netbar').classList.add('hidden'); clearTimeout(net.welcomeT);
+    net.peers.forEach(p => { clearTimeout(p.awayTimer); clearTimeout(p.helloT); });
     if (net.role === 'host') {                         // misafirler "baglanti koptu" sanip yeniden baglanmaya calismasin: oda kapandi bilgisi gonder
-      const peers = net.peers.slice(), lan = net.lan && lanPlugin();
+      const peers = net.peers.slice(), lan = (net.lan || net.mode === 'lan') && lanPlugin();       // sunucu henuz "hazir" demeden cikilsa da kapatilir (eklenti islerini sirayla yapar)
       peers.forEach(p => jsend(p.dc, { t: 'bye' }));
       setTimeout(() => { peers.forEach(p => { try { if (p.dc) p.dc.close(); if (p.pc) p.pc.close(); } catch (_) {} }); try { if (lan) lan.stop(); } catch (_) {} }, 250);
     } else {
@@ -3588,7 +3720,7 @@
     }
     const prev = net.prev;
     Object.assign(net, { on: false, role: null, names: null, myIdx: 0, peers: [], gdc: null, gws: null, gpc: null, pending: null, prev: null, lan: null, matchStarted: false,
-      rtt: 0, off: null, samples: [], lastPong: 0, weak: false, token: null, lanIp: null, reconnecting: false, round: 0, prog: [], done: [], away: [] });
+      rtt: 0, off: null, samples: [], lastPong: 0, weak: false, token: null, lanIp: null, reconnecting: false, round: 0, prog: [], done: [], away: [], waiting: false, waitSec: null, welcomeT: null });
     document.body.classList.remove('net', 'guest');
     quitMatch();                                       // zamanlayicilar, muzik ve ekranlar sifirlanir, ana menuye donulur
     if (prev) { N = prev.N; modeKey = prev.modeKey; Object.assign(modeVal, prev.modeVal); renderModeUI(); }       // host'un mod / deger secimi yerel ayari kalici degistirmesin
@@ -3619,6 +3751,7 @@
   $('#net-adv').addEventListener('click', safe(() => { net.mode = net.mode === 'lan' ? 'rtc' : 'lan'; paintNetNote(); }));
   $('#net-back').addEventListener('click', () => { upOne(); });          // oda aciksa kapatir; Odaya katil / Oda kur panelindeysen secime, secimdeysen ana menuye doner
   $('#net-host-btn').addEventListener('click', safe(async () => {
+    if (net.on) return;                                                 // cift dokunus ikinci oda / ikinci zamanlayici kurmaz
     net.role = 'host'; net.on = true; net.leaving = false; wake.on();
     $('#net-choose').classList.add('hidden'); $('#net-host').classList.remove('hidden');
     $('#h-lan').classList.toggle('hidden', net.mode !== 'lan');
@@ -3627,7 +3760,7 @@
       livePeers().forEach(p => { if (!p.away && nowP() - p.lastSeen > 14000) { try { p.dc.close(); } catch (_) {} } });
       if (!net.matchStarted) broadcastRoster(); else paintNetBar();
     }, 2000);
-    if (net.mode === 'lan') { if (!(await hostLanStart())) { leaveNet(); showScreen('net'); paintNetNote(); } }
+    if (net.mode === 'lan') { if ((await hostLanStart()) === false) { leaveNet(); showScreen('net'); paintNetNote(); } }          // null: kullanici oda kurulurken zaten cikti
     else await hostPrepare();
   }));
   $('#net-join-btn').addEventListener('click', safe(() => {
@@ -3667,7 +3800,7 @@
   document.addEventListener('contextmenu', e => { if (!/INPUT|TEXTAREA/.test(e.target.tagName)) e.preventDefault(); });
   window.__dokun = { get scores() { return scores; }, get zones() { return zones; }, get N() { return N; }, GAMES, resetZones, fx, say, finish: finale, burst, setS: forceS,
     restartMatch, goldenRound, setGolden(k) { forceGolden = k; }, openGuide, closeGuide, get lastTie() { return lastTie; }, get lives() { return lives; }, get noWin() { return noWin; },
-    backGuard, get dead() { return dead; }, vt, music, prefs, shared, pauseGame, resumeGame, quitMatch, play, nameOf, net, leaveNet, get scoresAll() { return scores; }, get lastScores() { return lastScores; },
+    backGuard, get dead() { return dead; }, vt, music, prefs, shared, pauseGame, resumeGame, quitMatch, play, nameOf, net, leaveNet, get netVersion() { return buildVersion(); }, safeMsg, parseNet, uniqueName, get scoresAll() { return scores; }, get lastScores() { return lastScores; },
     setup(n) { N = n; scores = Array(N).fill(0); lives = Array(N).fill(3); dead = Array(N).fill(false); elim = Array(N).fill(Infinity); build(); showScreen(null); } };
 })();
 </script>
