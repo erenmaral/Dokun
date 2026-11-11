@@ -1277,9 +1277,13 @@
   const pzCount = (i, txt) => { const c = zones[i] && zones[i].querySelector('.pz .cnt'); if (!c) return; c.textContent = txt; c.classList.remove('bump'); void c.offsetWidth; c.classList.add('bump'); };
   const pzBest = (n, W, H, gap, cap, minC, maxC) => {                    // en buyuk hucreyi veren sutun sayisi (esitlikte bos hucresi az olan)
     let best = null;
-    for (let c = minC; c <= Math.min(maxC, n); c++) {
-      const r = Math.ceil(n / c), cell = Math.floor(Math.min((W - gap * (c - 1)) / c, (H - gap * (r - 1)) / r, cap));
-      if (!best || cell > best.cell || (cell === best.cell && c * r - n < best.c * best.r - n)) best = { c, r, cell };
+    for (const full of [true, false]) {                                  // once tam dikdortgen (bos hucre yok); olmazsa son satiri kisa birak
+      for (let c = minC; c <= Math.min(maxC, n); c++) {
+        if (full && n % c) continue;
+        const r = Math.ceil(n / c), cell = Math.floor(Math.min((W - gap * (c - 1)) / c, (H - gap * (r - 1)) / r, cap));
+        if (!best || cell > best.cell) best = { c, r, cell };
+      }
+      if (best) break;
     }
     return best;
   };
