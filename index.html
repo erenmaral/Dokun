@@ -238,13 +238,42 @@
   .zone.narrow .hd-num b { font-size:clamp(22px, 7vmin, 32px); }
   body.cb .hd-btn::before { border-style:solid; border-width:4px; }
 
-  .tgt { position:absolute; width:56px; height:56px; margin:-28px 0 0 -28px; animation:tpop .24s var(--pop); }
+  /* ---- Hedef Avi / Balon Patlat / Kostebek Avi ortak: sure cubugu, "sure doldu" levhasi, sayac nabzi ---- */
+  .hd-time { position:absolute; left:2px; right:2px; top:-24px; height:12px; z-index:3; pointer-events:none; overflow:hidden; text-shadow:none;
+    border-radius:var(--r-pill); background:var(--ink); border:var(--ln-s) solid var(--ink); box-shadow:0 0 0 2px rgba(255,244,220,.4); }
+  body.net .hd-time { top:-19px; }
+  .hd-time i { display:block; width:100%; height:100%; background:var(--yellow); transform-origin:0 50%; animation:hdtime var(--T, 10s) linear forwards; }
+  .hd-time.low { animation:hdlow .4s var(--soft) infinite alternate; }
+  .hd-time.low i { background:var(--red); }
+  body.cb .hd-time.low i { background:repeating-linear-gradient(135deg, var(--red) 0 6px, var(--paper) 6px 12px); }
+  @keyframes hdtime { to { transform:scaleX(0); } }
+  @keyframes hdlow { to { transform:scale(1.02, 1.45); } }
+  .hd-end { position:absolute; left:0; right:0; top:44%; z-index:5; display:flex; justify-content:center; pointer-events:none; }
+  .hd-end span { display:block; max-width:calc(100% - 6px); text-align:center; padding:6px 14px 8px; background:var(--paper); color:var(--ink); border:var(--ln-b) solid var(--ink); border-radius:var(--r-m);
+    box-shadow:var(--sh-m); font-family:var(--f-display); font-weight:700; font-size:clamp(18px, 6vmin, 30px); line-height:1.05; text-shadow:none; transform:rotate(-4deg); animation:hdend .45s var(--pop) both; }
+  @keyframes hdend { from { transform:scale(.3) rotate(-14deg); opacity:0; } to { transform:scale(1) rotate(-4deg); opacity:1; } }
+  .cnt.bump { animation:cntbump .4s var(--pop); }
+  @keyframes cntbump { 30% { transform:translateX(-50%) scale(1.35, .85); } 60% { transform:translateX(-50%) scale(.92, 1.12); } }
+
+  /* ---- Hedef Avi: hedef boyutu --sz ile verilir; her yeni hedefte halka dalgasi, isabette yildiz + parcalar, iskada "x" isareti ---- */
+  .tgt { --sz:56px; position:absolute; width:var(--sz); height:var(--sz); margin:calc(var(--sz) / -2) 0 0 calc(var(--sz) / -2); animation:tpop .26s var(--pop); }
   .tgt svg { display:block; width:100%; height:100%; overflow:visible; animation:tbob 1.1s ease-in-out infinite alternate; }
+  .tgt::before { content:''; position:absolute; inset:-5px; border-radius:50%; border:3px solid var(--c); opacity:0; pointer-events:none; animation:tping .55s var(--out) .05s; }
   @keyframes tpop { from { transform:scale(.2) rotate(-40deg); opacity:0; } 60% { opacity:1; } to { transform:scale(1) rotate(0); opacity:1; } }
   @keyframes tbob { to { transform:translateY(-3px) rotate(3deg); } }
-  .hitfx { position:absolute; width:76px; height:76px; margin:-38px 0 0 -38px; pointer-events:none; z-index:2; animation:hitfx .36s var(--out) forwards; }
+  @keyframes tping { from { transform:scale(.8); opacity:.95; } to { transform:scale(2.1); opacity:0; } }
+  .hitfx { --hs:38px; position:absolute; width:calc(var(--hs) * 2); height:calc(var(--hs) * 2); margin:calc(var(--hs) * -1) 0 0 calc(var(--hs) * -1); pointer-events:none; z-index:2; animation:hitfx .4s var(--out) forwards; }
   .hitfx svg { display:block; width:100%; height:100%; }
-  @keyframes hitfx { from { transform:scale(.35) rotate(-20deg); opacity:1; } to { transform:scale(1.35) rotate(14deg); opacity:0; } }
+  .hitfx i { position:absolute; left:50%; top:50%; width:11px; height:11px; margin:-5px 0 0 -5px; border-radius:3px; background:var(--c); border:2px solid var(--ink); animation:hshard .5s var(--out) forwards; }
+  @keyframes hitfx { from { transform:scale(.35) rotate(-20deg); opacity:1; } to { transform:scale(1) rotate(14deg); opacity:0; } }
+  @keyframes hshard { from { transform:rotate(var(--a)) translateY(-6px) scale(1); opacity:1; } to { transform:rotate(var(--a)) translateY(calc(var(--hs) * -1 + 6px)) scale(.4); opacity:0; } }
+  .tg-miss { position:absolute; width:26px; height:26px; margin:-13px 0 0 -13px; border-radius:50%; background:var(--paper); border:var(--ln-s) solid var(--ink); box-shadow:var(--sh-xs); pointer-events:none; z-index:4; animation:tgmiss .5s var(--out) forwards; }
+  .tg-miss::before, .tg-miss::after { content:''; position:absolute; left:50%; top:50%; width:14px; height:4px; margin:-2px 0 0 -7px; border-radius:2px; background:var(--red); transform:rotate(45deg); }
+  .tg-miss::after { transform:rotate(-45deg); }
+  @keyframes tgmiss { 0% { transform:scale(.3); opacity:0; } 22% { transform:scale(1.15); opacity:1; } 100% { transform:translateY(-12px) scale(.95); opacity:0; } }
+  .tg-lock { position:absolute; left:0; right:0; top:28px; bottom:0; z-index:2; border-radius:var(--r-m); background:rgba(29,24,56,.55); display:flex; align-items:center; justify-content:center; pointer-events:none; animation:tglk .46s linear forwards; }
+  .tg-lock svg { width:min(44px, 40%); height:auto; aspect-ratio:1; display:block; animation:lockpop .35s var(--pop) both; }
+  @keyframes tglk { 0%, 80% { opacity:1; } 100% { opacity:0; } }
 
   .grid { display:grid; gap:8px; width:100%; margin:0 auto; align-content:center; height:100%;
     max-width:min(100%, calc((50dvh - var(--hp, 100px)) * var(--ar, 1))); }
@@ -286,21 +315,29 @@
   .pad.lit { transform:scale(1.08); z-index:1; }
   .pad.lit::after { opacity:.62; }
 
-  .balloons { overflow-x:clip; }                      /* dikey: balonlar bolgenin altindan dogup ustunden cikar; yatay: tasma yok */
-  .balloon { position:absolute; bottom:-200px; width:64px; height:96px; margin-left:-32px; animation:rise 4s linear forwards; }
-  .balloon .bb { position:absolute; inset:0; transform-origin:50% 88%; animation:sway 1.3s ease-in-out infinite alternate; transition:transform .12s var(--out), opacity .12s; }
+  /* balon: balonlar arenanin icinde (yandan kirpilmaz) dogar; alt/ust kenari bolge cercevesi gizler. Boyut --bw ile arena genisligine gore ayarlanir */
+  .balloons { --bw:64px; }                                                    /* kirpma yok: balonlar arena icinde dogar; alt/ust kenarda bolge cercevesi kirpar */
+  .balloon { position:absolute; bottom:calc(var(--bw) * -1.5 - 70px); width:var(--bw); height:calc(var(--bw) * 1.5); margin-left:calc(var(--bw) / -2); animation:rise 4s linear forwards; }
+  .balloon .bb { position:absolute; inset:0; transform-origin:50% 88%; animation:sway 1.3s ease-in-out infinite alternate; }
   .balloon .bb svg { display:block; width:100%; height:100%; overflow:visible; }
-  .balloon.pop { animation-play-state:paused; }
-  .balloon.pop .bb { transform:scale(.2); opacity:0; animation:none; }
-  .balloon .emb { position:absolute; left:50%; top:25%; width:28px; height:28px; margin-left:-14px; pointer-events:none; }
+  .balloon.pop, .balloon.endp { animation-play-state:paused; }
+  .balloon.pop .bb, .balloon.endp .bb { animation:bpop .22s var(--out) forwards; }
+  .balloon .emb { position:absolute; left:50%; top:25%; width:44%; height:29%; margin-left:-22%; pointer-events:none; }
   .balloon .emb svg, .balloon .spk svg { display:block; width:100%; height:100%; }
-  .balloon .spk { position:absolute; width:16px; height:16px; pointer-events:none; animation:twinkle .9s ease-in-out infinite alternate; }
+  .balloon .spk { position:absolute; width:25%; height:17%; pointer-events:none; animation:twinkle .9s ease-in-out infinite alternate; }
+  /* bomba: kirmizi uyari halkasi nabiz atar, altin balon: sicak parilti halkasi (sekil + hareket farki, yalniz renge bagli degil) */
+  .balloon[data-bomb]::before, .balloon.gold::before { content:''; position:absolute; left:50%; width:calc(var(--bw) * .96); height:calc(var(--bw) * .96); margin-left:calc(var(--bw) * -.48); border-radius:50%; pointer-events:none; opacity:0; }
+  .balloon[data-bomb]::before { top:calc(var(--bw) * .49); border:3px solid var(--red); animation:bhalo .9s ease-out infinite; }
+  .balloon.gold::before { top:calc(var(--bw) * .1); border:3px dashed var(--yellow); animation:bhalo 1.4s ease-out infinite; }
+  body.cb .balloon[data-bomb]::before { border-style:dotted; border-width:4px; }
   @keyframes rise { to { transform:translateY(var(--rise, -640px)); } }       /* transform ile yukselir: bottom animasyonu her karede yerlesim hesaplatiyordu */
-  @keyframes sway { from { transform:rotate(-5deg); } to { transform:rotate(5deg); } }
+  @keyframes sway { from { transform:translateX(-4px) rotate(-5deg); } to { transform:translateX(4px) rotate(5deg); } }
+  @keyframes bpop { 0% { transform:scale(1); opacity:1; } 30% { transform:scale(1.22, .86); opacity:1; } 100% { transform:scale(.25); opacity:0; } }
+  @keyframes bhalo { 0% { transform:scale(.75); opacity:.95; } 100% { transform:scale(1.45); opacity:0; } }
   @keyframes twinkle { from { transform:scale(.3) rotate(0); opacity:.2; } to { transform:scale(1.1) rotate(45deg); opacity:1; } }
   .spark { transform-box:fill-box; transform-origin:center; animation:flick .3s steps(2, jump-none) infinite; }
   @keyframes flick { from { transform:scale(.8) rotate(0); } to { transform:scale(1.15) rotate(20deg); } }
-  .pfx { position:absolute; left:50%; top:42%; width:0; height:0; pointer-events:none; z-index:3; }
+  .pfx { position:absolute; left:50%; top:calc(var(--bw) * .6); width:0; height:0; pointer-events:none; z-index:3; }
   .pfx .st { position:absolute; left:-36px; top:-36px; width:72px; height:72px; animation:stburst .4s var(--out) forwards; }
   .pfx .st svg { display:block; width:100%; height:100%; }
   .pfx i { position:absolute; left:-6px; top:-6px; width:12px; height:12px; border-radius:4px; background:var(--bc); border:2px solid var(--ink); animation:shard .46s var(--out) forwards; }
@@ -658,17 +695,38 @@
 
   /* balon: gokyuzu ve bulutlar */
   .zone.sky, .zone.sky[data-s="go"] { --ground:#5bbcf6; --dot:rgba(255,255,255,.32); }
-  .cloud { position:absolute; left:-30%; width:96px; height:54px; animation:cloud 18s linear infinite; pointer-events:none; opacity:.95; }
+  .zone.sky[data-s="win"] { --ground:var(--yellow); --dot:rgba(255,244,220,.09); }              /* tur sonu: kazanan bolge diger oyunlardaki gibi altin olur (sky zemini ezmez) */
+  .cloud { position:absolute; left:0; width:calc(var(--bw, 64px) * var(--cm, 1.5)); height:calc(var(--bw, 64px) * var(--cm, 1.5) * .56); animation:cloud 18s linear infinite; pointer-events:none; opacity:0; }
   .cloud svg { display:block; width:100%; height:100%; }
-  @keyframes cloud { to { transform:translateX(480%); } }
+  @keyframes cloud { 0% { transform:translateX(0); opacity:0; } 14% { opacity:.95; } 86% { opacity:.95; } 100% { transform:translateX(calc(var(--aw, 300px) - 100%)); opacity:0; } }      /* arena icinde sure gider; kenarlarda solar (kesik kenar yok) */
 
   /* oyun ogeleri */
-  .hole { background:#6e4a33; border-radius:50%; overflow:hidden; box-shadow:var(--sh-m), inset 0 -10px 0 #4a2f22; }
-  .zone.narrow .hole { box-shadow:var(--sh-s), inset 0 -8px 0 #4a2f22; }
-  .hole svg.mole { position:absolute; left:8%; bottom:0; width:84%; height:84%; display:block; transform-origin:50% 100%; }
-  .hole.up svg.mole { animation:up .22s var(--out); }
-  .hole.hit { background:var(--yellow); }
-  @keyframes up { 0% { transform:scale(.6,.2); } 55% { transform:scale(.94,1.14); } 100% { transform:none; } }
+  /* kostebek: toprak tarla + delikten cikan kostebek (--ms: tarla kenari, arena boyuna gore JS ayarlar; hucreler en az 34 px) */
+  .mgrid { --dirt:#9b6a45; position:absolute; left:50%; top:calc(28px + (100% - 28px - var(--ms, 120px)) / 2); width:var(--ms, 120px); height:var(--ms, 120px); margin-left:calc(var(--ms, 120px) / -2);
+    display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); grid-template-rows:repeat(3, minmax(0, 1fr)); padding:3px; background:var(--dirt);
+    border:var(--ln) solid var(--ink); border-radius:var(--r-m); box-shadow:var(--sh-m); text-shadow:none; }
+  .hole { position:relative; overflow:hidden; min-width:0; min-height:0; }
+  .hole .mh-b, .hole .mh-f { position:absolute; left:0; top:0; width:100%; height:100%; display:block; pointer-events:none; }
+  .hole .mh-f { z-index:2; }
+  .hole .mh-m { position:absolute; left:6%; top:12%; width:88%; height:88%; z-index:1; pointer-events:none; transform:scale(.9, .02); transform-origin:50% 100%; visibility:hidden; }
+  .hole .mh-m svg { display:block; width:100%; height:100%; overflow:visible; }
+  .hole.up .mh-m, .hole.dn .mh-m, .hole.hit .mh-m { visibility:visible; }
+  .hole.up .mh-m { animation:mup .2s var(--out) both; }
+  .hole.dn .mh-m { animation:mdown .16s ease-in both; }
+  .hole.hit .mh-m { animation:mhit .32s var(--out) both; }
+  .hole.gold .mh-m { --mf:#ffc83d; --mb:#fff0b0; --crown:inline; }
+  .hole .mh-fx { position:absolute; left:14%; top:0; width:72%; height:72%; z-index:3; pointer-events:none; display:flex; align-items:center; justify-content:center; animation:hitfx .42s var(--out) forwards; }
+  .hole .mh-fx svg { position:absolute; inset:0; width:100%; height:100%; display:block; }
+  .hole .mh-fx b { position:relative; font-size:clamp(11px, 38%, 22px); font-weight:700; line-height:1; color:var(--ink); text-shadow:none; }
+  .hole .mh-fx b.neg { color:var(--red); }
+  .mgrid .mk-lock { position:absolute; left:50%; top:50%; width:26%; height:26%; margin:-13% 0 0 -13%; z-index:4; pointer-events:none; opacity:0; transform:scale(.4); transition:opacity .1s; }
+  .mgrid.lk::after { content:''; position:absolute; inset:0; z-index:3; border-radius:inherit; background:rgba(29,24,56,.55); pointer-events:none; }
+  .mgrid.lk .mk-lock { opacity:1; animation:lockpop .35s var(--pop) forwards; }
+  /* kostebek deliginin dibinden buyuyerek (alt noktadan olceklenir) cikar: oge kutusu hicbir karede hucrenin disina cikmaz; on kenar (mh-f) alt govdeyi gizler */
+  @keyframes mup { 0% { transform:scale(.88, .02); } 42% { transform:scale(.94, 1.12); } 72% { transform:scale(1.05, .95); } 100% { transform:none; } }
+  @keyframes mdown { from { transform:none; } to { transform:scale(.88, .02); } }
+  @keyframes mhit { 0% { transform:scale(1.14, .76); } 38% { transform:scale(1.04, .86); } 100% { transform:scale(.88, .02); } }
+  @keyframes lockpop { from { transform:scale(.4) rotate(-20deg); } to { transform:scale(1) rotate(0); } }
   .card { font-size:30px; }
   .card .qm { font-family:var(--f-display); font-weight:700; font-size:1.25em; color:var(--paper); text-shadow:var(--ol2); line-height:1; }
   .card:not(.open):not(.done) { background:var(--purple); background-image:radial-gradient(rgba(255,244,220,.35) 2px, transparent 2.6px); background-size:12px 12px; }
@@ -766,7 +824,10 @@
 <symbol id="a-burst" viewBox="0 0 64 64"><path d="M32.0 3.0L37.5 17.0L50.6 9.8L45.9 24.0L60.6 27.0L47.8 34.8L57.1 46.5L42.3 44.3L41.9 59.3L32.0 48.0L22.1 59.3L21.7 44.3L6.9 46.5L16.2 34.8L3.4 27.0L18.1 24.0L13.4 9.8L26.5 17.0Z" fill="#fff4dc" stroke="#1d1838" stroke-width="3" stroke-linejoin="round"/><path d="M32.0 15.0L35.4 22.6L42.9 19.0L40.7 27.0L48.7 29.0L41.8 33.7L46.7 40.5L38.4 39.7L37.8 48.0L32.0 42.0L26.2 48.0L25.6 39.7L17.3 40.5L22.2 33.7L15.3 29.0L23.3 27.0L21.1 19.0L28.6 22.6Z" fill="#ffd23f"/></symbol>
 <symbol id="a-cloud" viewBox="0 0 110 62"><defs><g id="cloud-s"><circle cx="30" cy="34" r="16"/><circle cx="52" cy="24" r="20"/><circle cx="76" cy="32" r="17"/><rect x="26" y="32" width="64" height="18" rx="9"/></g></defs><use href="#cloud-s" fill="#2b78c4" stroke="#2b78c4" stroke-width="6" stroke-linejoin="round"/><use href="#cloud-s" fill="#fff4dc"/><path d="M40 14a14 14 0 0 1 10-4" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/></symbol>
 <symbol id="a-target" viewBox="0 0 64 64"><circle cx="32" cy="32" r="29.500" style="fill:var(--c,#ff5a5f)" stroke="#1d1838" stroke-width="3.500"/><circle cx="32" cy="32" r="21" fill="#fff4dc" stroke="#1d1838" stroke-width="3"/><circle cx="32" cy="32" r="12.500" style="fill:var(--c,#ff5a5f)" stroke="#1d1838" stroke-width="3"/><circle cx="32" cy="32" r="5.500" fill="#ffd23f" stroke="#1d1838" stroke-width="2.500"/><path d="M11 21a24 24 0 0 1 8-9" fill="none" stroke="#fff4dc" stroke-width="3.500" stroke-linecap="round"/></symbol>
-<symbol id="a-mole" viewBox="0 0 48 48"><g stroke="#1d1838" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" ><ellipse cx="9" cy="30" rx="4" ry="3.500" fill="#ff8fa3" stroke-width="2.500"/><ellipse cx="39" cy="30" rx="4" ry="3.500" fill="#ff8fa3" stroke-width="2.500"/><path d="M6 44C5 27 13 12 24 12s19 15 18 32Z" fill="#b07a52"/><ellipse cx="24" cy="31" rx="9.500" ry="7" fill="#e0b48a" stroke-width="2.500"/><ellipse cx="24" cy="27" rx="5" ry="3.600" fill="#ff8fa3" stroke-width="2.500"/><circle cx="17" cy="20" r="2.800" fill="#1d1838" stroke="none"/><circle cx="31" cy="20" r="2.800" fill="#1d1838" stroke="none"/><circle cx="16" cy="19" r="1" fill="#fff4dc" stroke="none"/><circle cx="30" cy="19" r="1" fill="#fff4dc" stroke="none"/><path d="M21 34q3 2.500 6 0" fill="none" stroke-width="2.200"/></g></symbol>
+<symbol id="a-mole" viewBox="0 0 48 48"><g stroke="#1d1838" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" ><ellipse cx="9" cy="30" rx="4" ry="3.500" fill="#ff8fa3" stroke-width="2.500"/><ellipse cx="39" cy="30" rx="4" ry="3.500" fill="#ff8fa3" stroke-width="2.500"/><path d="M6 44C5 27 13 12 24 12s19 15 18 32Z" style="fill:var(--mf,#b07a52)"/><ellipse cx="24" cy="31" rx="9.500" ry="7" style="fill:var(--mb,#e0b48a)" stroke-width="2.500"/><ellipse cx="24" cy="27" rx="5" ry="3.600" fill="#ff8fa3" stroke-width="2.500"/><circle cx="17" cy="20" r="2.800" fill="#1d1838" stroke="none"/><circle cx="31" cy="20" r="2.800" fill="#1d1838" stroke="none"/><circle cx="16" cy="19" r="1" fill="#fff4dc" stroke="none"/><circle cx="30" cy="19" r="1" fill="#fff4dc" stroke="none"/><path d="M21 34q3 2.500 6 0" fill="none" stroke-width="2.200"/><ellipse cx="12" cy="41.500" rx="5.500" ry="3.800" style="fill:var(--mb,#e0b48a)" stroke-width="2.500"/><ellipse cx="36" cy="41.500" rx="5.500" ry="3.800" style="fill:var(--mb,#e0b48a)" stroke-width="2.500"/><g style="display:var(--crown,none)"><path d="M15 16L14 7L19.500 11.500L24 4L28.500 11.500L34 7L33 16Z" fill="#ffd23f" stroke-width="2.500"/></g></g></symbol>
+<symbol id="m-hog" viewBox="0 0 48 48"><g stroke="#1d1838" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" ><path d="M4 44L4 31L8 27L6 19L13 20L14 11L20 15L24 7L28 15L34 11L35 20L42 19L40 27L44 31L44 44Z" fill="#7b44d6"/><path d="M11 44C10 35 16 29 24 29s14 6 13 15Z" fill="#fff4dc" stroke-width="2.500"/><circle cx="19" cy="36" r="2.400" fill="#1d1838" stroke="none"/><circle cx="29" cy="36" r="2.400" fill="#1d1838" stroke="none"/><path d="M15.500 31.500l6.500 2.500M32.500 31.500l-6.500 2.500" fill="none" stroke-width="2.600"/><ellipse cx="24" cy="40.500" rx="2.600" ry="2" fill="#1d1838" stroke="none"/><path d="M12 22l1.500-3M30 19l1.500-4" fill="none" stroke="#fff4dc" stroke-width="2.200"/></g></symbol>
+<symbol id="m-hole-b" viewBox="0 0 64 64"><ellipse cx="32" cy="44" rx="26" ry="11" fill="#3a2317" stroke="#1d1838" stroke-width="3.500"/><ellipse cx="32" cy="42" rx="19" ry="5.500" fill="#52331f"/></symbol>
+<symbol id="m-hole-f" viewBox="0 0 64 64"><path d="M-4 44H6A26 11 0 0 0 58 44H68V68H-4Z" style="fill:var(--dirt,#9b6a45)"/><path d="M6 44A26 11 0 0 0 58 44" fill="none" stroke="#1d1838" stroke-width="3.500" stroke-linecap="round"/><path d="M9 50A26 11 0 0 0 55 50" fill="none" stroke="#b98558" stroke-width="2.500" stroke-linecap="round"/></symbol>
 <symbol id="a-arrow" viewBox="0 0 48 48"><path d="M24 5 41 24H30v19H18V24H7Z" style="fill:var(--ac,#ffd23f)" stroke="#1d1838" stroke-width="3.500" stroke-linejoin="round"/><path d="M17 20l7-8" fill="none" stroke="#fff4dc" stroke-width="3" stroke-linecap="round"/></symbol>
 <symbol id="f-bear" viewBox="0 0 48 48"><g stroke="#1d1838" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" ><circle cx="10" cy="14" r="6.500" fill="#b9764a"/><circle cx="38" cy="14" r="6.500" fill="#b9764a"/><circle cx="10" cy="14" r="2.500" fill="#f0b48a" stroke="none"/><circle cx="38" cy="14" r="2.500" fill="#f0b48a" stroke="none"/><ellipse cx="24" cy="27" rx="17" ry="16" fill="#c98557"/><ellipse cx="24" cy="33" rx="8" ry="6" fill="#f6d2a8" stroke-width="2.500"/><ellipse cx="24" cy="30.500" rx="3.500" ry="2.500" fill="#1d1838" stroke="none"/><circle cx="16.500" cy="24" r="2.300" fill="#1d1838" stroke="none"/><circle cx="31.500" cy="24" r="2.300" fill="#1d1838" stroke="none"/><path d="M24 33v2.500M21 36q3 2.500 6 0" fill="none" stroke-width="2"/></g></symbol>
 <symbol id="f-cat" viewBox="0 0 48 48"><g stroke="#1d1838" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" ><path d="M7 24 8 5l13 8Z" fill="#ff9442"/><path d="M41 24 40 5 27 13Z" fill="#ff9442"/><path d="M11 17l.500-7 6 4Z" fill="#ffb3c1" stroke="none"/><path d="M37 17l-.500-7-6 4Z" fill="#ffb3c1" stroke="none"/><ellipse cx="24" cy="28" rx="18" ry="15" fill="#ff9442"/><path d="M24 14v5M19 15l1 4M29 15l-1 4" fill="none" stroke-width="2.200"/><ellipse cx="16.500" cy="26" rx="2.500" ry="3.200" fill="#1d1838" stroke="none"/><ellipse cx="31.500" cy="26" rx="2.500" ry="3.200" fill="#1d1838" stroke="none"/><circle cx="17.200" cy="24.800" r="1" fill="#fff4dc" stroke="none"/><circle cx="32.200" cy="24.800" r="1" fill="#fff4dc" stroke="none"/><path d="M21.500 31h5L24 34Z" fill="#ff6b8a" stroke-width="2"/><path d="M24 34v2q-3 2.500-6 .500M24 36q3 2.500 6 .500" fill="none" stroke-width="2"/><path d="M3 29h8M4 35l7-3M45 29h-8M44 35l-7-3" fill="none" stroke-width="2"/></g></symbol>
@@ -1526,35 +1587,115 @@
     return top >= 0 ? q.map((v, i) => v === top ? i : -1).filter(i => i >= 0) : [];
   }
 
+
+  // ---------- Hedef Avi / Balon Patlat / Kostebek Avi: ortak yardimcilar ----------
+  // Ses ve titresim paylasilan fx nesnesine dokunmadan ayni AudioContext ile calinir. Math.random YALNIZ icerik (hedef / balon / kostebek dizisi)
+  // uretiminde kullanilir: ag modunda seed'li Math.random tum telefonlarda ayni diziyi verir; efektler rastgeleliginden etkilenmez.
+  const hdTone = (f, d, o = {}) => {
+    if (!prefs.sfx) return;
+    const c = fx.unlock(); if (!c) return;
+    const { type = 'sine', vol = 0.15, at = 0, slide = 0 } = o, t = c.currentTime + at, osc = c.createOscillator(), g = c.createGain();
+    osc.type = type; osc.frequency.setValueAtTime(f, t);
+    if (slide) osc.frequency.exponentialRampToValueAtTime(Math.max(30, f + slide), t + d);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+    osc.connect(g); g.connect(c.destination); osc.start(t); osc.stop(t + d + 0.02);
+  };
+  const hdVib = p => { if (prefs.vib && navigator.vibrate) { try { navigator.vibrate(p); } catch (_) {} } };
+  const hdTimeBar = ms => '<div class="hd-time" style="--T:' + ms + 'ms"><i></i></div>';           // arenaya konur; CSS animasyonu sureyle bosalir (duraklatinca donar)
+  const hdLow = ms => vt.timeout(() => zones.forEach(z => { const t = z.querySelector('.hd-time'); if (t) t.classList.add('low'); }), Math.max(0, ms - 3000));   // son 3 sn: kirmizi + nabiz
+  const hdLater = tms => (fn, ms) => { const id = vt.timeout(() => { tms.delete(id); fn(); }, ms); tms.add(id); return id; };      // oyun ici kisa zamanlayicilar: tur bitince topluca temizlenir (bekleyen zamanlayici kalmaz)
+  const hdBump = i => { const c = zones[i] && zones[i].querySelector('.cnt'); if (!c) return; c.classList.remove('bump'); void c.offsetWidth; c.classList.add('bump'); };
+  const hdTimeUp = async () => {                                    // her bolgede kendi yonunde "SURE DOLDU" levhasi + kisa bekleme
+    zones.forEach(z => { const a = z.querySelector('.arena'); if (a) a.insertAdjacentHTML('beforeend', '<div class="hd-end"><span>SÜRE DOLDU!</span></div>'); });
+    hdTone(660, 0.09, { type: 'triangle', vol: 0.14 }); hdTone(440, 0.18, { type: 'triangle', vol: 0.14, at: 0.1 }); hdVib(40);
+    await sleep(750);
+  };
+  const hdClean = (...sel) => zones.forEach(z => { const a = z.querySelector('.arena'); if (a) sel.forEach(s => a.querySelectorAll(s).forEach(n => n.remove())); });
+  // arena yeniden boyutlanirsa (ekran donmesi vb.) cagrilir; oyun bittiyse ya da bu oyunun arenasi DOM'dan kalktiysa (mac kapandi) kendini siler
+  const hdOnResize = (alive, fn) => {
+    const a0 = zones[0] && zones[0].querySelector('.arena');
+    const h = () => { if (!alive() || !a0 || !a0.isConnected) { window.removeEventListener('resize', h); return; } fn(); };
+    window.addEventListener('resize', h); return () => window.removeEventListener('resize', h);
+  };
+
   async function targets() {
-    const GOAL = 6, cnt = Array(N).fill(0), fin = [], T0 = vt.now();
-    let winner = -1;
+    const GOAL = 6, LIMIT = 15000, TOP = 30, cnt = Array(N).fill(0), fin = [], T0 = vt.now();
+    const sizeOf = k => Math.max(44, 68 - k * 5);                              // hedef her isabette kuculur
+    const NOTE = [523.25, 587.33, 659.25, 783.99, 880, 1046.5];                // isabetler pentatonik merdiveni tirmanir (kac hedef kaldi duyulur)
+    let winner = -1, over = false, settle = null;
+    const lockT = Array(N).fill(0), missT = Array.from({ length: N }, () => []), tms = new Set();         // ust uste iska korumasi: 0,7 sn icinde 3 iska -> 0,45 sn donma (her yere basarak kazanilmaz)
+    const later = hdLater(tms);
+    // Paylasilan hedef dizisi: k. hedef TUM bolgelerde ayni (alan orani olarak), onceki hedeften en az ~1.2 hedef capi uzakta.
+    // Aday sayisi ve uzaklik olcusu (80x130 birimlik varsayilan alan) cihazdan bagimsiz sabit: ag modunda her telefon seed'li Math.random ile ayni diziyi uretir.
+    const seq = shared(k => {
+      const prev = k > 0 ? seq(k - 1) : null, need = sizeOf(k) * 1.2;
+      let best = null, bd = -1;
+      for (let t = 0; t < 8; t++) {
+        const c = { u: Math.random(), v: Math.random() };
+        const d = prev ? Math.hypot((c.u - prev.u) * 80, (c.v - prev.v) * 130) : 1e9;
+        if (d >= need) return c;
+        if (d > bd) { bd = d; best = c; }
+      }
+      return best;
+    });
+    const A = i => zones[i].querySelector('.arena');
     const place = i => {
-      const a = zones[i].querySelector('.arena'), t = zones[i].querySelector('.tgt');
-      const sz = Math.max(44, 68 - cnt[i] * 5), pad = sz / 2 + 6;              // hedef her isabette kuculur
-      t.style.width = t.style.height = sz + 'px'; t.style.margin = (-sz / 2) + 'px 0 0 ' + (-sz / 2) + 'px';
-      t.style.left = (pad + Math.random() * Math.max(1, a.clientWidth - 2 * pad)) + 'px';
-      t.style.top = (pad + 30 + Math.random() * Math.max(1, a.clientHeight - 2 * pad - 30)) + 'px';
-      t.style.animation = 'none'; void t.offsetWidth; t.style.animation = '';
+      const a = A(i), old = a.querySelector('.tgt'); if (old) old.remove();
+      const k = cnt[i], s = seq(k), sz = sizeOf(k), pad = sz / 2 + 6;
+      // tum bolgelerde ayni piksel alani (en dar bolge): 3 oyunculu duzende genis alttaki bolge daha uzun yol katetmesin
+      const cw = Math.min(...zones.map((_, j) => A(j).clientWidth)), ch = Math.min(...zones.map((_, j) => A(j).clientHeight));
+      const x = a.clientWidth / 2 + (s.u - 0.5) * Math.max(1, cw - 2 * pad), y = TOP + (a.clientHeight - TOP) / 2 + (s.v - 0.5) * Math.max(1, ch - TOP - 2 * pad);
+      a.insertAdjacentHTML('beforeend', '<div class="tgt" style="--sz:' + sz + 'px;left:' + x.toFixed(1) + 'px;top:' + y.toFixed(1) + 'px">' + ico('a-target') + '</div>');
+    };
+    const miss = (i, e) => {                                                   // iska: kucuk kirmizi "x" + yumusak ses (ceza yok)
+      const a = A(i), r = a.getBoundingClientRect();
+      let x = e.clientX - r.left, y = e.clientY - r.top;
+      if (zones[i].classList.contains('flip')) { x = r.width - x; y = r.height - y; }
+      x = Math.min(r.width - 17, Math.max(17, x)); y = Math.min(a.clientHeight - 24, Math.max(17, y));        // isaret arena icinde kalir (kenara yakin dokunuslarda biraz iceri alinir)
+      a.insertAdjacentHTML('beforeend', '<div class="tg-miss" style="left:' + x.toFixed(0) + 'px;top:' + y.toFixed(0) + 'px"></div>');
+      const m = a.lastElementChild; m.addEventListener('animationend', () => m.remove());
+      hdTone(210, 0.1, { vol: 0.1, slide: -70 }); hdVib(10);
+      const now = vt.now(), ts = missT[i].filter(t => now - t < 700); ts.push(now); missT[i] = ts;
+      if (ts.length >= 3) {                                                    // arka arkaya 3 iska: kisa donma
+        missT[i] = []; lockT[i] = now + 450; pulse(i, 'fbad'); hdTone(150, 0.14, { type: 'square', vol: 0.09, slide: -40 }); hdVib(30);
+        a.insertAdjacentHTML('beforeend', '<div class="tg-lock">' + ico('i-lock') + '</div>');
+        const lk = a.lastElementChild; later(() => lk.remove(), 470);
+      }
+    };
+    const hit = i => {
+      const a = A(i), t = a.querySelector('.tgt'), k = cnt[i], last = k + 1 >= GOAL;
+      const hf = document.createElement('div'); hf.className = 'hitfx'; hf.style.left = t.style.left; hf.style.top = t.style.top; hf.style.setProperty('--hs', (sizeOf(k) / 2 + 4) + 'px');      // efekt hedefin biraz disina cikar, arena disina tasmaz
+      hf.innerHTML = ico('a-burst') + [0, 1, 2, 3, 4, 5].map(j => '<i style="--a:' + (j * 60 + 20) + 'deg"></i>').join('');
+      hf.addEventListener('animationend', ev => { if (ev.target === hf) hf.remove(); }); a.appendChild(hf);
+      cnt[i]++; missT[i] = []; hdBump(i); pulse(i, 'fok');
+      a.querySelector('.cnt').textContent = cnt[i] + '/' + GOAL;
+      hdTone(NOTE[Math.min(k, 5)], last ? 0.32 : 0.14, { type: 'triangle', vol: 0.2 }); hdTone(NOTE[Math.min(k, 5)] * 2, 0.1, { vol: 0.06, at: 0.02 });
+      hdVib(last ? [25, 30, 60] : 14);
+      report(i, cnt[i], GOAL);
+      if (last) { t.remove(); fin[i] = vt.now() - T0; winner = i; over = true; settle(); } else place(i);
     };
     zones.forEach((_, i) => {
-      arena(i, '<div class="arena"><div class="cnt">0/' + GOAL + '</div><div class="tgt">' + ico('a-target') + '</div></div>');
-      setS(i, 'go'); place(i);
+      arena(i, '<div class="arena"><div class="cnt">0/' + GOAL + '</div>' + hdTimeBar(LIMIT) + '</div>');
+      setS(i, 'go');
     });
+    zones.forEach((_, i) => place(i));
+    const low = hdLow(LIMIT), unbind = hdOnResize(() => !over, () => zones.forEach((_, i) => place(i)));
+    let lim = 0;
     await new Promise(res => {
+      settle = res;
       handler = (i, e) => {
-        if (winner >= 0) return;
-        const r = zones[i].querySelector('.tgt').getBoundingClientRect();
-        if (Math.hypot(e.clientX - (r.left + r.width / 2), e.clientY - (r.top + r.height / 2)) > r.width / 2 + 24) return;   // hedefe yakin dokunus yeterli
-        { const tg = zones[i].querySelector('.tgt'), hf = document.createElement('div'); hf.className = 'hitfx'; hf.style.left = tg.style.left; hf.style.top = tg.style.top;
-          hf.innerHTML = ico('a-burst'); hf.addEventListener('animationend', () => hf.remove()); tg.parentNode.appendChild(hf); }
-        cnt[i]++; right(i); report(i, cnt[i], GOAL);
-        zones[i].querySelector('.cnt').textContent = cnt[i] + '/' + GOAL;
-        if (cnt[i] >= GOAL) { fin[i] = vt.now() - T0; winner = i; res(); } else place(i);
+        if (over || vt.now() < lockT[i]) return;
+        const t = A(i).querySelector('.tgt'); if (!t) return;
+        const r = t.getBoundingClientRect();
+        if (Math.hypot(e.clientX - (r.left + r.width / 2), e.clientY - (r.top + r.height / 2)) > sizeOf(cnt[i]) / 2 + 24) miss(i, e);      // hedefe yakin dokunus yeterli
+        else hit(i);
       };
-      vt.timeout(res, 15000);
+      lim = vt.timeout(res, LIMIT);
     });
-    handler = null;
+    over = true; handler = null; vt.clear(lim); vt.clear(low); unbind();
+    if (winner < 0) await hdTimeUp();
+    tms.forEach(id => vt.clear(id)); tms.clear();
+    hdClean('.tgt', '.hd-time', '.hd-end', '.tg-lock');
     lastScores = cnt.map((c, i) => fin[i] != null ? RACE - fin[i] : c);
     return winner >= 0 ? [winner] : topScorers(cnt);
   }
@@ -1856,89 +1997,202 @@
 
 
   async function balloons() {
-    const sc = Array(N).fill(0), BC = [['#ff5a5f', '#d93a45'], ['#2fd68c', '#14a768'], ['#47a9f5', '#2279cf'], ['#a56bff', '#7b44d6'], ['#ff9442', '#d96a1c'], ['#ff7eb6', '#d9468a']];
+    const sc = Array(N).fill(0), DUR = 10000, STOP = DUR - 1200;
+    const BC = [['#ff5a5f', '#d93a45'], ['#2fd68c', '#14a768'], ['#47a9f5', '#2279cf'], ['#a56bff', '#7b44d6'], ['#ff9442', '#d96a1c'], ['#ff7eb6', '#d9468a']];
+    const cmb = Array.from({ length: N }, () => ({ t: -1e9, n: 0 })), tms = new Set();       // cmb: bolge basina ard arda patlatma (ses perdesi yukselir)
+    let over = false, chain = 0;
+    const later = hdLater(tms);
+    // balon genisligi: dar serit (3-4 oyuncu) balonlari kuculur (ust uste binme azalir); TUM bolgelerde ayni (en dar bolgeye gore): 3 oyunculu duzende alttaki genis bolge daha buyuk balon gormez
+    const bwOf = () => Math.round(Math.max(44, Math.min(64, Math.min(...zones.map(z => z.querySelector('.arena').clientWidth)) * 0.34)));
+    const fit = () => zones.forEach(z => { const a = z.querySelector('.arena'); if (!a) return; a.style.setProperty('--bw', bwOf() + 'px'); a.style.setProperty('--aw', a.clientWidth + 'px'); });
+    const cl = ico('a-cloud');
     zones.forEach((z, i) => {
       z.classList.add('sky');
-      arena(i, '<div class="arena balloons"><div class="cnt">0</div>' +
-        '<div class="cloud" style="top:12%;animation-duration:21s">' + ico('a-cloud') + '</div><div class="cloud" style="top:44%;width:70px;height:40px;animation-duration:27s;animation-delay:-9s">' + ico('a-cloud') + '</div>' +
-        '<div class="cloud" style="top:72%;animation-duration:24s;animation-delay:-15s">' + ico('a-cloud') + '</div></div>');
+      arena(i, '<div class="arena balloons">' + hdTimeBar(DUR) + '<div class="cnt">0</div>' +
+        '<div class="cloud" style="top:12%;animation-duration:24s">' + cl + '</div>' +
+        '<div class="cloud" style="top:44%;--cm:1.1;animation-duration:30s;animation-delay:-11s">' + cl + '</div>' +
+        '<div class="cloud" style="top:72%;animation-duration:27s;animation-delay:-18s">' + cl + '</div></div>');
       setS(i, 'go');
     });
-    // Kolay dokunus: tam ustune basmak gerekmez, dokunulan yere en yakin balon (70 px icinde) patlar.
-    handler = (i, e) => {
-      let best = null, bd = 1e9;
-      zones[i].querySelectorAll('.balloon').forEach(b => {
-        if (b.dataset.dead) return;
-        const r = b.getBoundingClientRect(), d = Math.hypot(e.clientX - (r.left + r.width / 2), e.clientY - (r.top + r.height / 2));
-        if (d < bd) { bd = d; best = b; }
-      });
-      if (!best || bd > 70) return;
-      best.dataset.dead = 1; best.classList.add('pop'); vt.timeout(() => best.remove(), 520);
-      const isBomb = !!best.dataset.bomb, isGold = !!best.dataset.gold;
-      best.insertAdjacentHTML('beforeend', '<div class="pfx"><div class="st">' + ico('a-burst') + '</div>' + [0, 1, 2, 3, 4, 5].map(k => '<i style="--a:' + (k * 60 + 15) + 'deg"></i>').join('') +
-        '<b' + (isBomb ? ' class="neg"' : '') + '>' + (isBomb ? '−1' : isGold ? '+3' : '+1') + '</b></div>');
-      if (isBomb) { sc[i] = Math.max(0, sc[i] - 1); wrong(i); }
-      else { sc[i] += isGold ? 3 : 1; right(i); }
-      zones[i].querySelector('.cnt').textContent = sc[i]; report(i, sc[i], 0);
-    };
-    const spawn = () => zones.forEach(z => {
-      const a = z.querySelector('.arena');
-      if (!a) return;
-      const roll = Math.random(), bomb = roll < 0.12, gold = !bomb && roll > 0.92;
-      const b = document.createElement('div'), bb = document.createElement('div');
-      b.className = 'balloon' + (gold ? ' gold' : ''); bb.className = 'bb'; b.appendChild(bb);
-      b.style.left = (18 + Math.random() * 64) + '%';
-      const col = bomb ? ['#4a4570', '#383359'] : gold ? ['#ffb703', '#d98a00'] : BC[Math.floor(Math.random() * BC.length)];
-      b.style.setProperty('--bc', col[0]); b.style.setProperty('--bd', col[1]);
-      b.style.setProperty('--rise', -(a.clientHeight + 330) + 'px');                          // bolgenin altindan dogup ustunden cikar
-      b.style.animationDuration = ((3.6 + Math.random() * 1.4) * (a.clientHeight + 330) / (a.clientHeight + 140)) + 's';   // gorunen hiz eskisiyle ayni
-      bb.innerHTML = ico(bomb ? 'a-bomb' : 'a-balloon');
-      if (bomb) b.dataset.bomb = 1;
-      else if (gold) { b.dataset.gold = 1; bb.insertAdjacentHTML('beforeend', '<span class="emb">' + ico('i-star-w') + '</span><span class="spk" style="left:-6px;top:14%">' + ico('a-spark') + '</span><span class="spk" style="right:-4px;top:46%;animation-delay:-.45s">' + ico('a-spark') + '</span>'); }
-      b.addEventListener('animationend', () => b.remove());
-      a.appendChild(b);
+    fit();
+    // Paylasilan balon dizisi: k. balon tum bolgelere AYNI (tur, renk, yatay konum orani, sure); tek uretici, dizin sirasiyla
+    const spec = shared(k => {
+      const roll = Math.random(), r = Math.random(), ci = Math.floor(Math.random() * BC.length), d = Math.random(), ph = Math.random();
+      return { roll, x: ((k > 0 ? spec(k - 1).x : 0.5) + 0.3 + 0.4 * r) % 1, ci, d, ph };      // yatay konum bir oncekinden en az %30 uzakta (ust uste binme azalir)
     });
-    const timer = vt.interval(spawn, 650);
-    spawn();
-    await sleep(10000);
-    vt.clear(timer); handler = null;
-    zones.forEach(z => z.querySelectorAll('.balloon').forEach(b => b.remove()));
+    const gapOf = k => k < 3 ? 440 : Math.round(620 - 200 * Math.min(1, (k - 3) / 16));       // balonlar arasi sure (ms): oyun ilerledikce sikilasir
+    const T = [0]; while (T[T.length - 1] <= STOP) T.push(T[T.length - 1] + gapOf(T.length - 1));
+    const addBalloon = (z, kind, s, dur) => {
+      const a = z.querySelector('.arena'); if (!a) return;
+      const W = a.clientWidth, H = a.clientHeight, bw = bwOf(), bh = bw * 1.5, path = H + bh + 140;
+      const col = kind === 'bomb' ? ['#4a4570', '#383359'] : kind === 'gold' ? ['#ffb703', '#d98a00'] : BC[s.ci];
+      const b = document.createElement('div'), bb = document.createElement('div');
+      b.className = 'balloon' + (kind === 'gold' ? ' gold' : ''); bb.className = 'bb'; b.appendChild(bb);
+      b.style.left = (bw / 2 + 12 + s.x * Math.max(1, W - bw - 24)).toFixed(1) + 'px';          // balon (sallanma payi dahil) her zaman tamamen arena icinde kalir
+      b.style.setProperty('--bc', col[0]); b.style.setProperty('--bd', col[1]);
+      b.style.setProperty('--rise', -path + 'px');                                              // bolgenin altindan dogup ustunden cikar
+      b.style.animationDuration = (dur * Math.min(1, (H + 140) / 436) * path / (H + 140)).toFixed(2) + 's';      // kisa arenada hiz (px/sn) ayni kalir: balonlar birbirine yigilmaz
+      bb.style.animationDelay = (-s.ph * 1.3).toFixed(2) + 's';
+      bb.innerHTML = ico(kind === 'bomb' ? 'a-bomb' : 'a-balloon');
+      if (kind === 'bomb') b.dataset.bomb = 1;
+      else if (kind === 'gold') { b.dataset.gold = 1; bb.insertAdjacentHTML('beforeend', '<span class="emb">' + ico('i-star-w') + '</span><span class="spk" style="left:-6px;top:14%">' + ico('a-spark') + '</span><span class="spk" style="right:-4px;top:46%;animation-delay:-.45s">' + ico('a-spark') + '</span>'); }
+      b.addEventListener('animationend', e => { if (e.target === b) b.remove(); });
+      a.appendChild(b);
+    };
+    // Dokunus: once parmagin altindaki GORUNEN en ustteki balon (govde elipsi); yoksa yakin (26 px) normal/altin balon. Bomba yalniz dogrudan isabette patlar.
+    // govde elipsi (ekran koordinati): ust siradaki (donuk) bolgede balon ters durur, govde kutunun altina duser -> dikey oran tersine cevrilir
+    const geo = (b, fl) => { const r = b.getBoundingClientRect(), w = r.width, h = r.height, bm = !!b.dataset.bomb, f = bm ? 0.646 : 0.39; return { cx: r.left + w / 2, cy: r.top + h * (fl ? 1 - f : f), rx: w * 0.42, ry: bm ? w * 0.42 : h * 0.35 }; };
+    const ell = (g, x, y, pad) => Math.hypot((x - g.cx) / (g.rx + pad), (y - g.cy) / (g.ry + pad));
+    const pop = (i, b) => {
+      const bomb = !!b.dataset.bomb, gold = !!b.dataset.gold, c = cmb[i], now = vt.now();
+      b.dataset.dead = 1; b.classList.add('pop'); later(() => b.remove(), 520);
+      b.insertAdjacentHTML('beforeend', '<div class="pfx"><div class="st">' + ico('a-burst') + '</div>' + [0, 1, 2, 3, 4, 5].map(k => '<i style="--a:' + (k * 60 + 15) + 'deg"></i>').join('') +
+        '<b' + (bomb ? ' class="neg"' : '') + '>' + (bomb ? '−1' : gold ? '+3' : '+1') + '</b></div>');
+      if (bomb) {                                                              // bomba: -1, kirmizi cakma + sarsinti, alcak patlama sesi, uzun titresim
+        sc[i] = Math.max(0, sc[i] - 1); c.n = 0; c.t = -1e9; pulse(i, 'fbad');
+        hdTone(150, 0.3, { type: 'sawtooth', vol: 0.2, slide: -90 }); hdTone(70, 0.34, { vol: 0.28 }); hdVib([40, 25, 110]);
+      } else if (gold) {                                                       // altin: +3, yukselen uc notali arpej
+        sc[i] += 3; c.n = Math.min(c.n + 1, 7); c.t = now; pulse(i, 'fok');
+        [880, 1319, 1760].forEach((f, j) => hdTone(f, 0.16, { type: 'triangle', vol: 0.16, at: j * 0.07 })); hdVib([15, 25, 35]);
+      } else {                                                                 // normal: +1, art arda patlatmada perde yukselir
+        c.n = now - c.t < 900 ? Math.min(c.n + 1, 7) : 0; c.t = now; sc[i] += 1;
+        const f = 440 * Math.pow(2, c.n * 2 / 12);
+        hdTone(f, 0.09, { vol: 0.17, slide: -f * 0.4 }); hdTone(f * 2, 0.05, { vol: 0.05, at: 0.012 }); hdVib(12);
+      }
+      zones[i].querySelector('.cnt').textContent = sc[i]; hdBump(i); report(i, sc[i], 0);
+    };
+    handler = (i, e) => {
+      if (over) return;
+      const zr = zones[i].getBoundingClientRect(), fl = zones[i].classList.contains('flip');
+      // yalniz ekranda gorunen balonlar (govde merkezi bolge icinde) patlatilabilir: henuz dogmamis ya da cikmis balon yardim yaricapiyla patlamaz
+      const list = [...zones[i].querySelectorAll('.balloon')].filter(b => { if (b.dataset.dead) return false; const g = geo(b, fl); return g.cy > zr.top + 6 && g.cy < zr.bottom - 6; });
+      let hit = null;
+      list.forEach(b => { if (ell(geo(b, fl), e.clientX, e.clientY, b.dataset.bomb ? 0 : 6) <= 1) hit = b; });         // DOM sirasi = ust uste siralama: sonuncu en ustte
+      if (!hit) { let bd = 9; list.forEach(b => { if (b.dataset.bomb) return; const d = ell(geo(b, fl), e.clientX, e.clientY, 26); if (d <= 1 && d < bd) { bd = d; hit = b; } }); }
+      if (hit) pop(i, hit);
+    };
+    const unbind = hdOnResize(() => !over, fit);
+    const low = hdLow(DUR), T0 = vt.now();
+    let k = 0;
+    const next = () => {
+      if (over) return;
+      const s = spec(k), prog = Math.min(1, T[k] / DUR);
+      const kind = s.roll < 0.12 + 0.06 * prog ? 'bomb' : s.roll > 0.92 ? 'gold' : 'norm';     // bomba orani zamanla artar
+      const dur = 4 - 1.1 * prog + s.d * 0.9;                                                   // sn: gec baslarda yavas, sonlara dogru hizli
+      zones.forEach(z => addBalloon(z, kind, s, dur));
+      k++;
+      if (T[k] <= STOP) chain = vt.timeout(next, Math.max(0, T0 + T[k] - vt.now()));
+    };
+    next();
+    await sleep(DUR);
+    over = true; handler = null; vt.clear(chain); vt.clear(low); unbind();
+    zones.forEach(z => z.querySelectorAll('.balloon').forEach((b, j) => {                       // sure doldu: havadaki balonlar sirayla patlar
+      if (b.dataset.dead) return;
+      b.dataset.dead = 1;
+      later(() => { b.classList.add('endp'); b.insertAdjacentHTML('beforeend', '<div class="pfx"><div class="st">' + ico('a-burst') + '</div></div>'); }, (j % 6) * 45);
+    }));
+    await hdTimeUp();
+    tms.forEach(id => vt.clear(id)); tms.clear();
+    hdClean('.balloon', '.cloud', '.hd-time', '.hd-end');
     lastScores = sc.slice();
     return topScorers(sc);
   }
 
   async function moles() {
-    const sc = Array(N).fill(0), DUR = 10000;
+    const sc = Array(N).fill(0), DUR = 10000, STOP = DUR - 600, LOCK = 450, GRACE = 320;
+    const lockT = Array(N).fill(0), tms = new Set();
+    let over = false, chain = 0;
+    const later = hdLater(tms);
+    const holeHtml = h => '<div class="hole" data-h="' + h + '"><svg class="mh-b" aria-hidden="true"><use href="#m-hole-b"/></svg><div class="mh-m"></div><svg class="mh-f" aria-hidden="true"><use href="#m-hole-f"/></svg></div>';
     zones.forEach((_, i) => {
-      arena(i, '<div class="arena"><div class="cnt">0</div><div class="grid" style="--ar:1;grid-template-columns:repeat(3,1fr)">' +
-        Array.from({ length: 9 }, () => '<div class="cell hole"></div>').join('') + '</div></div>');
+      arena(i, '<div class="arena">' + hdTimeBar(DUR) + '<div class="cnt">0</div><div class="mgrid">' + Array.from({ length: 9 }, (_, h) => holeHtml(h)).join('') +
+        '<svg class="mk-lock" aria-hidden="true"><use href="#i-lock"/></svg></div></div>');
       setS(i, 'go');
     });
+    // tarla boyutu arenaya gore (ag modunda tam ekran, genis bolgede buyuk); hucreler en az 34 px kalir
+    const fit = () => zones.forEach(z => { const a = z.querySelector('.arena'); if (a) a.style.setProperty('--ms', Math.round(Math.max(60, Math.min(a.clientWidth, a.clientHeight - 34, 440))) + 'px'); });
+    fit();
+    const cells = zones.map(z => [...z.querySelectorAll('.hole')]);
+    const S = zones.map(() => Array.from({ length: 9 }, () => ({ id: 0, up: false, end: -1e9, tm: 0, kind: '' })));       // her delik icin: kostebek jetonu (eski zamanlayici yenisini saklayamaz)
+    // Paylasilan cikis programi: k. kostebek tum bolgelerde AYNI delikte, ayni anda, ayni omurle cikar (dizin sirasiyla uretilir).
+    const plan = shared(k => {
+      const r0 = Math.random(), r1 = Math.random(), r2 = Math.random(), r3 = Math.random();
+      const pv = k > 0 ? plan(k - 1) : null, t = pv ? pv.t + pv.gap : 0, prog = Math.min(1, t / DUR);
+      const used = [1, 2, 3].map(d => k >= d ? plan(k - d).h : -1);                       // son 3 delik tekrar secilmez: ayni deliga hemen yeni kostebek cikmaz
+      const free = [0, 1, 2, 3, 4, 5, 6, 7, 8].filter(h => !used.includes(h));
+      const kind = k >= 4 && r1 > 0.9 ? 'hog' : r1 < 0.08 ? 'gold' : 'mole';             // ara sira altin kostebek (+3), 5. cikistan sonra dikenli kirpi (-1)
+      return { t, h: free[Math.floor(r0 * free.length)], kind, dwell: Math.round((1250 - 600 * prog) * (0.92 + r2 * 0.16) * (kind === 'gold' ? 0.8 : 1)), gap: Math.round(700 - 250 * prog + r3 * 160) };
+    });
+    const show = (zi, p) => {
+      const s = S[zi][p.h], c = cells[zi][p.h], id = ++s.id;
+      s.up = true; s.kind = p.kind;
+      c.querySelector('.mh-m').innerHTML = '<svg viewBox="0 0 48 48" aria-hidden="true"><use href="#' + (p.kind === 'hog' ? 'm-hog' : 'a-mole') + '"/></svg>';
+      c.querySelectorAll('.mh-fx').forEach(n => n.remove());
+      c.className = 'hole up ' + p.kind;
+      s.tm = later(() => hide(zi, p.h, id), p.dwell);
+    };
+    const hide = (zi, h, id) => {                                                         // jeton kontrolu: yalniz kendi kostebegini saklar
+      const s = S[zi][h]; if (!s.up || s.id !== id) return;
+      const c = cells[zi][h];
+      s.up = false; s.end = vt.now(); c.classList.remove('up'); c.classList.add('dn');
+      later(() => { if (s.id === id && !s.up) c.className = 'hole'; }, 190);
+    };
+    const whack = (i, h) => {
+      const s = S[i][h], c = cells[i][h], kind = s.kind, id = s.id, hog = kind === 'hog', gold = kind === 'gold';
+      vt.clear(s.tm); tms.delete(s.tm); s.up = false; s.end = vt.now();
+      c.className = 'hole hit ' + kind;
+      c.insertAdjacentHTML('beforeend', '<div class="mh-fx">' + ico('a-burst') + (gold ? '<b>+3</b>' : hog ? '<b class="neg">−1</b>' : '<b>+1</b>') + '</div>');
+      later(() => { if (s.id === id && !s.up) { c.className = 'hole'; c.querySelectorAll('.mh-fx').forEach(n => n.remove()); } }, 380);
+      if (hog) {                                                                      // kirpiya dokunmak: -1, kirmizi cakma + sarsinti
+        sc[i] = Math.max(0, sc[i] - 1); pulse(i, 'fbad');
+        hdTone(170, 0.22, { type: 'sawtooth', vol: 0.14, slide: -70 }); hdVib([40, 30, 80]);
+      } else if (gold) {                                                              // altin kostebek: +3, uc notali arpej
+        sc[i] += 3; pulse(i, 'fok');
+        [784, 1047, 1319].forEach((f, j) => hdTone(f, 0.15, { type: 'triangle', vol: 0.17, at: j * 0.06 })); hdVib([15, 20, 30]);
+      } else {                                                                        // normal vurus: kisa "tok" sesi
+        sc[i]++; hdTone(320, 0.1, { type: 'triangle', vol: 0.2, slide: -170 }); hdTone(760, 0.08, { vol: 0.08, at: 0.03 }); hdVib(16);
+      }
+      zones[i].querySelector('.cnt').textContent = sc[i]; hdBump(i); report(i, sc[i], 0);
+    };
+    // dokunulan delik: nokta hangi hucrenin icindeyse o (olay hedefinden bagimsiz, donuk bolgede de dogru); tarla cercevesine dokunulduysa en yakin delik (yalniz isabet icin)
+    const holeAt = (i, e) => {
+      const cs = cells[i];
+      for (let h = 0; h < 9; h++) { const r = cs[h].getBoundingClientRect(); if (e.clientX >= r.left && e.clientX < r.right && e.clientY >= r.top && e.clientY < r.bottom) return { h, exact: true }; }
+      const g = zones[i].querySelector('.mgrid'); if (!g) return null;
+      const gr = g.getBoundingClientRect(), m = 8;
+      if (e.clientX < gr.left - m || e.clientX > gr.right + m || e.clientY < gr.top - m || e.clientY > gr.bottom + m) return null;
+      let best = 0, bd = 1e9;
+      cs.forEach((c, h) => { const r = c.getBoundingClientRect(), d = Math.hypot(e.clientX - (r.left + r.width / 2), e.clientY - (r.top + r.height / 2)); if (d < bd) { bd = d; best = h; } });
+      return { h: best, exact: false };
+    };
     handler = (i, e) => {
-      const c = e.target.closest('.hole');
-      if (!c || !c.dataset.up) return;
-      c.dataset.up = ''; c.innerHTML = ''; c.classList.remove('up'); c.classList.add('hit');
-      vt.timeout(() => c.classList.remove('hit'), 200);
-      sc[i]++; right(i);
-      zones[i].querySelector('.cnt').textContent = sc[i]; report(i, sc[i], 0);
+      if (over) return;
+      const now = vt.now(); if (now < lockT[i]) return;                               // donmus oyuncu: dokunuslar yok sayilir
+      const t = holeAt(i, e); if (!t) return;
+      const s = S[i][t.h];
+      if (s.up) { whack(i, t.h); return; }
+      if (!t.exact || now - s.end < GRACE) return;                                     // az once giden / vurulan kostebege gec ya da cift dokunus: ceza yok
+      lockT[i] = now + LOCK;                                                          // bos delige dokunmak: kisa donma (her yere basarak kazanilmaz)
+      const g = zones[i].querySelector('.mgrid'); g.classList.add('lk'); later(() => g.classList.remove('lk'), LOCK);
+      pulse(i, 'fbad'); hdTone(150, 0.14, { type: 'square', vol: 0.09, slide: -40 }); hdVib(30);
     };
-    const t0 = vt.now();
-    let alive = true;
-    const tick = () => {
-      if (!alive) return;
-      const life = 1200 - (vt.now() - t0) / DUR * 450;      // zamanla hizlanir
-      zones.forEach(z => {
-        const free = [...z.querySelectorAll('.hole')].filter(h => !h.dataset.up);
-        if (!free.length) return;
-        const h = free[Math.floor(Math.random() * free.length)];
-        h.dataset.up = 1; h.innerHTML = ico('a-mole', 'mole'); h.classList.add('up');
-        vt.timeout(() => { if (h.dataset.up) { h.dataset.up = ''; h.innerHTML = ''; h.classList.remove('up'); } }, life);
-      });
-      vt.timeout(tick, 520 + Math.random() * 220);
+    const unbind = hdOnResize(() => !over, fit);
+    const low = hdLow(DUR), T0 = vt.now();
+    let k = 0;
+    const next = () => {
+      if (over) return;
+      const p = plan(k); zones.forEach((_, zi) => show(zi, p));
+      k++;
+      if (p.t + p.gap <= STOP) chain = vt.timeout(next, Math.max(0, T0 + p.t + p.gap - vt.now()));
     };
-    tick();
+    next();
     await sleep(DUR);
-    alive = false; handler = null;
+    over = true; handler = null; vt.clear(chain); vt.clear(low); unbind();
+    zones.forEach((_, zi) => S[zi].forEach((s, h) => { if (s.up) hide(zi, h, s.id); }));      // sure doldu: kostebekler deliklere iner
+    await hdTimeUp();
+    tms.forEach(id => vt.clear(id)); tms.clear();
+    hdClean('.hd-time', '.hd-end');
+    zones.forEach(z => { const g = z.querySelector('.mgrid'); if (g) g.classList.remove('lk'); z.querySelectorAll('.hole').forEach(c => { c.className = 'hole'; c.querySelectorAll('.mh-fx').forEach(n => n.remove()); }); });
     lastScores = sc.slice();
     return topScorers(sc);
   }
@@ -2007,16 +2261,16 @@
     { icon: 'g-tepki', name: 'Tepki', hint: 'Yeşil olunca ilk dokunan kazanır. Sarı sahte işarettir, erken ya da sarıda dokunan elenir!', run: reaction },
     { icon: 'g-seri', name: 'Seri Dokun', hint: '5 saniyede en çok dokunan kazanır.', run: spam },
     { icon: 'g-orta', name: 'Tam Ortada', hint: 'Top ortaya en yakın durursa kazanırsın.', run: stopbar },
-    { icon: 'g-hedef', name: 'Hedef Avı', hint: 'Çıkan daireye dokun. 6 hedefe ilk ulaşan kazanır.', run: targets },
+    { icon: 'g-hedef', name: 'Hedef Avı', hint: 'Çıkan daireye dokun, her seferinde küçülür. 6 hedefe ilk ulaşan kazanır. Üst üste ıskalarsan kısa süre donarsın.', run: targets },
     { icon: 'g-sayi', name: 'Sayı Sırası', hint: "1'den 6'ya sırayla dokun. İlk bitiren kazanır.", run: numbers },
     { icon: 'g-tek', name: 'Tek Farklı', hint: 'Farklı olanı bul. 3 bulmacayı ilk çözen kazanır, bulmacalar zorlaşır. Yanlış dokunana ceza var.', run: odd },
     { icon: 'g-renk', name: 'Renk Tuzağı', hint: 'Yazının ne yazdığına değil RENGİNE bak! Doğru rengi seç, ilk 4 doğruya ulaşan kazanır.', run: stroop },
     { icon: 'g-mat', name: 'Hızlı Matematik', hint: 'Doğru sonucu seç, sorular zorlaşır. İlk 4 doğruya ulaşan kazanır, yanlışta 1 sn ceza.', run: math },
     { icon: 'g-isik', name: 'Işık Oyunu', hint: 'Yeşilde dokun (hızlı basarsan 2 puan), kırmızıda DOKUNMA! Yanlış dokunuş puan düşürür.', run: lights },
     { icon: 'g-dizi', name: 'Renk Dizisi', hint: 'Yanıp sönen 5 rengi aynı sırayla tekrarla. Yanlış basarsan dizi sana yeniden gösterilir. İlk bitiren kazanır.', run: simon },
-    { icon: 'g-balon', name: 'Balon Patlat', hint: '10 saniyede en çok balonu patlat. Balona yakın bir yere dokunman yeter. ' + ico('i-star', 'inl') + ' altın balon 3 puan, ' + ico('a-bomb-s', 'inl') + ' bomba 1 puan götürür.', run: balloons },
+    { icon: 'g-balon', name: 'Balon Patlat', hint: '10 saniyede en çok balonu patlat. Balona yakın dokunman yeter. ' + ico('i-star', 'inl') + ' altın balon 3 puan; ' + ico('a-bomb-s', 'inl') + ' bomba 1 puan götürür, ona tam dokunma!', run: balloons },
     { icon: 'g-tut', name: 'Tut ve Bırak', hint: "Basılı tut, tam 3 saniye dolunca bırak. Sayaç yalnız ilk 1 sn görünür. 3,00'a en yakın olan kazanır.", run: hold },
-    { icon: 'g-kost', name: 'Köstebek Avı', hint: 'Deliklerden çıkan köstebeğe dokun. 10 saniyede en çok vuran kazanır.', run: moles },
+    { icon: 'g-kost', name: 'Köstebek Avı', hint: 'Deliklerden çıkan köstebeğe dokun, 10 saniyede en çok vuran kazanır. Altın köstebek 3 puan; dikenli kirpiye dokunma. Boş deliğe basarsan kısa süre donarsın.', run: moles },
     { icon: 'g-ok', name: 'Ok Yönü', hint: 'Okun yönünü seç. "TERSİNE" yazıyorsa karşı yönü seç! İlk 5 doğruya ulaşan kazanır.', run: arrows },
     { icon: 'g-hafiza', name: 'Hafıza Eşleştir', hint: 'Kartları çevirip 4 çifti ilk bulan kazanır.', run: memory },
     { icon: 'g-say', name: 'Say Bakalım', hint: 'Ekrandaki şekilleri say, doğru sayıyı seç. İlk 4 doğruya ulaşan kazanır.', run: counting },
