@@ -104,9 +104,6 @@
   .zone.narrow .body.fill { height:calc(100% - 58px); }
   .zone.narrow .grid { --hp:118px; }
   .zone.narrow .arena .grid { --hp:146px; gap:5px; }
-  .zone.narrow .quiz { gap:6px; padding-top:22px; }
-  .zone.narrow .quiz .q { font-size:20px; }
-  .zone.narrow .quiz .q .sub { font-size:12px; margin-top:2px; }
   .zone .sub { font-size:15px; font-weight:600; margin-top:8px; text-shadow:var(--ol2); }
   .arena { position:relative; width:100%; height:100%; padding-top:28px; }          /* ust bosluk: sayac icerige binmesin */
   .cnt { position:absolute; top:0; left:50%; transform:translateX(-50%); z-index:3; font-size:14px; line-height:15px; padding:1px 11px; border-radius:var(--r-pill);
@@ -279,22 +276,87 @@
   .zone.narrow .cell { box-shadow:var(--sh-s); }
   .cell:active { transform:translateY(3px); box-shadow:var(--sh-0); }
   .cell.done { opacity:.3; transform:translateY(3px); box-shadow:var(--sh-0); }
-  .quiz .q .sub.rev { color:var(--red); }
-
-  .quiz { width:100%; height:100%; padding-top:24px; position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:clamp(8px, 1.8dvh, 14px); }
-  .quiz .q { font-size:clamp(22px, 5.4dvh, 46px); font-weight:700; }
-  .quiz .word { font-size:clamp(18px, 3.6dvh, 34px); background:var(--ink); padding:2px 12px; border-radius:var(--r-s); border:var(--ln) solid var(--paper); text-shadow:none; }
-  .quiz .q .sub { margin-top:clamp(2px, .6dvh, 8px); }
-  .quiz .opts { display:grid; grid-template-columns:repeat(2, 1fr); gap:clamp(6px, 1.2dvh, 10px); width:min(100%, 230px); }
-  .quiz .opt { display:flex; align-items:center; justify-content:center; min-height:clamp(32px, 5.8dvh, 62px); border-radius:var(--r-m);
-    background:var(--paper); color:var(--ink); text-shadow:none; border:var(--ln) solid var(--ink);
-    box-shadow:var(--sh-m); font-size:clamp(18px, 3.8dvh, 30px); font-weight:700; transition:transform .08s var(--out), opacity .15s; }
+  /* ---------- Soru-cevap oyunlari: Renk Tuzagi / Hizli Matematik / Ok Yonu / Say Bakalim ----------
+     .quiz bolgenin govdesini doldurur ve olcu KABI olur (container-type:size): secenek ve yazi boyutlari kap boyutuna gore (cq birimleri) secilir,
+     boylece telefonda da tablette de dolu gorunur (cq desteklenmezse dvh tabanli yedek degerler kalir). Duzen: ustte sure cubugu + sayac (.pz-tm yeniden
+     kullanilir), ortada soru alani (kalan yeri doldurur), altta SABIT yukseklikli 2x2 secenek: sorular arasinda secenekler kaymaz, yukseklik >= 34 px.
+     Yalniz transform / opacity animasyonu. */
+  .quiz { --oh:clamp(34px, 5.8dvh, 62px); --og:clamp(6px, 1.2dvh, 10px); --qg:clamp(5px, 1.2dvh, 12px); --ow:min(100%, 230px);
+    container-type:size; position:relative; width:100%; height:100%; }
+  @supports (height:1cqh) { .quiz { --oh:clamp(34px, 15cqh, 96px); --og:clamp(6px, 2.6cqmin, 12px); --qg:clamp(5px, 2.4cqmin, 14px); --ow:min(100%, 520px); } }
+  .qz { width:100%; height:100%; display:flex; flex-direction:column; align-items:center; gap:var(--qg); }
+  .qz-hd { display:flex; align-items:center; gap:6px; width:100%; flex:none; padding:0 10px; }                  /* kenar duraklat sekmelerinin altinda kalmasin */
+  .qz-hd .cnt { position:relative; top:auto; left:auto; transform:none; flex:none; }
+  .zone.narrow .qz-hd .cnt { font-size:12px; line-height:13px; padding:0 7px; }
+  .qz-hd .cnt.bump { animation:pzbump .4s var(--pop); }
+  .qz-mid { flex:1 1 0; min-height:0; width:100%; container-type:size; display:flex; align-items:center; justify-content:center; }
+  .quiz .q { max-width:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; font-weight:700; line-height:1.05; }
+  .qz-mid.in .q { animation:qzin .26s var(--pop); }
+  @keyframes qzin { from { transform:scale(.78); opacity:0; } to { transform:none; opacity:1; } }
+  .quiz .opts { flex:none; display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); grid-auto-rows:var(--oh); gap:var(--og); width:var(--ow); }
+  .opts.in { animation:qzop .2s var(--out); }
+  @keyframes qzop { from { transform:scale(.94); } to { transform:none; } }
+  .quiz .opt { position:relative; display:flex; align-items:center; justify-content:center; min-width:0; min-height:34px; border-radius:var(--r-m);
+    background:var(--paper); color:var(--ink); text-shadow:none; border:var(--ln) solid var(--ink); box-shadow:var(--sh-m);
+    font-size:clamp(17px, calc(var(--oh) * .52), 46px); line-height:1; font-weight:700; white-space:nowrap; transition:transform .08s var(--out), opacity .15s; }
+  .zone.narrow .quiz .opt { box-shadow:var(--sh-s); }
   .quiz .opt:active { transform:translateY(3px); box-shadow:var(--sh-0); }
-  .opt svg.ar { width:1.15em; height:1.15em; display:block; }
-  .q svg.ar { width:1.9em; height:1.9em; display:block; margin:0 auto; }
-  .swarm { font-size:clamp(16px, 3.2dvh, 30px); line-height:1.15; max-width:210px; margin:0 auto; }
-  .swarm svg.sw { width:1.3em; height:1.3em; display:inline-block; vertical-align:middle; }
-  .zone.narrow .swarm svg.sw { width:1.05em; height:1.05em; }
+  /* secenek durumlari: dogru (yesil rozet), yanlis (kirmizi + "x" rozeti, bir daha dokunulamaz), kilitliyken dokunulabilir secenekler solar */
+  .quiz .opt.ok { background-color:#b8f5d6; }
+  .quiz .opt.bad { background-color:#ffb3b6; color:rgba(29,24,56,.42); opacity:.72; }
+  .quiz .opt.oc.bad { opacity:.5; }
+  .zone[data-s="out"] .quiz .opt.bad { opacity:1; }
+  .quiz .opt.nope { animation:pzno .32s var(--out); }
+  .quiz .opt.ok::after, .quiz .opt.bad::after { content:''; position:absolute; right:-7px; top:-9px; z-index:2; width:max(18px, calc(var(--oh) * .46)); height:max(18px, calc(var(--oh) * .46));
+    border-radius:50%; border:var(--ln-s) solid var(--ink); animation:qzbadge .3s var(--pop); }
+  .quiz .opt.ok::after { background:var(--green) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cpath d='m11 25 9 9 18-20' fill='none' stroke='%231d1838' stroke-width='9' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 80% no-repeat; }
+  .quiz .opt.bad::after { background:var(--red) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cpath d='m13 13 22 22M35 13 13 35' fill='none' stroke='%231d1838' stroke-width='9' stroke-linecap='round'/%3E%3C/svg%3E") center / 76% no-repeat; }
+  @keyframes qzbadge { from { transform:scale(.3); } to { transform:none; } }
+  /* Renk Tuzagi: her rengin SEKLI (ucgen / daire / kare / baklava) hep gorunur; Renk koru modunda ayrica DESEN (cizgi / nokta / izgara / yatay cizgi) + buyuk simge;
+     kelime kutusunun kosesinde murekkep renginin simgesi (renk koru modunda renkli ve desenli cip) durur. Renk Dizisi ile ayni sekil / desen eslemesi. */
+  .quiz[data-g="st"] .q { font-size:clamp(18px, 3.6dvh, 34px); }
+  .quiz[data-g="st"] .q { font-size:clamp(18px, min(13cqw, 36cqh), 56px); }
+  .quiz .stw { position:relative; display:inline-block; max-width:100%; }
+  .quiz .word { display:inline-block; max-width:100%; background:var(--ink); padding:.1em .42em .14em; border-radius:var(--r-s); border:var(--ln) solid var(--paper); text-shadow:none; }
+  .oc[data-c="r"] { --pat:repeating-linear-gradient(45deg, rgba(29,24,56,.26) 0 5px, transparent 5px 12px); }
+  .oc[data-c="g"] { --pat:radial-gradient(rgba(29,24,56,.3) 2.6px, transparent 3.2px) 0 0 / 14px 14px; }
+  .oc[data-c="b"] { --pat:linear-gradient(rgba(29,24,56,.24) 2.5px, transparent 2.5px) 0 0 / 14px 14px, linear-gradient(90deg, rgba(29,24,56,.24) 2.5px, transparent 2.5px) 0 0 / 14px 14px; }
+  .oc[data-c="y"] { --pat:repeating-linear-gradient(0deg, rgba(29,24,56,.24) 0 4px, transparent 4px 10px); }
+  .quiz .opt.oc svg.qz-sh { position:relative; width:calc(var(--oh) * .5); height:calc(var(--oh) * .5); display:block; }
+  .qz-ink { --cs:max(20px, .85em); position:absolute; right:calc(var(--cs) * -.7); top:calc(var(--cs) * -.7); width:var(--cs); height:var(--cs); display:flex; align-items:center; justify-content:center; border-radius:32%; pointer-events:none; }
+  .qz-ink svg { position:relative; width:100%; height:100%; display:block; }
+  body.cb .oc::before { content:''; position:absolute; inset:0; border-radius:inherit; background:var(--pat); pointer-events:none; }
+  body.cb .quiz .opt.oc svg.qz-sh { width:calc(var(--oh) * .62); height:calc(var(--oh) * .62); }
+  body.cb .qz-ink { --cs:max(28px, 1.05em); background-color:var(--ic); border:var(--ln) solid var(--ink); box-shadow:var(--sh-xs); }
+  body.cb .qz-ink svg { width:72%; height:72%; }
+  /* Hizli Matematik */
+  .quiz[data-g="ma"] .q { font-size:clamp(22px, 5.4dvh, 46px); }
+  .quiz[data-g="ma"] .q { font-size:clamp(22px, min(21cqw, 58cqh), 78px); }
+  /* Ok Yonu: kagit kadran icinde buyuk ok + "AYNI YON" (yesil, esit isaretli oklar) / "TERSINE!" (kirmizi, zit oklar) rozeti: renk + simge + yazi uclu ipucu */
+  .quiz[data-g="ar"] .q { gap:6px; font-size:var(--pf, 16px); }
+  @supports (height:1cqh) { .quiz[data-g="ar"] .q { --pf:clamp(14px, min(10cqw, 17cqh), 28px); --dial:max(34px, min(calc(100cqh - var(--pf) * 1.7 - 6px), 70cqw, 170px)); } }
+  .qz-dial { width:var(--dial, clamp(46px, 13dvh, 110px)); height:var(--dial, clamp(46px, 13dvh, 110px)); flex:none; display:flex; align-items:center; justify-content:center; border-radius:50%;
+    background:var(--paper); border:var(--ln-b) solid var(--ink); box-shadow:var(--sh-m); }
+  .qz-dial svg.ar { width:74%; height:74%; display:block; --ac:var(--yellow); }
+  .quiz .opt svg.ar { width:calc(var(--oh) * .74); height:calc(var(--oh) * .74); display:block; --ac:var(--c, var(--yellow)); }
+  .quiz .q .qz-rule { display:inline-flex; align-items:center; gap:.3em; margin:0; padding:.14em .62em .2em .42em; border-radius:var(--r-pill); border:var(--ln) solid var(--ink);
+    background:var(--green); color:var(--ink); box-shadow:var(--sh-s); text-shadow:none; font-size:var(--pf, 16px); line-height:1; font-weight:700; white-space:nowrap; }
+  .quiz .q .qz-rule.rev { background:var(--red); }
+  .quiz .q .qz-rule svg { width:1.3em; height:1.3em; flex:none; display:block; }
+  .qz-mid.in .qz-rule { animation:qzin .3s var(--pop) .06s backwards; }
+  /* Say Bakalim: sabit boyutlu "tepsi"; nesneler 4x3 kutulara yerlesir (her kutuda en fazla bir nesne, kutu icinde hafif kayma + egim): ust uste binme olmaz.
+     Konum / boyut yalniz CSS'te (kap birimleri) hesaplanir; icerik (kutu no, kayma, egim) cihazdan bagimsiz: ag modunda herkeste ayni. */
+  .quiz[data-g="co"] .q { width:100%; height:100%; }
+  .swarm { position:relative; width:100%; height:100%; container-type:size; border-radius:var(--r-m); background:rgba(29,24,56,.4); border:var(--ln-s) dashed rgba(255,244,220,.38); }
+  .swarm > span { --qw:calc(100cqw / 4); --qh:calc(100cqh / 3); --qm:min(var(--qw), var(--qh)); position:absolute; left:calc(var(--sx) * var(--qw)); top:calc(var(--sy) * var(--qh));
+    width:var(--qw); height:var(--qh); display:flex; align-items:center; justify-content:center; }
+  .swarm > span svg { display:block; overflow:visible; width:calc(var(--qm) * .74); height:calc(var(--qm) * .74);
+    transform:translate(calc(var(--jx) * (var(--qw) / 2 - var(--qm) * .44)), calc(var(--jy) * (var(--qh) / 2 - var(--qm) * .44))) rotate(var(--rot)) scale(var(--sc)); }
+  @supports not (height:1cqh) {
+    .swarm { display:flex; flex-wrap:wrap; align-content:center; justify-content:center; gap:4px; padding:4px; }
+    .swarm > span { position:static; width:28px; height:28px; }
+    .swarm > span svg { width:100%; height:100%; transform:rotate(var(--rot)); }
+  }
 
   /* ---------- Isik Oyunu: lamba (yesil = yuvarlak + onay, kirmizi = sekizgen + carpi), mesaj satiri, puan ---------- */
   .lt { --hp:182px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:clamp(3px, .8dvh, 8px); }
@@ -969,6 +1031,10 @@
 <div id="hud" class="hidden"></div>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
 <symbol id="rf-warn" viewBox="0 0 48 48"><path d="M24 9 41 37H7Z" fill="#1d1838" stroke="#1d1838" stroke-width="9" stroke-linejoin="round"/><path d="M24 9 41 37H7Z" fill="#ff9442" stroke="#ff9442" stroke-width="3" stroke-linejoin="round"/><path d="M24 19v9" fill="none" stroke="#1d1838" stroke-width="4.500" stroke-linecap="round"/><circle cx="24" cy="33" r="2.400" fill="#1d1838"/><path d="M14.500 33.500 19 25.500" fill="none" stroke="#fff4dc" stroke-width="2.600" stroke-linecap="round"/></symbol>
+</defs></svg>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+<symbol id="q-same" viewBox="0 0 48 48"><path d="M6 15H38M29 6l9 9-9 9M6 33H38M29 24l9 9-9 9" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+<symbol id="q-rev" viewBox="0 0 48 48"><path d="M6 15H38M29 6l9 9-9 9M42 33H10M19 24l-9 9 9 9" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
 </defs></svg>
 <div id="rotate"><svg class="ic" aria-hidden="true"><use href="#i-phone"/></svg><span>Telefonu dikey tut</span></div>
 
@@ -2067,70 +2133,112 @@
     return isFinite(best) ? err.map((e, i) => e === best ? i : -1).filter(i => i >= 0) : [];
   }
 
-  // ----- Ortak: soru-cevap oyunu (ilk 'goal' dogruya ulasan kazanir; yanlista 1 sn ceza) -----
-
-  async function quizGame(makeQ, goal = 4, timeout = 20000) {
-    const cnt = Array(N).fill(0), cur = [], lock = Array(N).fill(false), fin = [], T0 = vt.now();
+  // ----- Ortak: soru-cevap oyunu (Renk Tuzagi / Hizli Matematik / Ok Yonu / Say Bakalim) -----
+  // Ilk 'goal' dogruya ulasan kazanir (sure dolarsa en cok dogru). Sorular TEK yerde (shared) ve dizin sirasiyla uretilir: yerel modda herkes AYNI k. soruyu
+  // gorur (zorluk sansi yok), ag modunda seed'li Math.random ile telefonlar arasi ayni kalir (Math.random YALNIZ soru uretiminde, dizin sirasiyla).
+  // Yanlis cevapta AYNI soruda kalinir; ceza her ardisik yanlista artar (1 / 1,5 / 2 sn) ve denenen secenek pasif kalir (tahmin yagmuru kar etmez).
+  // Dogru cevaptan sonra ~250 ms girdi cezasiz yok sayilir ("ayni parmak" ikinci dokunusu yeni soruya yanlis sayilmaz). Zamanlayicilar tur bitince temizlenir.
+  const qzTimeUp = async () => {                                         // sure dolunca her bolgede kendi yonunde "SURE DOLDU" levhasi + kisa bekleme
+    zones.forEach(z => { const r = z.querySelector('.quiz'); if (r) r.insertAdjacentHTML('beforeend', '<div class="pz-end"><span>SÜRE DOLDU!</span></div>'); });
+    pzTone(660, 0.09, { type: 'triangle', vol: 0.14 }); pzTone(440, 0.18, { type: 'triangle', vol: 0.14, at: 0.1 }); pzVib(40);
+    await sleep(750);
+  };
+  async function quizGame(gen, goal = 4, timeout = 20000, kind = '') {
+    const PEN = [1000, 1500, 2000], FLASH = 180, GUARD = 250, NOTE = [523.25, 659.25, 783.99, 880, 1046.5];
+    const cnt = Array(N).fill(0), cur = [], nbad = Array(N).fill(0), until = Array(N).fill(0), tried = Array.from({ length: N }, () => new Set()), fin = [];
+    const T = pzTimers(), T0 = vt.now(), Q = shared(k => gen(k, k > 0 ? Q(k - 1) : null));       // k. soru: onceki soru (tekrar olmasin) + dizin sirasi
     let winner = -1;
     const draw = i => {
-      const q = makeQ(cnt[i]);                          // makeQ, oyuncunun o ana kadarki dogru sayisini alir (zorluk artisi icin)
-      cur[i] = q.correct;
-      zones[i].querySelector('.q').innerHTML = q.html;
-      zones[i].querySelector('.opts').innerHTML = q.options.map((o, j) =>
-        '<div class="opt" data-j="' + j + '"' + (o.style ? ' style="' + o.style + '"' : '') + '>' + o.html + '</div>').join('');
+      const q = Q(cnt[i]), z = zones[i], op = z.querySelector('.opts');
+      cur[i] = q.correct; nbad[i] = 0; tried[i].clear();
+      z.querySelector('.q').innerHTML = q.html;
+      op.innerHTML = q.options.map((o, j) => '<div class="opt' + (o.cls ? ' ' + o.cls : '') + '" data-j="' + j + '"' + (o.attr ? ' ' + o.attr : '') + (o.style ? ' style="' + o.style + '"' : '') + '>' + o.html + '</div>').join('');
+      [z.querySelector('.qz-mid'), op].forEach(n => { n.classList.remove('in'); void n.offsetWidth; n.classList.add('in'); });
     };
     zones.forEach((_, i) => {
-      arena(i, '<div class="quiz"><div class="cnt">0/' + goal + '</div><div class="q"></div><div class="opts"></div></div>');
+      arena(i, '<div class="quiz" data-g="' + kind + '"><div class="qz"><div class="qz-hd" style="--T:' + timeout + 'ms"><div class="pz-tm"><i></i><i></i></div><div class="cnt">0/' + goal + '</div></div>' +
+        '<div class="qz-mid"><div class="q"></div></div><div class="opts"></div></div></div>');
       setS(i, 'go'); draw(i);
     });
     await new Promise(res => {
       handler = (i, e) => {
-        if (winner >= 0 || lock[i]) return;
-        const o = e.target.closest('.opt'); if (!o) return;
-        if (+o.dataset.j === cur[i]) {
-          cnt[i]++; right(i); report(i, cnt[i], goal);
-          zones[i].querySelector('.cnt').textContent = cnt[i] + '/' + goal;
-          if (cnt[i] >= goal) { fin[i] = vt.now() - T0; winner = i; res(); return; }
-          draw(i);
-        } else {
-          lock[i] = true; setS(i, 'out'); wrong(i);
-          vt.timeout(() => { lock[i] = false; if (winner < 0) setS(i, 'go'); }, 1000);
+        if (winner >= 0 || vt.now() < until[i]) return;                 // tur bitti / ceza kilidi / dogru cevap sonrasi "ayni parmak" korumasi: yok say (hata sayilmaz)
+        const o = e.target.closest && e.target.closest('.opt'); if (!o || o.dataset.j === undefined) return;
+        const j = +o.dataset.j;
+        if (tried[i].has(j)) { o.classList.remove('nope'); void o.offsetWidth; o.classList.add('nope'); return; }      // zaten denenmis yanlis secenek: yok say
+        if (j === cur[i]) {                                              // dogru: yesil rozet, yukselen nota, sayac; kisa gecikmeyle yeni soru
+          const c = ++cnt[i];
+          o.classList.add('ok');
+          pulse(i, 'fok'); pzTone(NOTE[Math.min(c, NOTE.length) - 1], 0.13, { type: 'triangle' }); pzVib(14);
+          const cn = zones[i].querySelector('.cnt'); cn.textContent = c + '/' + goal; cn.classList.remove('bump'); void cn.offsetWidth; cn.classList.add('bump');
+          report(i, c, goal);
+          if (c >= goal) { fin[i] = vt.now() - T0; winner = i; res(); return; }
+          until[i] = vt.now() + GUARD; T.later(() => draw(i), FLASH);
+        } else {                                                         // yanlis: o secenek pasif, bolge kilitli (ardisik yanlista ceza artar)
+          tried[i].add(j); o.classList.add('bad');
+          const pen = PEN[Math.min(nbad[i]++, PEN.length - 1)];
+          until[i] = vt.now() + pen; setS(i, 'out'); wrong(i);
+          T.later(() => { if (winner < 0) setS(i, 'go'); }, pen);
         }
       };
-      vt.timeout(res, timeout);
+      T.later(res, timeout);
     });
-    handler = null;
+    T.clear(); handler = null; pzEnd();
+    if (winner < 0) await qzTimeUp();
     lastScores = cnt.map((c, i) => fin[i] != null ? RACE - fin[i] : c);
     return winner >= 0 ? [winner] : topScorers(cnt);
   }
 
-  const INK = [['KIRMIZI', '#ff5a5f'], ['MAVİ', '#47a9f5'], ['YEŞİL', '#2fd68c'], ['SARI', '#ffd23f']];
-  const stroop = () => quizGame(() => {
-    const w = Math.floor(Math.random() * 4);
-    let c; do { c = Math.floor(Math.random() * 4); } while (c === w);
-    const order = shuffle([0, 1, 2, 3]);
+  // ---- soru uretim yardimcilari: Math.random YALNIZ burada ve dizin sirasiyla (ag modunda her telefonda ayni) ----
+  const pickIn = (a, n) => { a = a.slice(); const o = []; while (o.length < n && a.length) o.push(a.splice(Math.floor(Math.random() * a.length), 1)[0]); return o; };         // a'dan n farkli oge
+  const pickExcept = (n, ...no) => { const c = []; for (let k = 0; k < n; k++) if (!no.includes(k)) c.push(k); return c[Math.floor(Math.random() * c.length)]; };   // 0..n-1 icinden 'no' disinda biri
+  // 4 sayisal secenek: dogru cevabin kucukten buyuge SIRASI (0..3) esit olasilikla secilir (cevap hep ortadaki degerlerden biri olmaz), celdiriciler adaylardan;
+  // tekrar yok, [min, max] disinda deger yok (ornegin negatif sayi)
+  const quizValues = (ans, pool, min, max = Infinity) => {
+    const lo = pool.filter(v => v < ans), hi = pool.filter(v => v > ans);
+    const r = Math.max(Math.min(Math.floor(Math.random() * 4), lo.length), 3 - hi.length);
+    const vals = [ans, ...pickIn(lo, r), ...pickIn(hi, 3 - r)];
+    for (let d = 1; vals.length < 4; d++) [ans + d, ans - d].forEach(v => { if (vals.length < 4 && v >= min && v <= max && !vals.includes(v)) vals.push(v); });
+    const opts = shuffle(vals);
+    return { opts, correct: opts.indexOf(ans) };
+  };
+
+  // Renk Tuzagi: kelime hep BASKA bir rengin adi (uyumsuz), murekkep rengi onceki sorudan farkli. Her rengin sekli (Renk Dizisi ile ayni): kirmizi ucgen, mavi kare, yesil daire, sari baklava.
+  const INK = [['KIRMIZI', '#ff5a5f', 'r', 'p-tri'], ['MAVİ', '#47a9f5', 'b', 'p-sq'], ['YEŞİL', '#2fd68c', 'g', 'p-circ'], ['SARI', '#ffd23f', 'y', 'p-dia']];
+  const stroopGen = (k, prev) => {
+    const c = pickExcept(4, prev ? prev.ink : -1), w = pickExcept(4, c, prev ? prev.word : -1), order = shuffle([0, 1, 2, 3]);
     return {
-      html: '<span class="word" style="color:' + INK[c][1] + '">' + INK[w][0] + '</span>',
-      options: order.map(k => ({ html: '', style: 'background:' + INK[k][1] })),
+      ink: c, word: w,
+      html: '<span class="stw"><span class="word" style="color:' + INK[c][1] + '">' + INK[w][0] + '</span><i class="qz-ink oc" data-c="' + INK[c][2] + '" style="--ic:' + INK[c][1] + '">' + ico(INK[c][3], 'qz-sh') + '</i></span>',
+      options: order.map(j => ({ html: ico(INK[j][3], 'qz-sh'), cls: 'oc', attr: 'data-c="' + INK[j][2] + '"', style: 'background-color:' + INK[j][1] })),
       correct: order.indexOf(c),
     };
-  });
+  };
+  const stroop = () => quizGame(stroopGen, 4, 20000, 'st');
+  stroop.gen = stroopGen;
 
-  const math = () => quizGame(lv => {
-    const R = n => Math.floor(Math.random() * n);
-    let txt, ans;
-    if (lv >= 3) { const x = 2 + R(8), y = 2 + R(8); ans = x * y; txt = x + ' × ' + y; }
-    else {
-      const max = lv >= 2 ? 19 : 9, plus = Math.random() < 0.6;
-      let x = 2 + R(max - 1), y = 2 + R(max - 1);
-      if (!plus && y > x) [x, y] = [y, x];
-      ans = plus ? x + y : x - y; txt = x + (plus ? ' + ' : ' − ') + y;
+  // Hizli Matematik: zorluk dizin ile artar (herkes ayni sirada ayni soruyu gorur): 1) kucuk toplama 2) kucuk cikarma 3) iki haneli toplama/cikarma 4+) carpma.
+  // Secenekler yakin degerler (+-1..4, onluk hatasi, carpimda +-carpan); negatif secenek yok.
+  const mathGen = (k, prev) => {
+    const R = (a, b) => a + Math.floor(Math.random() * (b - a + 1)), st = Math.min(k, 3);
+    let x, y, op, ans, txt;
+    for (let t = 0; t < 6; t++) {                                       // onceki soruyla ayni islem cikmasin
+      op = st === 0 ? '+' : st === 1 ? '−' : st === 2 ? (Math.random() < 0.5 ? '+' : '−') : '×';
+      if (op === '×') { x = R(3, 9); y = R(3, 9); ans = x * y; }
+      else if (op === '+') { if (st === 0) { x = R(2, 9); y = R(2, Math.min(9, 12 - x)); } else { x = R(11, 39); y = R(3, 19); } ans = x + y; }
+      else { if (st === 1) { x = R(6, 15); y = R(2, Math.min(9, x - 1)); } else { x = R(21, 49); y = R(3, 19); } ans = x - y; }
+      txt = x + ' ' + op + ' ' + y;
+      if (!prev || prev.key !== txt) break;
     }
-    const set = new Set([ans]), spread = lv >= 3 ? 9 : 7;
-    while (set.size < 4) { const v = ans + R(spread) - (spread >> 1); if (v >= 0) set.add(v); }
-    const opts = shuffle([...set]);
-    return { html: txt, options: opts.map(v => ({ html: v })), correct: opts.indexOf(ans) };
-  });
+    const pool = new Set(), sane = v => v !== ans && v >= 0 && (op === '−' ? v < x : v > Math.max(x, y));         // anlamsiz secenek yok: toplam / carpim terimlerden buyuk, fark eksilenden kucuk ve negatif degil
+    [1, 2, 3, 4].forEach(d => { pool.add(ans - d); pool.add(ans + d); });
+    if (op === '×') [x, y].forEach(m => { pool.add(ans - m); pool.add(ans + m); });
+    else if (st === 2) { pool.add(ans - 10); pool.add(ans + 10); }                                                 // onluk hatasi yalniz iki haneli sorularda
+    const { opts, correct } = quizValues(ans, [...pool].filter(sane), op === '−' ? 0 : Math.max(x, y) + 1, op === '−' ? x - 1 : Infinity);
+    return { key: txt, html: txt, options: opts.map(v => ({ html: v })), correct };
+  };
+  const math = () => quizGame(mathGen, 4, 20000, 'ma');
+  math.gen = mathGen;
 
 
   // ---------- Oyuna ozel kisa notalar (Isik Oyunu lamba sesleri, Renk Dizisi ped notalari); ses ayari kapaliysa calmaz ----------
@@ -2507,26 +2615,36 @@
   }
 
   const ARR = [0, 1, 2, 3].map(k => '<svg class="ar" style="transform:rotate(' + k * 90 + 'deg)" aria-hidden="true"><use href="#a-arrow"/></svg>');
-  const arrows = () => quizGame(() => {
-    const k = Math.floor(Math.random() * 4), rev = Math.random() < 0.4, target = rev ? (k + 2) % 4 : k;
-    const order = shuffle([0, 1, 2, 3]);
+  // Ok Yonu: ilk 2 soru yalniz AYNI YON, sonra cogunlukla TERSINE; ok yonu onceki sorudan farkli. Oklar ve secenekler birlikte doner (ust bolgede de oyuncu acisindan dogru).
+  const arrowGen = (k, prev) => {
+    const d = pickExcept(4, prev ? prev.dir : -1), rev = k >= 2 && Math.random() < 0.7, target = rev ? (d + 2) % 4 : d, order = shuffle([0, 1, 2, 3]);
     return {
-      html: ARR[k] +
-        (rev ? '<div class="sub rev">TERSİNE!</div>' : '<div class="sub">AYNI YÖN</div>'),
+      dir: d,
+      html: '<div class="qz-dial">' + ARR[d] + '</div>' +
+        (rev ? '<div class="sub rev qz-rule">' + ico('q-rev') + '<b>TERSİNE!</b></div>' : '<div class="sub qz-rule">' + ico('q-same') + '<b>AYNI YÖN</b></div>'),
       options: order.map(j => ({ html: ARR[j] })),
       correct: order.indexOf(target),
     };
-  }, 5);
+  };
+  const arrows = () => quizGame(arrowGen, 5, 20000, 'ar');
+  arrows.gen = arrowGen;
 
-  const counting = () => quizGame(() => {
-    const n = 3 + Math.floor(Math.random() * 7), em = ['a-bee', 'i-star', 'a-apple', 'a-fish', 'a-balloon-s'][Math.floor(Math.random() * 5)];
+  // Say Bakalim: sayi dizin ile artar (3-4, 5-6, 6-8, 8-10); nesne turu ve sayi onceki sorudan farkli. Nesneler 4x3 kutudan rastgele n tanesine (kutu basina en fazla bir)
+  // hafif kayma + egimle yerlesir (ust uste binme yok); her nesne bir <span> (sayilacak sey), konum cihazdan bagimsiz.
+  const COUNT_OBJ = ['a-bee', 'a-apple', 'a-fish', 'i-star', 'a-balloon-s'], COUNT_RANGE = [[3, 4], [5, 6], [6, 8], [8, 10]];
+  const countGen = (k, prev) => {
+    const [lo, hi] = COUNT_RANGE[Math.min(k, 3)], cand = [];
+    for (let v = lo; v <= hi; v++) if (!prev || v !== prev.n) cand.push(v);
+    const n = cand[Math.floor(Math.random() * cand.length)], obj = COUNT_OBJ[pickExcept(5, prev ? COUNT_OBJ.indexOf(prev.obj) : -1)];
+    const slots = pickIn(Array.from({ length: 12 }, (_, s) => s), n).sort((a, b) => a - b), f = v => v.toFixed(2);
     let h = '';
-    for (let k = 0; k < n; k++) h += '<span style="display:inline-block;margin:' + (Math.random() * 3) + 'px ' + (Math.random() * 5) + 'px;transform:rotate(' + Math.round(Math.random() * 40 - 20) + 'deg)">' + ico(em, 'sw') + '</span>';
-    const set = new Set([n]);
-    while (set.size < 4) { const v = n + Math.floor(Math.random() * 5) - 2; if (v >= 1) set.add(v); }
-    const opts = shuffle([...set]);
-    return { html: '<div class="swarm">' + h + '</div>', options: opts.map(v => ({ html: v })), correct: opts.indexOf(n) };
-  }, 4);
+    slots.forEach(s => { h += '<span style="--sx:' + (s % 4) + ';--sy:' + Math.floor(s / 4) + ';--jx:' + f(Math.random() * 2 - 1) + ';--jy:' + f(Math.random() * 2 - 1) + ';--rot:' + Math.round(Math.random() * 24 - 12) + 'deg;--sc:' + f(0.9 + Math.random() * 0.1) + '">' + ico(obj, 'sw') + '</span>'; });
+    const pool = []; for (let v = Math.max(1, n - 3); v <= n + 3; v++) if (v !== n) pool.push(v);
+    const { opts, correct } = quizValues(n, pool, 1);
+    return { n, obj, html: '<div class="swarm">' + h + '</div>', options: opts.map(v => ({ html: v })), correct };
+  };
+  const counting = () => quizGame(countGen, 4, 20000, 'co');
+  counting.gen = countGen;
 
   async function memory() {
     const E = ['f-bear', 'f-cat', 'f-frog', 'f-bunny', 'f-panda', 'f-pig', 'f-octo', 'f-pizza'], PAIRS = 4, LIMIT = 30000, HOLD = 1000;
