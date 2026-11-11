@@ -3371,7 +3371,7 @@
     dc.onclose = () => { if (old.dc === dc) peerGone(old); };
     try { if (prevDc && prevDc !== dc) prevDc.close(); } catch (_) {}
     jsend(dc, { t: 'resume', idx: old.idx, started: net.matchStarted, token: old.token, ...(net.matchStarted ? hostState() : {}) });
-    net.peers.forEach(q => q !== old && jsend(q.dc, { t: 'away', i: old.idx, on: false }));
+    openPeers().forEach(q => q !== old && jsend(q.dc, { t: 'away', i: old.idx, on: false }));
     toast(old.name + ' geri bağlandı'); broadcastRoster(); paintNetBar();
   }
   const dropPeer = peer => { clearTimeout(peer.helloT); net.peers = net.peers.filter(p => p !== peer); peer.gone = true; };
@@ -3411,12 +3411,12 @@
       if (!net.matchStarted || peer.idx < 1 || !isInt(m.r, 0, 1000)) return;
       const v = isNum(m.v, -1e9, 1e9) ? m.v : null;                                // sayi olmayan / asiri skor "puan yok" sayilir: tek istemci turu herkes icin bozamaz
       if (peer.waiting && peer.waiting.r === m.r) { const w = peer.waiting; peer.waiting = null; w.res(v == null ? -Infinity : v); }
-      if (m.r === net.round) { net.done[peer.idx] = true; net.peers.forEach(q => jsend(q.dc, { t: 'd', i: peer.idx, r: m.r })); paintNetBar(); }
+      if (m.r === net.round) { net.done[peer.idx] = true; openPeers().forEach(q => jsend(q.dc, { t: 'd', i: peer.idx, r: m.r })); paintNetBar(); }
     } else if (m.t === 'p') {
       if (!net.matchStarted || peer.idx < 1 || m.r !== net.round) return;
       const v = isNum(m.v, -1e9, 1e9) ? m.v : 0, mm = isNum(m.m, 0, 1e9) ? m.m : undefined;
       net.prog[peer.idx] = { v, m: mm };
-      net.peers.forEach(q => q !== peer && jsend(q.dc, { t: 'p', i: peer.idx, v, m: mm, r: m.r }));
+      openPeers().forEach(q => q !== peer && jsend(q.dc, { t: 'p', i: peer.idx, v, m: mm, r: m.r }));
       paintNetBar();
     }
   }
@@ -3426,12 +3426,12 @@
     // Mac sirasinda LAN baglantisi kopan oyuncu 25 sn beklenir (otomatik yeniden baglanabilir)
     if (net.matchStarted && peer.open && peer.token && net.mode === 'lan' && !peer.away && !peer.bye) {          // bilerek cikan (bye) beklenmez
       peer.away = true; net.away[peer.idx] = true;
-      net.peers.forEach(q => q !== peer && jsend(q.dc, { t: 'away', i: peer.idx, on: true }));
+      openPeers().forEach(q => q !== peer && jsend(q.dc, { t: 'away', i: peer.idx, on: true }));
       toast(peer.name + ' bağlantısı koptu, bekleniyor…'); paintNetBar();
       peer.awayTimer = setTimeout(() => {
         if (!peer.away) return;
         peer.away = false; peer.gone = true; toast(peer.name + ' ayrıldı'); paintNetBar();
-        net.peers.forEach(q => q !== peer && jsend(q.dc, { t: 'away', i: peer.idx, on: true, left: true }));
+        openPeers().forEach(q => q !== peer && jsend(q.dc, { t: 'away', i: peer.idx, on: true, left: true }));
       }, 25000);
       return;
     }
@@ -3440,7 +3440,7 @@
     if (peer.open) toast(peer.name + ' ayrıldı');
     if (net.matchStarted && peer.open) {                                              // macta: oyuncu numaralari degismez, digerlerine yalnizca "ayrildi" bildirilir
       net.away[peer.idx] = true; paintNetBar();
-      net.peers.forEach(q => q !== peer && jsend(q.dc, { t: 'away', i: peer.idx, on: true, left: true }));
+      openPeers().forEach(q => q !== peer && jsend(q.dc, { t: 'away', i: peer.idx, on: true, left: true }));
     } else broadcastRoster();
   }
 
@@ -3512,7 +3512,7 @@
     if (progT) return;
     progT = setTimeout(() => {
       progT = null; const o = progLast;
-      if (net.role === 'host') net.peers.forEach(q => jsend(q.dc, { t: 'p', i: 0, v: o.v, m: o.m, r: net.round }));
+      if (net.role === 'host') openPeers().forEach(q => jsend(q.dc, { t: 'p', i: 0, v: o.v, m: o.m, r: net.round }));
       else jsend(net.gdc, { t: 'p', v: o.v, m: o.m, r: net.round });
     }, 120);
   }
@@ -3553,7 +3553,7 @@
       }));
       const mine = await netRound(g, seed, r, total, open, intro, at);
       if (my !== matchId) return;
-      net.peers.forEach(q => jsend(q.dc, { t: 'd', i: 0, r }));
+      openPeers().forEach(q => jsend(q.dc, { t: 'd', i: 0, r }));
       const metrics = [mine, ...(await Promise.all(waits))].map((m, i) => (dead[i] || !isNum(m, -1e12, 1e12)) ? -Infinity : m);
       if (my !== matchId) return;
       const mx = Math.max(...metrics);
