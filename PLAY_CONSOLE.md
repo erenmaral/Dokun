@@ -38,3 +38,7 @@ Kodu `main`'e push'la → yeni AAB üretilir → aynı testte "Yeni sürüm olu�
 
 ## 7) Play'in "Yayın öncesi rapor" uyarıları
 Play, yüklenen sürümü gerçek cihazlarda otomatik dener. Beklenen sonuç: çökme yok. İzinler: yalnızca ağ ve titreşim. `usesCleartextTraffic` yerel ağ oyunu (ws://) için gereklidir; veri bize ulaşmaz.
+
+**Eski WebView:** `minWebViewVersion` 108'dir; daha eski bir "Android System WebView" olan cihazlarda oyun açılmak yerine Türkçe bir güncelleme sayfası (`webview-guncelle.html`) görünür. Play'in cihaz testlerinde bu sayfa görünürse test cihazının WebView'ünü güncellemek gerekir.
+
+**Sürüm numarası ve çevrimiçi oyun:** çevrimiçi odada telefonlar el sıkışmada bir sürüm damgası karşılaştırır; oyun kuralı / rastgele çekim sırası değişmiş iki sürüm birbirine bağlanamaz ("Uygulama sürümleri uyuşmuyor"). Kademeli yayında (staged rollout) bu, yeni sürüme geçmiş ve geçmemiş arkadaşların aynı odaya girememesi demektir; yalnızca yorum / boşluk değişen yayınlarda damga değişmez.

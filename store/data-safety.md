@@ -4,6 +4,7 @@ Dokun! kişisel veri toplamaz/paylaşmaz. Formu şöyle doldur:
 
 1. **Uygulamanız gerekli kullanıcı verisi türlerinden herhangi birini topluyor veya paylaşıyor mu?** → **Hayır**
    (Oyuncu adları ve ayarlar yalnızca cihazda `localStorage`'da durur; yakındaki telefonlara yerel ağda iletilen adlar/puanlar bizim sunucumuza ulaşmaz. "Toplama" Google'ın tanımına göre verinin cihazdan dışarı, geliştiriciye veya üçüncü tarafa aktarılmasıdır.)
+   Not: isteğe bağlı "Gelişmiş bağlantı (kod yapıştır)" modu (ve web sürümü) WebRTC kullanır; bağlantı kurulurken Google'ın herkese açık STUN sunucusuna (`stun.l.google.com`) tek bir istek gider ve IP adresi bu istekle görünür. Veri saklanmaz, kullanıcı başlatır ve yalnızca bağlantı kurmak içindir (Play'in "geçici işleme / ephemeral processing" istisnası); bu yüzden cevap "Hayır" kalabilir. Daha temkinli davranmak istenirse "IP adresi" → "Cihaz veya diğer kimlikler" → "paylaşılıyor, isteğe bağlı, yalnızca uygulama işlevi" olarak da işaretlenebilir; gizlilik politikası bu durumu zaten açıklar.
 2. **Tüm kullanıcı verileri aktarım sırasında şifreleniyor mu?** → Veri toplanmadığı için soru gösterilmez. (Yerel ağ oyunu `ws://` düz bağlantı kullanır ama veri bize ulaşmaz.)
 3. **Kullanıcılar veri silme isteyebilir mi?** → Soru gösterilmez (veri toplanmıyor).
 4. **Gizlilik politikası URL'si:** https://erenmaral.github.io/Dokun/privacy.html
