@@ -1,13 +1,13 @@
 # Google Play mağaza girişi — Türkçe (varsayılan dil)
 
-**Uygulama adı (en çok 30 karakter):** Dokun! Parti Mini Oyunları
+**Uygulama adı (en çok 30 karakter):** Touch! Parti Mini Oyunları
 
 **Kısa açıklama (en çok 80 karakter):**
 Aynı telefonda 2-4 kişi ya da yakındaki telefonlarla hızlı mini oyun yarışları.
 
 **Tam açıklama (en çok 4000 karakter):**
 
-Dokun! arkadaşlarla aynı ekranda oynanan, birkaç saniyede biten hızlı mini oyunlardan oluşan bir parti oyunudur. Telefonu masaya koy, herkes kendi bölgesine otursun, 3-2-1 ile başla!
+Touch! arkadaşlarla aynı ekranda oynanan, birkaç saniyede biten hızlı mini oyunlardan oluşan bir parti oyunudur. Telefonu masaya koy, herkes kendi bölgesine otursun, 3-2-1 ile başla!
 
 🎮 20 MİNİ OYUN
 • Tepki: Yeşil yanınca ilk dokunan kazanır. Sahte sarı işarete aldanma!

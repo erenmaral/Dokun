@@ -1,5 +1,5 @@
 import com.getcapacitor.*;
-import com.dokun.partygames.LanServerPlugin;
+import com.touchgames.partygames.LanServerPlugin;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 import java.net.URI;

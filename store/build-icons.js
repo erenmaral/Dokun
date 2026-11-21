@@ -1,4 +1,4 @@
-// Dokun! simge ve acilis ekrani uretici: SVG -> PNG (Playwright/Chromium). Calistir: node store/build-icons.js
+// Touch! simge ve acilis ekrani uretici: SVG -> PNG (Playwright/Chromium). Calistir: node store/build-icons.js
 // Cikti: android/app/src/main/res/{mipmap-*,drawable*} + store/out/icon-512.png
 // Yalniz bir kismini uretmek icin: ONLY=splash,adaptive node store/build-icons.js   (parcalar: legacy, adaptive, store, splash)
 const { chromium } = require('playwright');

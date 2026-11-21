@@ -10,5 +10,5 @@ get org/slf4j/slf4j-api/2.0.13/slf4j-api-2.0.13.jar
 get org/json/json/20240303/json-20240303.jar
 CP="$LIB/Java-WebSocket-1.5.7.jar:$LIB/slf4j-api-2.0.13.jar:$LIB/json-20240303.jar"
 rm -rf "$OUT"/*
-javac -nowarn -d "$OUT" -cp "$CP" $(find stubs -name '*.java') ../app/src/main/java/com/dokun/partygames/LanServerPlugin.java Harness.java Serve.java
+javac -nowarn -d "$OUT" -cp "$CP" $(find stubs -name '*.java') ../app/src/main/java/com/touchgames/partygames/LanServerPlugin.java Harness.java Serve.java
 exec java -Dfile.encoding=UTF-8 -Dstdout.encoding=UTF-8 -cp "$OUT:$CP" Harness "${1:-all}"

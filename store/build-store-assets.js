@@ -1,4 +1,4 @@
-// Dokun! Google Play magaza gorselleri: ozellik grafigi (1024x500) ve telefon/tablet ekran goruntuleri.
+// Touch! Google Play magaza gorselleri: ozellik grafigi (1024x500) ve telefon/tablet ekran goruntuleri.
 // Calistir: node store/build-store-assets.js   (DOKUN=<klasor> ile baska bir kopya secilebilir)
 // Cikti: store/out/feature-graphic-1024x500.png, store/out/screenshots/phone-*.png (1080x1920), tablet-*.png (1600x2560)
 const { chromium } = require('playwright');

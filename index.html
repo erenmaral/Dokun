@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#1d1838">
-<title>Dokun!</title>
+<title>Touch!</title>
 <style>
   /* =====================================================================
      DOKUN! tasarim dili: "Cikartma / oyuncak kutusu"
@@ -1200,8 +1200,8 @@
   <div class="deco l" aria-hidden="true"><i style="--c:var(--red);--r:-7deg"><svg viewBox="0 0 64 96"><use href="#a-balloon"/></svg></i><i style="--c:var(--green);--r:6deg"><svg viewBox="0 0 48 48"><use href="#a-target"/></svg></i></div>
   <div class="deco r" aria-hidden="true"><i style="--c:var(--blue);--r:5deg"><svg viewBox="0 0 48 48"><use href="#f-pig"/></svg></i><i style="--c:var(--yellow);--r:-6deg"><svg viewBox="0 0 48 48"><use href="#a-mole"/></svg></i></div>
   <div class="inner home">
-  <div class="logo" aria-label="DOKUN!">
-    <span style="--i:0;--r:-5deg;--c:var(--red)">D</span><span style="--i:1;--r:4deg;--c:var(--yellow)">O</span><span style="--i:2;--r:-3deg;--c:var(--green)">K</span><span style="--i:3;--r:5deg;--c:var(--blue)">U</span><span style="--i:4;--r:-4deg;--c:var(--purple)">N</span><span style="--i:5;--r:7deg;--c:var(--orange)">!</span>
+  <div class="logo" aria-label="TOUCH!">
+    <span style="--i:0;--r:-5deg;--c:var(--red)">T</span><span style="--i:1;--r:4deg;--c:var(--yellow)">O</span><span style="--i:2;--r:-3deg;--c:var(--green)">U</span><span style="--i:3;--r:5deg;--c:var(--blue)">C</span><span style="--i:4;--r:-4deg;--c:var(--purple)">H</span><span style="--i:5;--r:7deg;--c:var(--orange)">!</span>
   </div>
   <div class="tag">Aynı telefonda ya da farklı telefonlarda arkadaşlarla hızlı mini oyunlar</div>
   <div class="marquee"><div class="mtrack" id="mtrack"></div></div>
@@ -1464,10 +1464,7 @@
       else if (m.type === 'attributes') doEl(m.target);
       else m.addedNodes.forEach(doTree);
     })).observe(document.documentElement, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ATTR });
-    if (LANG === 'en') {                                                                   // Ingilizce adi: Touch! (logo harfleri D-O-K-U-N -> T-O-U-C-H, ayni 5 harf)
-      document.title = 'Touch!'; const lg = document.querySelector('.logo'); lg.setAttribute('aria-label', 'TOUCH!');
-      [...lg.children].slice(0, 5).forEach((sp, i) => { sp.textContent = 'TOUCH'[i]; sp.setAttribute('data-nt', ''); });
-    } else document.title = tr(document.title);
+    document.title = tr(document.title);
     doTree(document.body);
   }
   const nameOf = i => prefs.names[i] || t('Oyuncu {0}', i + 1);
@@ -4050,7 +4047,7 @@
   }));
   $('#vol-row').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; prefs.vol = +b.dataset.v; savePrefs(); paintSettings(); music.volume(); });
   { const v = $('#ver'); if (v && /__DOKUN/.test(v.textContent)) v.textContent = 'geliştirme'; }
-  $('#rate-btn').addEventListener('click', () => { try { window.open('https://play.google.com/store/apps/details?id=com.dokun.partygames', '_blank', 'noopener'); } catch (_) {} });      // Play Store sayfasi (Android'de Play uygulamasinda acilir)
+  $('#rate-btn').addEventListener('click', () => { try { window.open('https://play.google.com/store/apps/details?id=com.touchgames.partygames', '_blank', 'noopener'); } catch (_) {} });      // Play Store sayfasi (Android'de Play uygulamasinda acilir)
   $('#privacy-btn').addEventListener('click', () => { try { window.open('https://erenmaral.github.io/Dokun/privacy.html', '_blank', 'noopener'); } catch (_) {} });
   $('#names').addEventListener('input', e => { const i = +e.target.dataset.i; prefs.names[i] = e.target.value.trim().slice(0, 10); savePrefs(); });
   $('#lang-row').addEventListener('click', e => {                                          // dil sec: kaydet ve sayfayi yeniden yukle (menu ekranindayiz, kayip yok)
@@ -4364,7 +4361,7 @@
       clearTimeout(peer.helloT);
       const tok = isStr(m.token, 40) ? m.token : null;
       if (tok) { const old = net.peers.find(p => p.token === tok && p !== peer && !p.gone); if (old) { rebind(old, peer); return; } }
-      if (m.v !== buildVersion()) { toast((cleanName(m.name) || 'Bir oyuncu') + ' farklı sürümde, katılamadı', 4500); rejectPeer(peer, 'Uygulama sürümleri uyuşmuyor. Herkes Dokun!\'u güncellemeli.'); return; }
+      if (m.v !== buildVersion()) { toast((cleanName(m.name) || 'Bir oyuncu') + ' farklı sürümde, katılamadı', 4500); rejectPeer(peer, 'Uygulama sürümleri uyuşmuyor. Herkes Touch!\'u güncellemeli.'); return; }
       if (net.matchStarted) { rejectPeer(peer, 'Maç zaten başladı'); return; }
       if (openPeers().length >= 3) { rejectPeer(peer, 'Oda dolu'); return; }
       peer.open = true; peer.name = uniqueName(m.name, [nameOf(0), ...openPeers().filter(p => p !== peer).map(p => p.name)]);
@@ -4647,7 +4644,7 @@
     if (!m || !net.on) return;
     if (m.t === 'welcome') {
       clearTimeout(net.welcomeT);
-      if (isStr(m.v, 64) && m.v !== buildVersion()) { leaveNet('Uygulama sürümleri uyuşmuyor. Herkes Dokun!\'u güncellemeli.'); return; }
+      if (isStr(m.v, 64) && m.v !== buildVersion()) { leaveNet('Uygulama sürümleri uyuşmuyor. Herkes Touch!\'u güncellemeli.'); return; }
       net.token = isStr(m.token, 40) ? m.token : null;
       $('#g-status').textContent = 'Bağlandı. Oda sahibi maçı başlatınca oyun başlar.';
       wake.on(); startPing();

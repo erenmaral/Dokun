@@ -1,4 +1,4 @@
-package com.dokun.partygames;
+package com.touchgames.partygames;
 
 import android.content.res.Configuration;
 import android.os.Bundle;

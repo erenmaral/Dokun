@@ -1,6 +1,6 @@
 # Play Console — "Veri güvenliği" (Data safety) formu için hazır cevaplar
 
-Dokun! kişisel veri toplamaz/paylaşmaz. Formu şöyle doldur:
+Touch! kişisel veri toplamaz/paylaşmaz. Formu şöyle doldur:
 
 1. **Uygulamanız gerekli kullanıcı verisi türlerinden herhangi birini topluyor veya paylaşıyor mu?** → **Hayır**
    (Oyuncu adları ve ayarlar yalnızca cihazda `localStorage`'da durur; yakındaki telefonlara yerel ağda iletilen adlar/puanlar bizim sunucumuza ulaşmaz. "Toplama" Google'ın tanımına göre verinin cihazdan dışarı, geliştiriciye veya üçüncü tarafa aktarılmasıdır.)

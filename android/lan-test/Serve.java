@@ -1,5 +1,5 @@
 import com.getcapacitor.*;
-import com.dokun.partygames.LanServerPlugin;
+import com.touchgames.partygames.LanServerPlugin;
 import java.util.concurrent.TimeUnit;
 
 /** LanServerPlugin'i bir echo sunucusu olarak calistirir (Playwright/Chromium istemcisi ile gercek WebSocket uyumlulugu denemesi) */

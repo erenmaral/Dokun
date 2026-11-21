@@ -1,4 +1,4 @@
-# Dokun! — Google Play Console'da teste sokma rehberi
+# Touch! — Google Play Console'da teste sokma rehberi
 
 Bu depo Play Console'a hazır paket üretir: her `main` push'unda GitHub Actions **imzalı release APK** (telefona kurmak için) ve **AAB** (Play'e yüklemek için) derler. Sürüm numarası otomatik artar (`versionCode` = çalışma numarası, `versionName` = `1.0.<numara>`).
 
@@ -13,7 +13,7 @@ Yükleme (upload) anahtarı şifreli olarak `android/signing/dokun-upload.jks.en
 > Parolayı kaybedersen: Play Console → Kurulum → Uygulama bütünlüğü → "Yükleme anahtarını sıfırla" ile yeni anahtar tanımlanabilir.
 
 ## 2) Play Console'da uygulamayı oluştur
-1. https://play.google.com/console → **Uygulama oluştur** → Ad: `Dokun! Parti Mini Oyunları`, Varsayılan dil: Türkçe, **Oyun**, **Ücretsiz**. Beyanları onayla.
+1. https://play.google.com/console → **Uygulama oluştur** → Ad: `Touch! Parti Mini Oyunları`, Varsayılan dil: Türkçe, **Oyun**, **Ücretsiz**. Beyanları onayla.
 2. **Kurulum → Uygulama bütünlüğü**: "Play Uygulama İmzalama" (Google yönetir) seçili kalsın. İlk yüklemede AAB'nin imzası "yükleme anahtarı" olarak kaydedilir.
 
 ## 3) Zorunlu "Uygulama içeriği" formları

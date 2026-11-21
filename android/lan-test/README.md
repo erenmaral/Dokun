@@ -14,5 +14,5 @@ Calistirma (JDK 17+ ve Maven Central erisimi gerekir; AGP / Android SDK gerekmez
 ./run.sh restart    # tek senaryo (restart startstart basic big race many throw badport destroy)
 ```
 
-IP secim mantigi (`rank`) icin ayrica birim testi: `android/app/src/test/java/com/dokun/partygames/LanServerPluginTest.java`
+IP secim mantigi (`rank`) icin ayrica birim testi: `android/app/src/test/java/com/touchgames/partygames/LanServerPluginTest.java`
 (`cd android && ./gradlew testDebugUnitTest`).

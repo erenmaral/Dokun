@@ -1,6 +1,6 @@
 {
-  "appId": "com.dokun.partygames",
-  "appName": "Dokun",
+  "appId": "com.touchgames.partygames",
+  "appName": "Touch",
   "webDir": "www",
   "backgroundColor": "#1d1838",
   "server": {

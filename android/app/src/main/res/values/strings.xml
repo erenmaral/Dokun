@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Dokun</string>
-    <string name="title_activity_main">Dokun</string>
-    <string name="package_name">com.dokun.partygames</string>
-    <string name="custom_url_scheme">com.dokun.partygames</string>
+    <string name="app_name">Touch</string>
+    <string name="title_activity_main">Touch</string>
+    <string name="package_name">com.touchgames.partygames</string>
+    <string name="custom_url_scheme">com.touchgames.partygames</string>
 </resources>

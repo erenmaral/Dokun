@@ -1,4 +1,4 @@
-# Dokun! tasarim dili: "Cikartma / oyuncak kutusu" (Yon A)
+# Touch! tasarim dili: "Cikartma / oyuncak kutusu" (Yon A)
 
 Her sey bir cikartma ya da oyuncak gibi: **duz doygun renkler, kalin murekkep dis cizgisi, sert (bulaniksiz) kaydirilmis golgeler, nokta dokusu, tombul yazi tipi, ziplayan (squash & stretch) hareket.** Tum degisiklikler `index.html` icinde (CSS + satir ici SVG + kucuk JS yamalari); oyun mantigi, zamanlayicilar, ag protokolu ve yerlesim duzeltmeleri korunmustur.
 
