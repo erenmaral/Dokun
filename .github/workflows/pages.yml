@@ -40,5 +40,9 @@ jobs:
         with:
           path: _site
 
+      # Yuklenen artifact'in GitHub API'sinde gorunmesi birkac sn surebilir ("Found 0 artifact(s)" hatasi); kisa bekleme bu yaris durumunu onler
+      - name: Artifact'in gorunmesini bekle
+        run: sleep 20
+
       - id: deployment
         uses: actions/deploy-pages@v4
