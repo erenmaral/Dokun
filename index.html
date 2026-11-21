@@ -1247,6 +1247,10 @@
 <div id="settings" class="screen hidden"><div class="inner">
   <div class="ptop"><button id="set-back" class="icon-btn" aria-label="Geri"><svg class="ic" aria-hidden="true"><use href="#i-back"/></svg></button><div class="ptitle"><h2>Ayarlar</h2></div></div>
   <div class="csec">
+    <div class="sh">Dil</div>
+    <div class="row seg" id="lang-row" style="flex-wrap:wrap"></div>
+  </div>
+  <div class="csec">
     <div class="sh">Ses</div>
     <div class="setrow"><span>Ses efektleri</span><button class="tog" data-k="sfx"></button></div>
     <div class="setrow"><span>Titreşim</span><button class="tog" data-k="vib"></button></div>
@@ -1268,6 +1272,7 @@
     <div class="setrow"><span>Nasıl oynanır?</span><button class="sm" id="guide-btn">Göster</button></div>
     <div class="setrow"><span>Sürüm</span><b id="ver">__DOKUN_VERSION__</b></div>
     <div class="setrow"><span>Gizlilik politikası</span><button class="sm" id="privacy-btn">Aç</button></div>
+    <div class="setrow"><span>Uygulamayı puanla</span><button class="sm" id="rate-btn">Aç</button></div>
   </div>
   <div class="csec">
     <div class="sh">Oyuncular: ad ve renk</div>
@@ -1404,7 +1409,7 @@
   const esc = t => String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
   // ---------- Ayarlar ----------
-  const prefs = { sfx: true, vib: true, music: true, menuMusic: true, vol: 2, wake: true, cb: false, names: ['', '', '', ''], colors: [0, 1, 2, 3] };
+  const prefs = { sfx: true, vib: true, music: true, menuMusic: true, vol: 2, wake: true, cb: false, names: ['', '', '', ''], colors: [0, 1, 2, 3], lang: 'en' };
   try {                                             // yalniz bilinen anahtarlar okunur (bozuk / dusmanca kayit prototipi ya da ayarlari bozmasin)
     const sv = JSON.parse(localStorage.getItem('dokun-ayar') || 'null');
     if (sv && typeof sv === 'object') Object.keys(prefs).forEach(k => { if (Object.prototype.hasOwnProperty.call(sv, k)) prefs[k] = sv[k]; });
@@ -1417,7 +1422,55 @@
   const applyCb = () => document.body.classList.toggle('cb', !!prefs.cb);       // renk koru modu: renkle ayrilan ogelere sekil/simge/desen eklenir (CSS: body.cb ...)
   applyCb();
   const savePrefs = () => { try { localStorage.setItem('dokun-ayar', JSON.stringify(prefs)); } catch (_) {} };
-  const nameOf = i => prefs.names[i] || ('Oyuncu ' + (i + 1));
+
+  // ---------- Dil (i18n) ----------
+  // Kaynak dil Turkcedir: arayuz metinleri kodda Turkce yazilidir. Diger diller (en, es, de, fr, pt) bir sozlukle (I18N, i18n/*.json'dan gomulur) calisma aninda cevrilir:
+  // metin dugumleri / placeholder / aria-label degistikce MutationObserver tam metni sozlukte arar, bulamazsa "{0}" kalipli girdilerle eslestirir (degisken kisimlar ayrica cevrilir).
+  // Dil degisince sayfa yeniden yuklenir. Oyuncu adlari (.nm) cevrilmez.
+  const I18N = /*I18N-BEGIN*/{}/*I18N-END*/;
+  const LANGS = [['tr', 'Türkçe'], ['en', 'English'], ['es', 'Español'], ['de', 'Deutsch'], ['fr', 'Français'], ['pt', 'Português']];
+  prefs.lang = LANGS.some(l => l[0] === prefs.lang) ? prefs.lang : 'en';                    // varsayilan dil Ingilizce; Ayarlar > Dil'den degistirilir
+  const LANG = prefs.lang;
+  const DICT = LANG !== 'tr' && I18N[LANG] ? I18N[LANG] : null;
+  const TPLS = DICT ? Object.keys(DICT).filter(k => /\{\d\}/.test(k)).sort((a, b) => b.length - a.length).map(k => ({ re: new RegExp('^' + k.replace(/[.*+?^$()|[\]\\]/g, '\\$&').replace(/\{(\d)\}/g, '(.+?)') + '$'), to: DICT[k] })) : [];
+  const trCache = new Map();
+  const tr = s => {                                                  // tam metin -> sozluk; yoksa kalip; yoksa " · " parcalari
+    if (!DICT) return s;
+    if (trCache.has(s)) return trCache.get(s);
+    const core = s.trim(); let r = s;
+    if (core && DICT[core] != null) r = s.replace(core, () => DICT[core]);
+    else if (core) {
+      for (const t of TPLS) { const m = core.match(t.re); if (m) { r = s.replace(core, () => t.to.replace(/\{(\d)\}/g, (_, i) => tr(m[+i + 1]))); break; } }
+      if (r === s && core.includes(' · ')) r = s.replace(core, () => core.split(' · ').map(tr).join(' · '));
+    }
+    if (trCache.size > 3000) trCache.clear();
+    trCache.set(s, r); return r;
+  };
+  const t = (k, ...a) => (DICT && DICT[k] != null ? DICT[k] : k).replace(/\{(\d)\}/g, (_, i) => a[+i]);          // kodda dogrudan kullanim: t('Oyuncu {0}', 3)
+  if (DICT) {
+    document.documentElement.lang = LANG;
+    const ATTR = ['placeholder', 'aria-label', 'title'];
+    const skip = n => { const e = n.nodeType === 1 ? n : n.parentElement; return !e || !!e.closest('script, style, textarea, .nm, [data-nt]'); };
+    const doText = n => { const v = n.nodeValue; if (!v || !/[A-Za-zÇĞİÖŞÜçğıöşü]/.test(v) || skip(n)) return; const r = tr(v); if (r !== v) n.nodeValue = r; };
+    const doEl = e => ATTR.forEach(a => { const v = e.getAttribute && e.getAttribute(a); if (v) { const r = tr(v); if (r !== v) e.setAttribute(a, r); } });
+    const doTree = root => {
+      if (root.nodeType === 3) { doText(root); return; }
+      if (root.nodeType !== 1) return;
+      doEl(root); root.querySelectorAll('[placeholder],[aria-label],[title]').forEach(doEl);
+      const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT); const ns = []; while (w.nextNode()) ns.push(w.currentNode); ns.forEach(doText);
+    };
+    new MutationObserver(ms => ms.forEach(m => {
+      if (m.type === 'characterData') doText(m.target);
+      else if (m.type === 'attributes') doEl(m.target);
+      else m.addedNodes.forEach(doTree);
+    })).observe(document.documentElement, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ATTR });
+    if (LANG === 'en') {                                                                   // Ingilizce adi: Touch! (logo harfleri D-O-K-U-N -> T-O-U-C-H, ayni 5 harf)
+      document.title = 'Touch!'; const lg = document.querySelector('.logo'); lg.setAttribute('aria-label', 'TOUCH!');
+      [...lg.children].slice(0, 5).forEach((sp, i) => { sp.textContent = 'TOUCH'[i]; sp.setAttribute('data-nt', ''); });
+    } else document.title = tr(document.title);
+    doTree(document.body);
+  }
+  const nameOf = i => prefs.names[i] || t('Oyuncu {0}', i + 1);
   // i. oyuncunun renk dizini (PALETTE). Yerelde ayarlardan; cevrimicide oda sahibinin dagittigi renkler (net.cols), gelmediyse kendi rengim / sira numarasi.
   const colorIdx = i => (net.on && net.cols && Number.isInteger(net.cols[i])) ? net.cols[i] : net.on ? (i === net.myIdx ? prefs.colors[0] : i) : prefs.colors[i];
   const pickCol = (want, used) => (Number.isInteger(want) && want >= 0 && want < PALETTE.length && !used.includes(want)) ? want : PALETTE.findIndex((_, c) => !used.includes(c));      // istenen renk bossa o, degilse ilk bos renk
@@ -2105,8 +2158,9 @@
   const evT = e => { const lat = e && e.timeStamp > 0 ? performance.now() - e.timeStamp : 0; return vt.now() - (lat > 0 && lat < 400 ? lat : 0); };
   const blip = (freq, dur, o = {}) => audio.note(freq, dur, o);               // kisa yumusak nota: ayar, yuk siniri ve arka plan denetimi ses motorunda
   const buzz = pat => haptic.play(pat);
-  const dec1 = v => v.toFixed(1).replace('.', ',');           // Turkce ondalik ayraci
-  const dec2 = v => v.toFixed(2).replace('.', ',');
+  const decSep = LANG === 'en' ? '.' : ',';                    // ondalik ayraci: Ingilizce nokta, digerleri virgul
+  const dec1 = v => v.toFixed(1).replace('.', decSep);
+  const dec2 = v => v.toFixed(2).replace('.', decSep);
   // Parmak izleyici: bolge basina basili pointer'lar. Geri sayimda basilip tutulan parmak oyun baslayinca bilinir; ikinci parmak ve iptal ayirt edilir.
   const touches = (() => {
     const map = new WeakMap(), subs = new Set();
@@ -3980,6 +4034,7 @@
   const paintSettings = () => {
     settings.querySelectorAll('.tog').forEach(b => { const on = !!prefs[b.dataset.k]; b.classList.toggle('sel', on); b.textContent = on ? 'Açık' : 'Kapalı'; });
     [...$('#vol-row').children].forEach(b => b.classList.toggle('sel', +b.dataset.v === prefs.vol));
+    $('#lang-row').innerHTML = LANGS.map(l => '<button data-l="' + l[0] + '" data-nt class="' + (l[0] === LANG ? 'sel' : '') + '" aria-pressed="' + (l[0] === LANG) + '">' + l[1] + '</button>').join('');
     $('#names').querySelectorAll('input').forEach(inp => { inp.value = prefs.names[+inp.dataset.i]; });
     $('#names').querySelectorAll('.prow').forEach(r => {                                   // renk seciciler: secili renk isaretli; satirin renk cubugu secili renkte
       const i = +r.dataset.i, cur = prefs.colors[i];
@@ -3995,8 +4050,13 @@
   }));
   $('#vol-row').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; prefs.vol = +b.dataset.v; savePrefs(); paintSettings(); music.volume(); });
   { const v = $('#ver'); if (v && /__DOKUN/.test(v.textContent)) v.textContent = 'geliştirme'; }
+  $('#rate-btn').addEventListener('click', () => { try { window.open('https://play.google.com/store/apps/details?id=com.erenmaral.dokun', '_blank', 'noopener'); } catch (_) {} });      // Play Store sayfasi (Android'de Play uygulamasinda acilir)
   $('#privacy-btn').addEventListener('click', () => { try { window.open('https://erenmaral.github.io/Dokun/privacy.html', '_blank', 'noopener'); } catch (_) {} });
   $('#names').addEventListener('input', e => { const i = +e.target.dataset.i; prefs.names[i] = e.target.value.trim().slice(0, 10); savePrefs(); });
+  $('#lang-row').addEventListener('click', e => {                                          // dil sec: kaydet ve sayfayi yeniden yukle (menu ekranindayiz, kayip yok)
+    const b = e.target.closest('button'); if (!b || b.dataset.l === LANG) return;
+    prefs.lang = b.dataset.l; savePrefs(); location.reload();
+  });
   $('#names').addEventListener('click', e => {                                            // renk sec: baska oyuncuda olan renk secilirse renkler yer degistirir (renkler hep benzersiz)
     const b = e.target.closest('.sw'); if (!b) return;
     const i = +b.closest('.prow').dataset.i, c = +b.dataset.c, j = prefs.colors.indexOf(c);
