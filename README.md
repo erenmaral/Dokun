@@ -107,3 +107,6 @@ Telefona kurmak için "bilinmeyen kaynaklardan yüklemeye" izin vermek gerekir. 
 ## Yayın
 `.github/workflows/pages.yml` varsayılan daldaki `index.html` dosyasını GitHub Pages'e yayınlar.
 Bir kez: depo → Settings → Pages → Source: **GitHub Actions**.
+
+## Diller
+Arayüz 6 dilde: Türkçe, English, Español, Deutsch, Français, Português. Varsayılan dil İngilizcedir (Ayarlar > Dil'den değişir; seçim kaydedilir ve sayfa yeniden yüklenir). Metinler kodda Türkçe yazılıdır; diğer diller `i18n/<dil>.json` sözlükleriyle çalışma anında çevrilir (`i18n/keys.json` kaynak metin listesi, `python3 i18n/embed.py` sözlükleri `index.html`'e gömer). Değişken metinler `{0}` kalıplarıyla eşlenir. İngilizce adı ve tüm dillerde uygulama adı: Touch!. Mağaza metinleri: `store/listing-*.md`.

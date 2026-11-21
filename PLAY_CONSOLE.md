@@ -24,7 +24,7 @@ Hazır cevaplar: `store/data-safety.md` (Veri güvenliği, reklam, erişim, içe
 - Hedef kitle: 13 yaş ve üzeri (çocuklara yönelik değil)
 
 ## 4) Mağaza girişi
-- Metinler: `store/listing-tr.md` (ad, kısa ve tam açıklama)
+- Metinler: `store/listing-tr.md` (Türkçe), `listing-en/es/de/fr/pt.md` (diğer diller) (ad, kısa ve tam açıklama)
 - Görseller: `store/out/` altında hazır — `icon-512.png` (uygulama simgesi), `feature-graphic-1024x500.png` (öne çıkan görsel), `screenshots/` (telefon ekran görüntüleri; en az 2, en çok 8)
 - Kategori: Oyunlar → Parti. İletişim e-postası: kendi e-postan (herkese açık gösterilir).
 

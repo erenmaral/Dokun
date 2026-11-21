@@ -105,7 +105,7 @@ async function phoneShots(b, tag, vw, vh, dsf, list) {
       await p.waitForTimeout(320);                                  // bolge zemin gecisi (.15 sn) ve simge belirme animasyonu tamamlansin: dolu yesil
       await p.screenshot({ path: out('05-tepki') });
     },
-    '06-hedef-3': async () => { await startGame(p, 'Hedef Avı', 3); await p.waitForTimeout(900); await p.screenshot({ path: out('06-hedef-3') }); },
+    '06-topu-bul': async () => { await startGame(p, 'Topu Bul', 3); await p.waitForTimeout(1300); await p.screenshot({ path: out('06-topu-bul') }); },
     '07-kazanan': async () => {
       await p.evaluate(() => { __dokun.quitMatch(); __dokun.setup(2); __dokun.scores[0] = 5; __dokun.scores[1] = 2; __dokun.finish(); });
       await p.waitForTimeout(1500); await p.screenshot({ path: out('07-kazanan') });
@@ -146,7 +146,7 @@ async function phoneShots(b, tag, vw, vh, dsf, list) {
 (async () => {
   const b = await chromium.launch();
   await featureGraphic(b);
-  const ALL = ['01-menu', '02-tur-karti', '03-ritim', '04-hafiza-4', '05-tepki', '06-hedef-3', '07-kazanan', '08-oyun-sec', '09-cevrimici'];
+  const ALL = ['01-menu', '02-tur-karti', '03-ritim', '04-hafiza-4', '05-tepki', '06-topu-bul', '07-kazanan', '08-oyun-sec', '09-cevrimici'];
   await phoneShots(b, 'phone', 360, 640, 3, ALL);              // 1080x1920
   await phoneShots(b, 'tablet7', 600, 960, 2, ['01-menu', '03-ritim', '04-hafiza-4']);   // 1200x1920
   await phoneShots(b, 'tablet10', 800, 1280, 2, ['01-menu', '03-ritim', '04-hafiza-4']); // 1600x2560
