@@ -1,4 +1,4 @@
-package com.erenmaral.dokun;
+package com.dokun.partygames;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;

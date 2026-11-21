@@ -1,4 +1,4 @@
-package com.erenmaral.dokun;
+package com.dokun.partygames;
 
 import android.content.res.Configuration;
 import android.os.Bundle;

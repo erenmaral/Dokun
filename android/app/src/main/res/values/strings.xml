@@ -2,6 +2,6 @@
 <resources>
     <string name="app_name">Dokun</string>
     <string name="title_activity_main">Dokun</string>
-    <string name="package_name">com.erenmaral.dokun</string>
-    <string name="custom_url_scheme">com.erenmaral.dokun</string>
+    <string name="package_name">com.dokun.partygames</string>
+    <string name="custom_url_scheme">com.dokun.partygames</string>
 </resources>

@@ -1,4 +1,4 @@
-package com.erenmaral.dokun;
+package com.dokun.partygames;
 
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;

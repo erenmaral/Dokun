@@ -4050,7 +4050,7 @@
   }));
   $('#vol-row').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; prefs.vol = +b.dataset.v; savePrefs(); paintSettings(); music.volume(); });
   { const v = $('#ver'); if (v && /__DOKUN/.test(v.textContent)) v.textContent = 'geliştirme'; }
-  $('#rate-btn').addEventListener('click', () => { try { window.open('https://play.google.com/store/apps/details?id=com.erenmaral.dokun', '_blank', 'noopener'); } catch (_) {} });      // Play Store sayfasi (Android'de Play uygulamasinda acilir)
+  $('#rate-btn').addEventListener('click', () => { try { window.open('https://play.google.com/store/apps/details?id=com.dokun.partygames', '_blank', 'noopener'); } catch (_) {} });      // Play Store sayfasi (Android'de Play uygulamasinda acilir)
   $('#privacy-btn').addEventListener('click', () => { try { window.open('https://erenmaral.github.io/Dokun/privacy.html', '_blank', 'noopener'); } catch (_) {} });
   $('#names').addEventListener('input', e => { const i = +e.target.dataset.i; prefs.names[i] = e.target.value.trim().slice(0, 10); savePrefs(); });
   $('#lang-row').addEventListener('click', e => {                                          // dil sec: kaydet ve sayfayi yeniden yukle (menu ekranindayiz, kayip yok)

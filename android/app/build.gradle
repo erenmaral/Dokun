@@ -8,10 +8,10 @@ def dokunKeystorePass = System.getenv('DOKUN_KEYSTORE_PASSWORD')
 def dokunHasKeystore = dokunKeystore && dokunKeystorePass && file(dokunKeystore).exists()
 
 android {
-    namespace = "com.erenmaral.dokun"
+    namespace = "com.dokun.partygames"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.erenmaral.dokun"
+        applicationId "com.dokun.partygames"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode dokunVersionCode
